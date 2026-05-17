@@ -4,6 +4,7 @@ from enum import StrEnum
 class ERPType(StrEnum):
     ODOO = "odoo"
     ERPNEXT = "erpnext"
+    FAKE = "fake"
     MOCK = "mock"
 
 
