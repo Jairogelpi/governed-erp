@@ -3,10 +3,33 @@ from uuid import uuid4
 
 from sqlalchemy.orm import Session
 
-from erpguard.canonical.enums import InvariantSeverity, InvariantStatus
+from erpguard.canonical.enums import ERPType, InvariantSeverity, InvariantStatus
 from erpguard.core.results import PreflightResult
-from erpguard.db.models import AuditEvent, InvariantResult, PreflightCase
+from erpguard.db.models import AuditEvent, Connection, InvariantResult, PreflightCase
 from erpguard.policies.results import PolicyIssue
+
+
+def create_connection(session: Session, name: str, erp_type: ERPType, config: dict, status: str = "created") -> Connection:
+    # TODO: Encrypt connection secrets or move them to a dedicated secret manager.
+    connection = Connection(
+        id=f"conn_{uuid4().hex}",
+        erp_type=erp_type.value,
+        name=name,
+        config_json=_to_json(config),
+        status=status,
+    )
+    session.add(connection)
+    session.commit()
+    session.refresh(connection)
+    return connection
+
+
+def get_connection(session: Session, connection_id: str) -> Connection | None:
+    return session.get(Connection, connection_id)
+
+
+def list_connections(session: Session) -> list[Connection]:
+    return list(session.query(Connection).order_by(Connection.created_at.desc()).all())
 
 
 def create_preflight_case(session: Session, result: PreflightResult, connection_id: str = "fake") -> PreflightCase:
