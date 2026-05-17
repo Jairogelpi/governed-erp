@@ -94,5 +94,23 @@ def get_preflight_case(session: Session, case_id: str) -> PreflightCase | None:
     return session.get(PreflightCase, case_id)
 
 
+def list_invariant_results(session: Session, case_id: str) -> list[InvariantResult]:
+    return list(
+        session.query(InvariantResult)
+        .filter(InvariantResult.preflight_case_id == case_id)
+        .order_by(InvariantResult.created_at.asc())
+        .all()
+    )
+
+
+def list_audit_events(session: Session, case_id: str) -> list[AuditEvent]:
+    return list(
+        session.query(AuditEvent)
+        .filter(AuditEvent.case_id == case_id)
+        .order_by(AuditEvent.created_at.asc())
+        .all()
+    )
+
+
 def _to_json(value) -> str:
     return json.dumps(value, default=str)

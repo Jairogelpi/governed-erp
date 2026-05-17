@@ -1,6 +1,9 @@
+import json
+
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
+from apps.api.schemas.audit import PreflightCaseDetailResponse
 from apps.api.schemas.preflight import PreflightRequest, PreflightResponse
 from erpguard.adapters.factory import create_adapter_from_connection, get_adapter
 from erpguard.canonical.enums import CanonicalAction, ERPType
@@ -11,6 +14,8 @@ from erpguard.db.repositories import (
     create_invariant_results_from_policy_issues,
     create_preflight_case,
     get_connection,
+    get_preflight_case,
+    list_invariant_results,
 )
 from erpguard.db.session import SessionLocal, init_db
 
@@ -37,6 +42,40 @@ def preflight(request: PreflightRequest):
     )
     _persist_preflight_result(result, connection_id=connection_id)
     return _to_response(result)
+
+
+@router.get("/preflight/{preflight_id}", response_model=PreflightCaseDetailResponse)
+def get_preflight(preflight_id: str):
+    init_db()
+    session = SessionLocal()
+    try:
+        case = get_preflight_case(session, preflight_id)
+        if case is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "preflight_not_found",
+                        "message": f"Preflight case '{preflight_id}' not found.",
+                    }
+                },
+            )
+        invariants = list_invariant_results(session, preflight_id)
+        return {
+            "preflight_id": case.id,
+            "actor": _json_loads(case.actor_json) or {},
+            "action": _json_loads(case.action_json) or {},
+            "canonical_action": case.canonical_action,
+            "canonical_object": case.canonical_object,
+            "decision": case.decision,
+            "risk_level": case.risk_level,
+            "summary": case.summary,
+            "simulation": _json_loads(case.simulation_json),
+            "invariant_results": [_invariant_to_dict(row) for row in invariants],
+            "created_at": case.created_at.isoformat(),
+        }
+    finally:
+        session.close()
 
 
 def _resolve_adapter(request: PreflightRequest):
@@ -159,3 +198,23 @@ def _to_response(result) -> dict:
         "policy_id": result.policy_id,
         "policy_version": result.policy_version,
     }
+
+
+def _invariant_to_dict(row) -> dict:
+    return {
+        "id": row.id,
+        "preflight_case_id": row.preflight_case_id,
+        "invariant_id": row.invariant_id,
+        "invariant_type": row.invariant_type,
+        "status": row.status,
+        "severity": row.severity,
+        "message": row.message,
+        "evidence": _json_loads(row.evidence_json),
+        "created_at": row.created_at.isoformat(),
+    }
+
+
+def _json_loads(value: str | None):
+    if not value:
+        return None
+    return json.loads(value)

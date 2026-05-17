@@ -50,6 +50,18 @@ curl -X POST http://127.0.0.1:8000/v1/preflight ^
 
 The older `erp_type: "fake"` preflight request is still supported for local development, but `connection_id` is the recommended flow.
 
+Retrieve preflight evidence:
+
+```bash
+curl http://127.0.0.1:8000/v1/preflight/pf_...
+```
+
+Retrieve the audit trail:
+
+```bash
+curl http://127.0.0.1:8000/v1/audit/pf_...
+```
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
