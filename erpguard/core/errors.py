@@ -12,3 +12,7 @@ class ObjectNotFoundError(ERPGuardError):
 
 class AdapterHealthCheckError(ERPGuardError):
     """Raised when an adapter health check fails."""
+
+
+class PolicyNotFoundError(ERPGuardError):
+    """Raised when a requested policy is not registered."""
