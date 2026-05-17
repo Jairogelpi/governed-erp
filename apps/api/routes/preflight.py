@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from apps.api.schemas.preflight import PreflightRequest, PreflightResponse
 from erpguard.adapters.factory import get_adapter
 from erpguard.canonical.enums import CanonicalAction, ERPType
-from erpguard.core.errors import AdapterNotImplementedError
+from erpguard.core.errors import AdapterConfigurationError, AdapterNotImplementedError
 from erpguard.core.preflight import PREFLIGHT_CREATED, PREFLIGHT_DECIDED, run_preflight
 from erpguard.db.repositories import (
     create_audit_event,
@@ -24,6 +24,11 @@ def preflight(request: PreflightRequest):
 
     try:
         adapter = get_adapter(erp_type)
+    except AdapterConfigurationError as exc:
+        return JSONResponse(
+            status_code=400,
+            content={"error": {"code": "adapter_configuration_error", "message": str(exc), "details": {}}},
+        )
     except AdapterNotImplementedError as exc:
         return JSONResponse(
             status_code=501,

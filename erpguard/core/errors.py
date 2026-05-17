@@ -14,6 +14,14 @@ class AdapterHealthCheckError(ERPGuardError):
     """Raised when an adapter health check fails."""
 
 
+class AdapterConfigurationError(ERPGuardError):
+    """Raised when an adapter cannot be built because required config is missing."""
+
+
+class AdapterAuthenticationError(ERPGuardError):
+    """Raised when an adapter cannot authenticate with its ERP."""
+
+
 class PolicyNotFoundError(ERPGuardError):
     """Raised when a requested policy is not registered."""
 

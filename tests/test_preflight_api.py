@@ -62,15 +62,15 @@ def test_preflight_missing_target_fails_closed_with_block():
     assert "missing" in body["summary"]
 
 
-def test_preflight_unsupported_erp_type_returns_controlled_error():
+def test_preflight_odoo_without_config_returns_controlled_error():
     client = TestClient(app)
 
     response = client.post("/v1/preflight", json=make_payload("so_valid", erp_type="odoo"))
 
-    assert response.status_code == 501
+    assert response.status_code == 400
     body = response.json()
-    assert body["error"]["code"] == "adapter_not_implemented"
-    assert "odoo" in body["error"]["message"]
+    assert body["error"]["code"] == "adapter_configuration_error"
+    assert "Odoo" in body["error"]["message"]
 
 
 def test_preflight_unknown_erp_type_returns_controlled_error():
