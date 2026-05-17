@@ -9,7 +9,8 @@ class PreflightActionRequest(BaseModel):
 
 
 class PreflightRequest(BaseModel):
-    erp_type: str
+    connection_id: str | None = None
+    erp_type: str | None = None
     actor: dict[str, Any]
     action: PreflightActionRequest
     policy_id: str = "formula_guard"

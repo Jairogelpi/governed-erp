@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from apps.api.schemas.preflight import PreflightRequest, PreflightResponse
-from erpguard.adapters.factory import get_adapter
+from erpguard.adapters.factory import create_adapter_from_connection, get_adapter
 from erpguard.canonical.enums import CanonicalAction, ERPType
 from erpguard.core.errors import AdapterConfigurationError, AdapterNotImplementedError
 from erpguard.core.preflight import PREFLIGHT_CREATED, PREFLIGHT_DECIDED, run_preflight
@@ -10,6 +10,7 @@ from erpguard.db.repositories import (
     create_audit_event,
     create_invariant_results_from_policy_issues,
     create_preflight_case,
+    get_connection,
 )
 from erpguard.db.session import SessionLocal, init_db
 
@@ -18,22 +19,10 @@ router = APIRouter(prefix="/v1", tags=["preflight"])
 
 @router.post("/preflight", response_model=PreflightResponse)
 def preflight(request: PreflightRequest):
-    erp_type = _parse_erp_type(request.erp_type)
-    if isinstance(erp_type, JSONResponse):
-        return erp_type
-
-    try:
-        adapter = get_adapter(erp_type)
-    except AdapterConfigurationError as exc:
-        return JSONResponse(
-            status_code=400,
-            content={"error": {"code": "adapter_configuration_error", "message": str(exc), "details": {}}},
-        )
-    except AdapterNotImplementedError as exc:
-        return JSONResponse(
-            status_code=501,
-            content={"error": {"code": "adapter_not_implemented", "message": str(exc), "details": {}}},
-        )
+    adapter_result = _resolve_adapter(request)
+    if isinstance(adapter_result, JSONResponse):
+        return adapter_result
+    adapter, connection_id = adapter_result
 
     canonical_action = _parse_canonical_action(request.action.canonical_action)
     if isinstance(canonical_action, JSONResponse):
@@ -46,8 +35,70 @@ def preflight(request: PreflightRequest):
         target_id=request.action.target_id,
         policy_id=request.policy_id,
     )
-    _persist_preflight_result(result)
+    _persist_preflight_result(result, connection_id=connection_id)
     return _to_response(result)
+
+
+def _resolve_adapter(request: PreflightRequest):
+    if request.connection_id:
+        init_db()
+        session = SessionLocal()
+        try:
+            connection = get_connection(session, request.connection_id)
+            if connection is None:
+                return JSONResponse(
+                    status_code=404,
+                    content={
+                        "error": {
+                            "code": "connection_not_found",
+                            "message": f"Connection '{request.connection_id}' not found.",
+                            "details": {"connection_id": request.connection_id},
+                        }
+                    },
+                )
+            try:
+                return create_adapter_from_connection(connection), connection.id
+            except AdapterConfigurationError as exc:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": {"code": "adapter_configuration_error", "message": str(exc), "details": {}}},
+                )
+            except AdapterNotImplementedError as exc:
+                return JSONResponse(
+                    status_code=501,
+                    content={"error": {"code": "adapter_not_implemented", "message": str(exc), "details": {}}},
+                )
+        finally:
+            session.close()
+
+    if not request.erp_type:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": {
+                    "code": "connection_or_erp_type_required",
+                    "message": "Either connection_id or erp_type is required.",
+                    "details": {},
+                }
+            },
+        )
+
+    erp_type = _parse_erp_type(request.erp_type)
+    if isinstance(erp_type, JSONResponse):
+        return erp_type
+
+    try:
+        return get_adapter(erp_type), erp_type.value
+    except AdapterConfigurationError as exc:
+        return JSONResponse(
+            status_code=400,
+            content={"error": {"code": "adapter_configuration_error", "message": str(exc), "details": {}}},
+        )
+    except AdapterNotImplementedError as exc:
+        return JSONResponse(
+            status_code=501,
+            content={"error": {"code": "adapter_not_implemented", "message": str(exc), "details": {}}},
+        )
 
 
 def _parse_erp_type(value: str) -> ERPType | JSONResponse:
@@ -82,11 +133,11 @@ def _parse_canonical_action(value: str) -> CanonicalAction | JSONResponse:
         )
 
 
-def _persist_preflight_result(result) -> None:
+def _persist_preflight_result(result, connection_id: str) -> None:
     init_db()
     session = SessionLocal()
     try:
-        case = create_preflight_case(session, result)
+        case = create_preflight_case(session, result, connection_id=connection_id)
         create_invariant_results_from_policy_issues(session, case.id, result.issues)
         create_audit_event(session, case.id, PREFLIGHT_CREATED, {"case_id": case.id})
         create_audit_event(session, case.id, PREFLIGHT_DECIDED, result.model_dump(mode="json"))

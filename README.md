@@ -40,6 +40,16 @@ curl -X POST http://127.0.0.1:8000/v1/connections ^
 
 Responses redact `api_key`. Do not commit real Odoo credentials to Git.
 
+Run preflight using a stored connection:
+
+```bash
+curl -X POST http://127.0.0.1:8000/v1/preflight ^
+  -H "Content-Type: application/json" ^
+  -d "{\"connection_id\":\"conn_...\",\"actor\":{\"type\":\"user\",\"id\":\"user_1\",\"display_name\":\"Test User\"},\"action\":{\"canonical_action\":\"validate_formula\",\"target_id\":\"so_formula_mismatch\"},\"policy_id\":\"formula_guard\"}"
+```
+
+The older `erp_type: "fake"` preflight request is still supported for local development, but `connection_id` is the recommended flow.
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
