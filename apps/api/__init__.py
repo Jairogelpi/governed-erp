@@ -1,0 +1,1 @@
+"""ERPGuard API application."""
