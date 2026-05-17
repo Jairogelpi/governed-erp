@@ -16,3 +16,11 @@ class AdapterHealthCheckError(ERPGuardError):
 
 class PolicyNotFoundError(ERPGuardError):
     """Raised when a requested policy is not registered."""
+
+
+class PolicyLoadError(ERPGuardError):
+    """Raised when a policy file cannot be loaded."""
+
+
+class PolicyValidationError(ERPGuardError):
+    """Raised when a policy file fails schema validation."""

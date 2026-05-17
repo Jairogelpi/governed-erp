@@ -2,6 +2,7 @@ from erpguard.canonical.enums import PreflightDecision, RiskLevel
 from erpguard.canonical.objects import SalesOrder
 from erpguard.core.errors import PolicyNotFoundError
 from erpguard.invariants.formula import validate_sales_order_formulas
+from erpguard.policies.loader import load_formula_guard_policy
 from erpguard.policies.results import PolicyEvaluationResult, PolicyIssue
 
 FORMULA_GUARD_POLICY_ID = "formula_guard"
@@ -9,6 +10,7 @@ FORMULA_GUARD_POLICY_VERSION = "0.1.0"
 
 
 def evaluate_formula_guard_policy(sales_order: SalesOrder) -> PolicyEvaluationResult:
+    policy = load_formula_guard_policy()
     formula_summary = validate_sales_order_formulas(sales_order)
     evidence = {"formula_summary": formula_summary.model_dump(mode="json")}
 
@@ -20,8 +22,8 @@ def evaluate_formula_guard_policy(sales_order: SalesOrder) -> PolicyEvaluationRe
             issues=[],
             warnings=[],
             evidence=evidence,
-            policy_id=FORMULA_GUARD_POLICY_ID,
-            policy_version=FORMULA_GUARD_POLICY_VERSION,
+            policy_id=policy.policy,
+            policy_version=policy.version,
         )
 
     issues = [
@@ -37,14 +39,14 @@ def evaluate_formula_guard_policy(sales_order: SalesOrder) -> PolicyEvaluationRe
         for error in formula_summary.errors
     ]
     return PolicyEvaluationResult(
-        decision=PreflightDecision.BLOCK,
-        risk_level=RiskLevel.R3,
+        decision=policy.decision_on_fail,
+        risk_level=policy.risk_level_on_fail,
         summary=f"Sales order is blocked by Formula Guard with {formula_summary.error_count} issue(s).",
         issues=issues,
         warnings=[],
         evidence=evidence,
-        policy_id=FORMULA_GUARD_POLICY_ID,
-        policy_version=FORMULA_GUARD_POLICY_VERSION,
+        policy_id=policy.policy,
+        policy_version=policy.version,
     )
 
 

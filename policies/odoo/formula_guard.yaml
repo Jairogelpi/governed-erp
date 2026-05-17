@@ -1,0 +1,22 @@
+policy: formula_guard
+version: 0.1.0
+status: active
+applies_to:
+  canonical_object: SalesOrder
+  canonical_action: validate_formula
+description: Validates formula quantities against product capacity for sales order lines.
+risk_level_on_fail: R3
+decision_on_fail: block
+checks:
+  - id: formula_exists_for_capacity_products
+    type: business
+    severity: blocking
+    description: Products with capacity_ml must have at least one formula line.
+  - id: formula_ml_per_unit_matches_capacity
+    type: business
+    severity: blocking
+    description: The sum of formula ml_per_unit values must equal product capacity_ml.
+  - id: formula_total_ml_matches_quantity
+    type: business
+    severity: blocking
+    description: The sum of formula total ml values must equal capacity_ml times ordered quantity.
