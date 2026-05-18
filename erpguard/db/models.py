@@ -145,3 +145,43 @@ class SkillRunStep(Base):
     output_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class RecordingSession(Base):
+    __tablename__ = "recording_sessions"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    erp_type: Mapped[str] = mapped_column(Text, nullable=False)
+    target_base_url: Mapped[str] = mapped_column(Text, nullable=False)
+    created_by_actor_json: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+        nullable=False,
+    )
+
+
+class RecordingEvent(Base):
+    __tablename__ = "recording_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    recording_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    event_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    page_title: Mapped[str | None] = mapped_column(Text, nullable=True)
+    element_role: Mapped[str | None] = mapped_column(Text, nullable=True)
+    element_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    element_label: Mapped[str | None] = mapped_column(Text, nullable=True)
+    selector: Mapped[str | None] = mapped_column(Text, nullable=True)
+    input_value: Mapped[str | None] = mapped_column(Text, nullable=True)
+    before_text_snapshot: Mapped[str | None] = mapped_column(Text, nullable=True)
+    after_text_snapshot: Mapped[str | None] = mapped_column(Text, nullable=True)
+    screenshot_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+    metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

@@ -100,6 +100,22 @@ curl -X POST http://127.0.0.1:8000/v1/skills/skill_.../run-ui ^
   -d "{\"inputs\":{\"order_reference\":\"SO-FORMULA-MISMATCH\"},\"runtime\":{\"base_url\":\"http://127.0.0.1:8000\"}}"
 ```
 
+Create a recording session:
+
+```bash
+curl -X POST http://127.0.0.1:8000/v1/recordings ^
+  -H "Content-Type: application/json" ^
+  -d "{\"name\":\"Review order formula from Fake ERP\",\"description\":\"User demonstrates how to open a sales order and review formula data.\",\"erp_type\":\"fake\",\"target_base_url\":\"http://127.0.0.1:8000\",\"actor\":{\"type\":\"user\",\"id\":\"user_1\",\"display_name\":\"Test User\"}}"
+```
+
+Add a recording event:
+
+```bash
+curl -X POST http://127.0.0.1:8000/v1/recordings/recording_.../events ^
+  -H "Content-Type: application/json" ^
+  -d "{\"event_type\":\"click\",\"url\":\"http://127.0.0.1:8000/fake-erp/sales/orders\",\"page_title\":\"Fake ERP Sales Orders\",\"element_role\":\"link\",\"element_text\":\"Open SO-FORMULA-MISMATCH\",\"selector\":\"[data-testid='open-order-SO-FORMULA-MISMATCH']\",\"before_text_snapshot\":\"Sales Orders...\",\"after_text_snapshot\":\"Order SO-FORMULA-MISMATCH...\"}"
+```
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
@@ -129,6 +145,7 @@ Implemented now:
 - skill registry MVP
 - deterministic Skill Run endpoint
 - Playwright browser runtime for Fake ERP
+- Recording Session API
 - read-only Odoo adapter skeleton
 - Formula Guard policy evaluation for `confirm_sales_order`
 - preflight persistence and audit retrieval

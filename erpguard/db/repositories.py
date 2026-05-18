@@ -6,7 +6,18 @@ from sqlalchemy.orm import Session
 
 from erpguard.canonical.enums import ERPType, InvariantSeverity, InvariantStatus
 from erpguard.core.results import PreflightResult
-from erpguard.db.models import AuditEvent, Connection, InvariantResult, PreflightCase, Skill, SkillRun, SkillRunStep, SkillVersion
+from erpguard.db.models import (
+    AuditEvent,
+    Connection,
+    InvariantResult,
+    PreflightCase,
+    RecordingEvent,
+    RecordingSession,
+    Skill,
+    SkillRun,
+    SkillRunStep,
+    SkillVersion,
+)
 from erpguard.policies.results import PolicyIssue
 
 
@@ -260,6 +271,104 @@ def list_skill_run_steps(session: Session, skill_run_id: str) -> list[SkillRunSt
         .order_by(SkillRunStep.created_at.asc())
         .all()
     )
+
+
+def create_recording_session(
+    session: Session,
+    name: str,
+    description: str | None,
+    erp_type: str,
+    target_base_url: str,
+    created_by_actor_json: str,
+    status: str = "recording",
+) -> RecordingSession:
+    recording_session = RecordingSession(
+        id=f"recording_{uuid4().hex}",
+        name=name,
+        description=description,
+        status=status,
+        erp_type=erp_type,
+        target_base_url=target_base_url,
+        created_by_actor_json=created_by_actor_json,
+    )
+    session.add(recording_session)
+    session.commit()
+    session.refresh(recording_session)
+    return recording_session
+
+
+def get_recording_session(session: Session, recording_session_id: str) -> RecordingSession | None:
+    return session.get(RecordingSession, recording_session_id)
+
+
+def list_recording_sessions(session: Session) -> list[RecordingSession]:
+    return list(session.query(RecordingSession).order_by(RecordingSession.created_at.desc()).all())
+
+
+def add_recording_event(
+    session: Session,
+    recording_session_id: str,
+    event_type: str,
+    url: str | None = None,
+    page_title: str | None = None,
+    element_role: str | None = None,
+    element_text: str | None = None,
+    element_label: str | None = None,
+    selector: str | None = None,
+    input_value: str | None = None,
+    before_text_snapshot: str | None = None,
+    after_text_snapshot: str | None = None,
+    screenshot_path: str | None = None,
+    metadata_json: str | None = None,
+    event_index: int | None = None,
+) -> RecordingEvent:
+    if event_index is None:
+        event_index = (
+            session.query(RecordingEvent)
+            .filter(RecordingEvent.recording_session_id == recording_session_id)
+            .count()
+            + 1
+        )
+    event = RecordingEvent(
+        id=f"recording_event_{uuid4().hex}",
+        recording_session_id=recording_session_id,
+        event_index=event_index,
+        event_type=event_type,
+        url=url,
+        page_title=page_title,
+        element_role=element_role,
+        element_text=element_text,
+        element_label=element_label,
+        selector=selector,
+        input_value=input_value,
+        before_text_snapshot=before_text_snapshot,
+        after_text_snapshot=after_text_snapshot,
+        screenshot_path=screenshot_path,
+        metadata_json=metadata_json,
+    )
+    session.add(event)
+    session.commit()
+    session.refresh(event)
+    return event
+
+
+def list_recording_events(session: Session, recording_session_id: str) -> list[RecordingEvent]:
+    return list(
+        session.query(RecordingEvent)
+        .filter(RecordingEvent.recording_session_id == recording_session_id)
+        .order_by(RecordingEvent.event_index.asc(), RecordingEvent.created_at.asc())
+        .all()
+    )
+
+
+def finish_recording_session(session: Session, recording_session_id: str, status: str = "finished") -> RecordingSession | None:
+    recording_session = session.get(RecordingSession, recording_session_id)
+    if recording_session is None:
+        return None
+    recording_session.status = status
+    session.commit()
+    session.refresh(recording_session)
+    return recording_session
 
 
 def _to_json(value) -> str:
