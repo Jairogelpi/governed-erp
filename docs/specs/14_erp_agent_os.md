@@ -1,450 +1,277 @@
 # 14 ERP Agent OS Strategic Vision
 
-**Status:** Parent-level product direction child spec  
+**Status:** Parent product positioning spec  
 **Date:** May 18, 2026  
-**Relationship to ERPGuard:** ERPGuard remains the safety kernel. Current ERPGuard code must not be removed or rewritten as part of this strategy shift.
+**Relationship to ERPGuard:** ERPGuard remains the safety kernel. ERP Agent OS is now the parent product built around ERPGuard.
 
-ERP Agent OS is a web platform where a business owner connects any ERP, talks to an AI agent, creates or modifies ERP automations in natural language, validates them through ERPGuard, compiles them into reusable skills, stores them in a Skill Registry, exposes them as MCP-style safe tools, and executes repeated runs with zero or minimal LLM tokens.
+ERP Agent OS is a universal platform where business users create ERP automations in natural language; the system verifies them through ERPGuard, compiles them into reusable skills, stores them in a Skill Registry, exposes them as safe MCP-style tools, and executes repeated runs with zero or minimal LLM tokens.
 
-The product sentence is:
-
-> Create automations for your ERP by talking to an agent. ERP Agent OS converts them into safe skills that later execute with minimum token cost.
-
-The differentiation centers on five pillars:
+The differentiation centers on four pillars:
 
 1. Minimum token cost.
 2. Universal multi-ERP architecture.
 3. Extreme ease of use for non-programmers.
-4. Deep ERP integration.
-5. Safety through ERPGuard.
+4. Deep ERP integration through adapters and semantic guards.
 
-## 1. Product Vision
+## 1. Product Thesis
 
-ERP Agent OS is not only an ERP safety checker. It is a state-of-the-art operating layer for AI-created ERP automation.
+AI should be used to create and modify automations, not to pay token cost on every repeated execution.
 
-The target experience:
+ERP Agent OS turns natural-language ERP automation requests into reusable, validated, approved, deterministic skills. The LLM is valuable at design time: understanding intent, asking clarifying questions, drafting workflows, suggesting field mappings, generating tests, repairing broken mappings, and explaining failures. Repeated operational runs should not require the LLM to reason from scratch.
 
-```text
-Business owner
--> Web App
--> Connects ERP
--> Agent understands the business
--> Agent creates or modifies automations
--> ERPGuard verifies safety and impact
--> Skill Compiler turns the automation into a skill
--> Skill Registry stores the versioned skill
--> MCP Gateway exposes it as a safe tool
--> Deterministic Runtime executes it without using the LLM every time
--> Business owner edits automations and memory in natural language
-```
-
-ERP Agent OS should let a user say:
-
-> "When an order contains perfume products, check formula, stock, and lots before manufacturing. If something is wrong, warn me and block unsafe manufacturing."
-
-The system should transform that request into a reusable, tested, approved, auditable skill.
-
-The key thesis is:
-
-> AI is used to create, modify, repair, and explain automations. Repeated execution runs through deterministic runtime.
-
-This is the difference between an agent that reasons from scratch every time and a system that learns a process once, compiles it, governs it, and reuses it cheaply.
-
-## 2. User Journey
-
-The primary user is a business owner or operator who understands the business process but does not want to write YAML, Python, BPMN, or adapter code.
-
-### Onboarding
-
-1. The user enters the Web App.
-2. The user selects an ERP type, starting with Odoo.
-3. The user creates a connection.
-4. The system performs a safe read-only diagnosis.
-5. The system builds initial Business Memory.
-
-Example diagnosis:
+The product thesis is:
 
 ```text
-Detected:
-- 4,283 products
-- 1,120 customers
-- 312 recent sales orders
-- 18 custom fields
-- 7 automated actions
-- 5 manufacturing-related processes
-- 3 possible formula consistency risks
+Use AI to create the automation once.
+Use deterministic runtime to execute it many times.
+Use ERPGuard to verify that it is safe before it touches the ERP.
 ```
 
-### Automation Creation
+ERPGuard remains the mandatory safety kernel inside this larger product. It checks semantic ERP risk, evaluates guards, applies policies, blocks unsafe actions, requests approval when needed, and records audit evidence.
 
-The user writes:
-
-> "Quiero que cuando un pedido tenga productos de perfume, se revise la formula, stock y lotes antes de que nadie lo mande a fabricar."
-
-The agent responds with a structured proposal:
-
-```text
-I understand that you want a preflight automation before manufacturing.
-
-This skill will:
-1. Read the sales order.
-2. Detect products with capacity in ml.
-3. Validate formula lines.
-4. Check stock.
-5. Check lot traceability.
-6. Block manufacturing if formula validation fails.
-7. Request approval if only stock is missing.
-8. Produce a report for the responsible user.
-```
-
-The agent asks only necessary clarification questions:
-
-- Is `x_studio_capacidad_ml` the capacity field?
-- Is `x_sale_formula_line` the formula model?
-- Should formula mismatch always block?
-- Should stock shortage block or request approval?
-
-### Preview
-
-Before activation, the system runs a dry preview:
-
-```text
-Preview:
-- 38 orders would pass.
-- 6 orders would be blocked by formula mismatch.
-- 9 orders would require approval because of stock shortage.
-- 0 write actions would be executed in this preview.
-```
-
-### Activation
-
-After human approval, the skill becomes active.
-
-From then on, repeated executions use deterministic runtime by default. The LLM is not used unless the user modifies the skill, asks for explanation, or the runtime encounters an unknown failure.
-
-## 3. Architecture
+## 2. Architecture
 
 ```text
 Business User
--> Web App
 -> ERP Agent Builder
--> Business Memory
 -> Process Builder
 -> ERPGuard Safety Kernel
--> Guard Builder
 -> Skill Compiler
 -> Skill Registry
 -> Semantic Skill Discovery
 -> MCP Gateway
 -> Deterministic Runtime
--> ERP Adapter SDK
+-> ERP Adapter
 -> ERP
--> Audit Store
 ```
 
-### Universal Layer
+### Business User
 
-The universal layer is shared across ERPs:
-
-- Web App;
-- natural language automation builder;
-- Business Memory;
-- skill package format;
-- workflow runtime;
-- policy and guard engine;
-- Skill Registry;
-- Semantic Skill Discovery;
-- MCP Gateway;
-- deterministic runtime;
-- audit store.
-
-### ERP-Specific Layer
-
-ERP depth comes from adapters and packs:
-
-- Odoo adapter;
-- ERPNext adapter;
-- SAP adapter;
-- Dynamics adapter;
-- NetSuite adapter;
-- object mappings;
-- field mappings;
-- process packs;
-- domain packs;
-- industry packs.
-
-The architecture promise is:
-
-> Universal by architecture, deep by adapter.
-
-## 4. Components
-
-### Web App
-
-The Web App is the business-facing control plane.
-
-It should include:
-
-- onboarding;
-- ERP connection setup;
-- chat with the agent;
-- automation creation;
-- automation panel;
-- memory panel;
-- preview and tests;
-- approvals;
-- audit panel.
-
-Business users should not see YAML, Python, MCP internals, or adapter code.
+The business user describes the desired ERP automation in natural language. They should not need to understand YAML, Python, MCP, Odoo XML-RPC, SAP APIs, workflow engines, or policy DSL internals.
 
 ### ERP Agent Builder
 
-The ERP Agent Builder is the conversational layer.
-
-Responsibilities:
-
-- understand business requests;
-- ask clarification questions;
-- propose automations;
-- modify existing skills;
-- explain impact;
-- route generated workflows through ERPGuard;
-- avoid executing raw ERP actions directly.
-
-### Business Memory
-
-Business Memory stores organization-specific context.
-
-It may include:
-
-- business description;
-- internal rules;
-- owner preferences;
-- glossary of ERP fields;
-- recurring processes;
-- historical decisions;
-- approved naming conventions;
-- known exceptions;
-- preferred approval thresholds.
-
-Business Memory helps the agent create better automations without repeatedly asking the same questions.
+ERP Agent Builder is the conversational creation layer. It understands the business request, asks clarification questions, proposes an automation, explains expected behavior, and sends the structured draft through the rest of the platform.
 
 ### Process Builder
 
-Process Builder converts intent into a structured workflow draft.
-
-Example:
-
-```yaml
-trigger:
-  event: sales_order_created
-
-steps:
-  - load_sales_order
-  - validate_formula
-  - check_stock
-  - check_lots
-  - if: formula_mismatch
-    then:
-      - block_manufacturing
-      - produce_report
-  - if: stock_shortage
-    then:
-      - request_approval
-```
+Process Builder converts the user intent into a structured workflow draft: triggers, inputs, steps, conditions, expected outputs, required ERP objects, required guards, and approval points.
 
 ### ERPGuard Safety Kernel
 
-ERPGuard is the mandatory safety layer.
-
-Responsibilities:
-
-- canonical object validation;
-- preflight;
-- semantic guard evaluation;
-- risk classification;
-- policy decisions;
-- approval requirements;
-- fail-closed behavior;
-- audit evidence.
-
-Every skill must pass through ERPGuard before risky execution.
-
-### Guard Builder
-
-Guard Builder lets non-developers configure guards later through templates, field mapping, safe conditions, decision tables, previews, tests, approval, and versioning.
-
-Developers may still create custom invariant functions for advanced cases, but business users and consultants should configure most guards without code.
+ERPGuard verifies the proposed automation and every risky run. It provides canonical model validation, semantic guard evaluation, risk classification, approval requirements, fail-closed behavior, and audit evidence.
 
 ### Skill Compiler
 
-Skill Compiler turns a validated workflow into a versioned executable skill package.
-
-Responsibilities:
-
-- generate `skill.yaml`;
-- generate `workflow.yaml`;
-- generate guard references;
-- generate permissions;
-- generate tests;
-- generate input and output schemas;
-- generate MCP tool definition;
-- generate audit configuration;
-- mark whether LLM is required at runtime.
+Skill Compiler converts a validated process into a reusable skill package with schemas, policies, guards, permissions, tests, examples, MCP tool metadata, and audit configuration.
 
 ### Skill Registry
 
-Skill Registry stores and versions reusable automations.
-
-Responsibilities:
-
-- skill storage;
-- lifecycle state;
-- semantic index metadata;
-- owner and approval metadata;
-- version history;
-- rollback;
-- activation and deactivation;
-- permissions;
-- audit linkage.
+Skill Registry stores skill versions, lifecycle state, ownership, approval metadata, permissions, examples, semantic metadata, and audit links.
 
 ### Semantic Skill Discovery
 
-Semantic Skill Discovery prevents loading every skill into the LLM context.
-
-It should retrieve only the top K relevant skills based on:
-
-- user request;
-- skill description;
-- input and output schema;
-- examples;
-- ERP type;
-- permissions;
-- active status;
-- business domain.
+Semantic Skill Discovery retrieves the relevant approved skills for a user request or runtime context without loading the full registry into the LLM context.
 
 ### MCP Gateway
 
-MCP Gateway exposes approved skills as MCP-style tools.
-
-It must expose safe ERP skills, not raw ERP operations.
-
-Examples:
-
-- `safe_validate_sale_order`;
-- `safe_prepare_purchase_draft`;
-- `safe_import_products_preflight`;
-- `safe_explain_access_issue`.
+MCP Gateway exposes approved ERP skills as MCP-style tools. It does not expose raw ERP methods by default.
 
 ### Deterministic Runtime
 
-Deterministic Runtime executes approved skills without LLM reasoning on every run.
+Deterministic Runtime executes approved skills without LLM reasoning on every run. It validates inputs, loads the skill version, calls ERPGuard, uses ERP adapters, produces structured outputs, and writes audit events.
 
-Responsibilities:
+### ERP Adapter
 
-- validate input;
-- load skill version;
-- execute workflow steps;
-- call ERPGuard;
-- call ERP adapters;
-- enforce idempotency;
-- record runtime events;
-- fail closed on unknown states.
+ERP Adapter translates canonical ERP objects, fields, capabilities, permissions, and actions into the native ERP implementation.
 
-### ERP Adapter SDK
+## 3. Differentiation
 
-ERP Adapter SDK lets ERP Agent OS connect to multiple ERPs through a common interface.
+### n8n, Make, Zapier
 
-Responsibilities:
+n8n, Make, and Zapier automate workflows and integrations.
 
-- schema discovery;
-- object mapping;
-- field mapping;
-- permission inspection;
-- safe read capabilities;
-- controlled write capabilities later;
-- native error normalization;
-- capability discovery;
-- test fakes and mocks.
+ERP Agent OS compiles safe ERP skills. It understands ERP semantics through canonical objects, adapters, and guards. It does not only move data between apps; it verifies whether an ERP operation should be allowed, warned, blocked, or routed through approval.
 
-### Audit Store
+Key difference:
 
-Audit Store records both design-time and runtime evidence.
+```text
+n8n automates workflows.
+ERP Agent OS compiles safe ERP skills.
+```
 
-It should answer:
+### UiPath and Power Automate
 
-- who requested the automation;
-- who approved it;
-- which skill version ran;
-- what input was used;
-- what ERP objects were read;
-- what guards ran;
-- what decision was made;
-- what actions were allowed or blocked;
-- whether the LLM was used;
-- what output was produced.
+UiPath and Power Automate automate tasks, screens, scripts, and enterprise workflows.
+
+ERP Agent OS focuses on semantically safe ERP automation. Its core artifact is not a bot or a flow, but a reusable ERP skill with guards, permissions, tests, audit configuration, and deterministic runtime behavior.
+
+### SAP Joule and Microsoft Copilot
+
+SAP Joule and Microsoft Copilot are powerful vendor-specific ERP assistants.
+
+ERP Agent OS is vendor-neutral. It starts with Odoo, then ERPNext, then partial SAP, Dynamics, and NetSuite adapters. The universal layer is the skill model, safety kernel, registry, MCP gateway, deterministic runtime, and canonical ERP model. ERP depth comes from adapters and packs.
+
+Key difference:
+
+```text
+Copilots are vendor-specific.
+ERP Agent OS is vendor-neutral.
+```
+
+### Generic MCP Agents
+
+Generic MCP agents expose tools to an LLM and often require repeated reasoning at runtime.
+
+ERP Agent OS exposes safe ERP skills with schemas, guards, permissions, approvals, and audit evidence. The MCP tool is the compiled skill, not a raw ERP operation.
+
+Key differences:
+
+```text
+Generic agents spend tokens repeatedly.
+ERP Agent OS compiles deterministic skills.
+
+Generic MCP exposes tools.
+ERP Agent OS exposes safe ERP skills with guards.
+```
+
+### Generic Agent Security Tools
+
+Generic agent security tools protect prompts, tool calls, or agent policies at a broad level.
+
+ERP Agent OS protects ERP operations semantically. It knows about sales orders, inventory moves, manufacturing, invoices, permissions, formulas, stock, lots, approvals, and audit evidence through ERPGuard and adapters.
+
+## 4. Token Economics
+
+Token economics is a product feature, not an implementation detail.
+
+### First-Run Creation Cost
+
+First-run creation cost is the token cost paid to transform a business request into a validated skill.
+
+It may include:
+
+- understanding the natural-language request;
+- asking clarification questions;
+- drafting the workflow;
+- mapping ERP fields;
+- proposing guards;
+- generating tests;
+- explaining the preview;
+- producing the skill package.
+
+This cost is acceptable because it creates a reusable operational asset.
+
+### Repeated Deterministic Execution Cost
+
+Repeated deterministic execution cost is the cost of running an approved skill again.
+
+The target is zero LLM tokens by default. A repeated run should use input validation, deterministic workflow steps, ERPGuard checks, adapter calls, structured outputs, and audit writes.
+
+### Repair Cost
+
+Repair cost is the token cost paid when a skill must be updated because something changed or failed.
+
+Examples:
+
+- an ERP field was renamed;
+- an adapter mapping changed;
+- a guard needs adjustment;
+- a schema changed;
+- a test failed;
+- a new ERP version behaves differently.
+
+Repair must create a new draft or version. It must not silently mutate an approved active skill.
+
+### Explanation Cost
+
+Explanation cost is the token cost paid when a user asks why something happened.
+
+Examples:
+
+- why a skill blocked a sales order;
+- why approval is required;
+- what changed between versions;
+- how to fix a mapping;
+- what an audit trail means.
+
+Explanations must be grounded in ERPGuard evidence, runtime events, and skill metadata.
+
+### Token Break-Even Point
+
+The token break-even point is the number of repeated executions after which compiling a deterministic skill is cheaper than using a generic agent to reason through every run.
+
+```text
+first_run_creation_cost + repair_cost + explanation_cost
+<
+generic_agent_cost_per_run * number_of_repeated_runs
+```
+
+ERP Agent OS should reach break-even quickly for recurring ERP processes such as sales order preflight, import checks, access diagnostics, invoice checks, stock checks, and manufacturing readiness checks.
 
 ## 5. Skill Package Format
 
-A skill is a versioned package:
+A skill package is a versioned, portable automation artifact.
+
+Required package structure:
 
 ```text
-skills/safe_perfume_order_preflight/
-  skill.yaml
-  workflow.yaml
-  guards.yaml
-  policy.yaml
-  permissions.yaml
-  input_schema.json
-  output_schema.json
-  tests/
-  examples/
-  mcp_tool_definition.json
-  audit_config.yaml
+skill.yaml
+workflow.yaml
+policy.yaml
+guards.yaml
+permissions.yaml
+input_schema.json
+output_schema.json
+tests/
+examples/
+mcp_tool_definition.json
+audit_config.yaml
 ```
 
-Example:
+### `skill.yaml`
 
-```yaml
-skill:
-  id: safe_perfume_order_preflight
-  name: Validar pedido de perfume antes de fabricacion
-  version: 1.0.0
-  status: active
+Defines skill identity, name, version, owner, status, ERP scope, description, lifecycle state, and registry metadata.
 
-inputs:
-  sale_order_id: string
+### `workflow.yaml`
 
-workflow:
-  - load_sales_order
-  - validate_formula
-  - check_stock
-  - check_lots
-  - produce_preflight_report
+Defines deterministic steps, branching, preflight calls, adapter calls, outputs, idempotency behavior, and failure handling.
 
-guards:
-  - formula_guard
-  - stock_guard
-  - lot_traceability_guard
+### `policy.yaml`
 
-permissions:
-  - odoo.read.sale_order
-  - odoo.read.product
-  - odoo.read.stock
-  - odoo.read.lot
+Defines policy-level decisions, risk thresholds, approval requirements, and fail-closed behavior.
 
-execution:
-  mode: deterministic
-  llm_required: false
+### `guards.yaml`
 
-on_failure:
-  use_llm_for_diagnosis: true
+Lists required semantic guards such as Formula Guard, stock guard, lot traceability guard, import guard, or access rule guard.
 
-audit:
-  enabled: true
-```
+### `permissions.yaml`
 
-Each skill package must be portable at the semantic level. ERP-specific details belong in adapter mappings, field mappings, and domain packs.
+Defines who can run, approve, modify, publish, deprecate, or inspect the skill.
+
+### `input_schema.json`
+
+Defines strict runtime inputs.
+
+### `output_schema.json`
+
+Defines strict runtime outputs.
+
+### `tests/`
+
+Contains generated and curated test cases for positive, warning, blocking, approval, and error scenarios.
+
+### `examples/`
+
+Contains sample inputs, outputs, previews, and business explanations.
+
+### `mcp_tool_definition.json`
+
+Defines the safe MCP-style tool exposed by the MCP Gateway.
+
+### `audit_config.yaml`
+
+Defines what evidence must be stored at design time and runtime.
 
 ## 6. Skill Lifecycle
 
@@ -454,249 +281,136 @@ draft -> generated -> validated -> tested -> previewed -> approved -> published 
 
 ### draft
 
-The user describes a desired automation or starts from a template.
+The business user describes a desired automation or starts from a template.
 
 ### generated
 
-The system generates a structured skill draft.
+ERP Agent Builder and Process Builder produce a structured skill draft.
 
 ### validated
 
-Schemas, workflow structure, guard references, permissions, and mappings are valid.
+The system validates schemas, workflow structure, required guards, policy references, permissions, mappings, and ERP adapter capabilities.
 
 ### tested
 
-Generated and curated tests pass against fake fixtures and allowed read-only samples.
+Generated and curated tests pass against fake adapters, fixtures, and allowed read-only samples.
 
 ### previewed
 
-The user sees what would happen before activation.
+The user sees expected impact before activation. Preview must show expected reads, potential writes, blocks, warnings, approvals, and audit evidence.
 
 ### approved
 
-A human approves the skill version.
+A human approver accepts the skill version with an approval reason.
 
 ### published
 
-The skill is available in the registry.
+The skill is stored in the Skill Registry and can be discovered.
 
 ### active
 
-The skill can execute through deterministic runtime and MCP Gateway.
+The skill can run through Deterministic Runtime and be exposed through the MCP Gateway.
 
 ### deprecated
 
-The skill is retained for audit and rollback but should not be used for new executions.
+The skill is retained for audit and rollback but should not be used for new runs.
 
-## 7. Token Economics
+## 7. Ease Of Use
 
-Token economics is a first-class product constraint.
+Business users should never need to see YAML, Python, MCP definitions, adapter code, XML-RPC calls, JSON schemas, or policy DSL files.
 
-### Creation Cost
+Business user flow:
 
-Creation may use LLM tokens for:
+1. Describe automation.
+2. Answer clarification questions.
+3. Preview impact.
+4. Run generated tests.
+5. Approve.
+6. Activate.
 
-- understanding natural language;
-- asking clarifying questions;
-- creating workflow drafts;
-- suggesting field mappings;
-- generating tests;
-- explaining previews;
-- producing a skill package.
+The interface should present business concepts:
 
-This is acceptable because it creates a reusable automation asset.
+- what the automation does;
+- which ERP records it reads;
+- which actions it may perform;
+- which risks it checks;
+- which approvals it requires;
+- which tests passed;
+- what will be audited;
+- how to turn it off or edit it.
 
-### Repeated Execution Cost
+Technical artifacts remain inspectable for developers and consultants, but hidden by default from business users.
 
-Repeated execution should use zero LLM tokens by default.
+## 8. Universal ERP Strategy
 
-The runtime should execute the approved skill deterministically:
-
-```text
-skill input
--> input validation
--> adapter read
--> canonical mapping
--> ERPGuard checks
--> workflow step execution
--> structured result
--> audit event
-```
-
-### Repair Cost
-
-LLM usage is allowed when a skill breaks because of:
-
-- changed ERP schema;
-- missing fields;
-- invalid mappings;
-- unexpected adapter payload;
-- unknown runtime failure.
-
-Repair creates a new draft or new version. It must not silently mutate an active skill.
-
-### Explanation Cost
-
-LLM usage is allowed when the user asks:
-
-- why a skill blocked an action;
-- what changed between versions;
-- how to fix a failed mapping;
-- what an audit trail means.
-
-Explanations must be grounded in structured evidence.
-
-### Break-Even Point
-
-The system becomes economically valuable when:
-
-```text
-creation_tokens + modification_tokens + occasional_repair_tokens
-<
-tokens_spent_by_a_generic_agent_reasoning_through_every_execution
-```
-
-For repeated ERP processes, the break-even point should arrive quickly.
-
-## 8. MCP Strategy
-
-ERP Agent OS should expose safe skills, not raw ERP tools.
-
-Do not expose:
-
-- raw `odoo.write`;
-- raw `odoo.call_method`;
-- raw `odoo.execute_action`;
-- unrestricted SQL;
-- direct stock validation;
-- direct payment execution;
-- unmanaged manufacturing confirmation.
-
-Expose high-level safe skills:
-
-- `safe_validate_sale_order`;
-- `safe_prepare_purchase_draft`;
-- `safe_import_products_preflight`;
-- `safe_explain_access_issue`;
-- `safe_perfume_order_preflight`.
-
-Each MCP-style tool must have:
-
-- strict input schema;
-- strict output schema;
-- permission requirements;
-- guard requirements;
-- audit requirements;
-- fail-closed behavior.
-
-### Top-K Skill Discovery
-
-The system must not load all skills into the agent context.
-
-Semantic Skill Discovery should retrieve only the top K relevant tools for a request. This reduces context cost, improves tool selection, and prevents a large registry from becoming an LLM prompt burden.
-
-## 9. Guard Strategy
-
-Every skill must pass through ERPGuard before risky execution.
-
-ERPGuard provides:
-
-- semantic preflight;
-- guard evaluation;
-- risk level;
-- policy decision;
-- approval requirements;
-- explainable issues;
-- fail-closed behavior;
-- audit evidence.
-
-Guards must become human-configurable later through Guard Builder.
-
-Guard configuration should support:
-
-- templates;
-- field mapping;
-- safe condition language;
-- decision tables;
-- preview;
-- generated tests;
-- approval;
-- versioning.
-
-No guard builder feature should allow arbitrary Python, arbitrary `eval`, or unrestricted expressions for business-user-authored guards.
-
-## 10. Universal ERP Strategy
-
-ERP Agent OS should be universal by model and deep by adapter.
+ERP Agent OS is universal by architecture and deep by adapter.
 
 ### Canonical ERP Model
 
-Skills should target canonical ERP objects and actions.
+Skills target canonical ERP objects and actions instead of vendor-native methods.
 
-Initial objects:
+Examples:
 
 - `SalesOrder`;
 - `SalesOrderLine`;
 - `Product`;
 - `Customer`;
-- `Company`;
-- `Invoice`;
 - `InventoryMove`;
 - `ManufacturingOrder`;
-- `AccessRule`.
+- `Invoice`;
+- `AccessRule`;
+- `AutomatedAction`.
 
-Initial actions:
+Skills should refer to `confirm_sales_order`, not `sale.order.action_confirm()`.
 
-- `inspect_sales_order`;
-- `validate_formula`;
-- `check_stock`;
-- `inspect_access_rules`;
-- `confirm_sales_order`;
-- `prepare_purchase_draft`.
+### ERP Adapter SDK
 
-Skills should say `confirm_sales_order`, not `sale.order.action_confirm()`.
+The ERP Adapter SDK defines how each ERP exposes objects, fields, permissions, reads, simulations, controlled actions, native audit, and capability metadata.
 
-### Adapters
+### Object Mappings
 
-Adapters translate canonical objects and actions into native ERP behavior.
-
-Adapter roadmap:
-
-1. Odoo.
-2. ERPNext.
-3. SAP partial adapter.
-4. Dynamics partial adapter.
-5. NetSuite partial adapter.
-
-### Field Mapping
-
-Field mapping lets consultants connect canonical fields to native and custom ERP fields.
+Object mappings translate native ERP records into canonical objects.
 
 Examples:
 
-- product capacity field;
+- Odoo `sale.order` -> `SalesOrder`;
+- Odoo `product.product` -> `Product`;
+- ERPNext `Sales Order` -> `SalesOrder`;
+- SAP sales document -> `SalesOrder`.
+
+### Field Mapping UI
+
+Field Mapping UI lets consultants map native and custom fields without editing code.
+
+Examples:
+
+- capacity field;
 - formula model;
 - formula line relation;
-- milliliters per unit field;
-- milliliters total field;
 - stock location field;
-- lot tracking field;
-- Studio/custom fields.
+- lot or serial tracking field;
+- margin field;
+- custom approval field.
 
 ### Domain Packs
 
-Domain packs contain reusable object mappings, workflows, and guards for:
+Domain packs provide reusable skills, guards, mappings, and tests for ERP domains.
+
+Examples:
 
 - sales;
 - inventory;
-- manufacturing;
 - purchasing;
+- manufacturing;
 - accounting;
-- access control.
+- access control;
+- imports.
 
 ### Industry Packs
 
-Industry packs contain specialized process knowledge for:
+Industry packs provide specialized rules and examples.
+
+Examples:
 
 - fragrance manufacturing;
 - food production;
@@ -705,81 +419,55 @@ Industry packs contain specialized process knowledge for:
 - regulated inventory;
 - project-based services.
 
-## 11. Relationship With Current Implementation
+### Adapter Roadmap
+
+Start with Odoo as the first deep adapter.
+
+Then add ERPNext as the second open-source adapter to validate universal design.
+
+Then add partial adapters for SAP, Dynamics, and NetSuite focused on read-only preflight, mappings, and selected high-value guards before any broad write support.
+
+## 9. Relationship With Existing Code
 
 Current ERPGuard code becomes the first safety kernel.
 
-Current implementation maps to ERP Agent OS as follows:
+Current mapping:
 
-- Formula Guard becomes the first guard.
-- Current preflight flow becomes the first deterministic skill runtime base.
-- Fake adapter remains the test ERP.
-- Odoo adapter becomes the first real ERP adapter.
-- Canonical models become the first canonical ERP model.
-- Policy Engine becomes the first ERPGuard decision layer.
-- YAML policy loader becomes the first policy metadata layer.
-- Connection API becomes the first ERP connection layer.
-- Audit retrieval becomes the first evidence trail.
+- Formula Guard becomes the first reusable skill/guard.
+- Fake adapter remains the test adapter.
+- Odoo adapter becomes the first real adapter.
+- Current canonical SalesOrder models become the first canonical ERP model slice.
+- Current preflight service becomes the first deterministic runtime path for guarded skill runs.
+- Current policy loader and policy engine become the first guard metadata and decision layer.
+- Current audit retrieval becomes the first evidence trail.
 
-Nothing in this product shift requires removing existing ERPGuard work. The current flow:
+This strategy does not replace ERPGuard. It elevates ERPGuard into the safety kernel of ERP Agent OS.
 
-```text
-connection
--> adapter
--> canonical model
--> Formula Guard
--> policy
--> preflight
--> audit
-```
-
-becomes the runtime safety foundation for skills.
-
-## 12. MVP Path
+## 10. MVP Direction
 
 The next MVP after the current preflight core should add the smallest useful skill loop.
 
 Scope:
 
-- Skill model;
-- Skill Registry;
-- convert Formula Guard preflight into the first skill;
-- `POST /v1/skills`;
-- `GET /v1/skills`;
+- Skill model.
+- Skill Registry.
+- Convert Formula Guard preflight into first skill.
+- `POST /v1/skills`.
+- `GET /v1/skills`.
 - `POST /v1/skills/{skill_id}/run`.
+- Deterministic runtime using current preflight service.
 
-The first skill should be:
+The first skill should wrap the current Formula Guard preflight flow and prove that the platform can:
 
-```text
-safe_formula_guard_preflight
-```
+- register a skill;
+- expose it as a safe runtime operation;
+- run it against the fake adapter;
+- run it against the Odoo adapter when configured;
+- produce the same ERPGuard decision and audit evidence;
+- repeat execution without LLM involvement.
 
-or:
+No code is required by this document. It defines product direction for the next implementation plan.
 
-```text
-safe_order_formula_preflight
-```
+## Acceptance Boundary
 
-The endpoint should reuse the current preflight service first. A separate execution engine can come later.
-
-MVP demonstration:
-
-1. Create or register the Formula Guard skill.
-2. Run it against a valid fake order.
-3. Run it against a formula mismatch fake order.
-4. Retrieve audit evidence.
-5. Run the same skill again without LLM involvement.
-6. Show that the skill is versioned and inspectable.
-
-## 13. Non-Goals
-
-- No full marketplace yet.
-- No unrestricted ERP write actions.
-- No SAP/Dynamics full adapter yet.
-- No autonomous critical actions without approval.
-- No exposing raw ERP write tools to agents.
-- No full UI implementation in the immediate backend block.
-- No live ERP requirement in automated tests.
-- No arbitrary Python or unrestricted expressions in human-authored guard configuration.
-
-The near-term focus is to evolve ERPGuard from a preflight service into the safety kernel underneath reusable ERP skills.
+This is a documentation-only strategic positioning update. It must not require runtime code changes.
