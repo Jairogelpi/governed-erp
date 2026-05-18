@@ -144,6 +144,17 @@ def test_demo_dashboard_exposes_teach_mode_steps():
     assert "review_formula" in html
 
 
+def test_demo_dashboard_exposes_skill_inspector_section():
+    response = client.get("/demo")
+
+    assert response.status_code == 200
+    html = response.text
+    assert "Skill Inspector v0.4" in html
+    assert "skillInspector" in html
+    assert "workflow steps" in html
+    assert "safety summary" in html
+
+
 def test_demo_dashboard_exposes_human_recording_preview_and_readiness():
     response = client.get("/demo")
 
@@ -241,6 +252,44 @@ def test_human_recording_pipeline_compiles_and_runs_allow_block():
     assert invalid_run.status_code == 200
     assert invalid_run.json()["decision"] == "block"
     assert invalid_run.json()["output"]["issues"]
+
+
+def test_inspect_valid_skill_returns_workflow_and_safety_summary():
+    recording_id = _create_finished_recording_with_events(_recording_events_payload())
+    compile_response = _compile_recording(recording_id)
+    assert compile_response.status_code == 200
+    skill_id = compile_response.json()["skill_id"]
+
+    response = client.get(f"/v1/skills/{skill_id}/inspect")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["skill_id"] == skill_id
+    assert body["name"] == "Human Recorded Fake ERP Formula Review"
+    assert body["runtime_type"] == "deterministic_browser"
+    assert body["llm_required_for_repeated_runs"] is False
+    assert body["inputs"] == {"order_reference": "string"}
+    assert "formula_guard" in body["guards"]
+    assert [step["id"] for step in body["workflow_steps"]] == [
+        "open_orders",
+        "search_order",
+        "open_order",
+        "open_formula",
+        "review_formula",
+        "run_formula_guard",
+    ]
+    assert body["compiled_from_recording_id"] == recording_id
+    assert body["safety_summary"]["has_guards"] is True
+    assert body["safety_summary"]["guard_count"] == 1
+    assert body["safety_summary"]["has_write_actions"] is False
+    assert body["safety_summary"]["requires_llm_for_replay"] is False
+
+
+def test_inspect_missing_skill_returns_controlled_error():
+    response = client.get("/v1/skills/skill_missing/inspect")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "skill_not_found"
 
 
 def test_human_recording_compile_succeeds_when_readiness_ready():

@@ -243,6 +243,13 @@ def demo_dashboard() -> str:
         <pre id="humanPreview">compiler readiness: not_ready
 ordered events: none
 selectors captured: none</pre>
+        <h3>Skill Inspector v0.4</h3>
+        <p class="tiny">Review the compiled skill package before trusting or reusing it.</p>
+        <pre id="skillInspector">No skill inspected yet.
+inputs: none
+guards: none
+workflow steps: none
+safety summary: none</pre>
         <pre id="humanResults">No compiled skill yet.</pre>
       </div>
     </section>
@@ -295,6 +302,7 @@ selectors captured: none</pre>
     const humanPreview = document.getElementById("humanPreview");
     const humanResults = document.getElementById("humanResults");
     const teachModeReadiness = document.getElementById("teachModeReadiness");
+    const skillInspector = document.getElementById("skillInspector");
 
     const humanState = {
       recordingId: null,
@@ -321,6 +329,10 @@ selectors captured: none</pre>
 
     const setHumanResults = (value) => {
       humanResults.textContent = value;
+    };
+
+    const setSkillInspector = (value) => {
+      skillInspector.textContent = value;
     };
 
     const eventSummary = (event) => ({
@@ -416,6 +428,32 @@ selectors captured: none</pre>
       await refreshTeachModeReadiness();
     };
 
+    const inspectCompiledSkill = async () => {
+      if (!humanState.skillId) {
+        setSkillInspector("No skill inspected yet.");
+        return;
+      }
+
+      const response = await fetch(`/v1/skills/${humanState.skillId}/inspect`);
+      const body = await response.json();
+      if (!response.ok) {
+        setSkillInspector(`Skill inspection failed: ${body?.error?.message || "unknown error"}`);
+        return;
+      }
+
+      setSkillInspector(jsonText({
+        skill_id: body.skill_id,
+        name: body.name,
+        version_id: body.version_id,
+        runtime_type: body.runtime_type,
+        inputs: body.inputs,
+        guards: body.guards,
+        "workflow steps": body.workflow_steps,
+        no_llm_required: !body.safety_summary?.requires_llm_for_replay,
+        "safety summary": body.safety_summary,
+      }));
+    };
+
     const openFakeErpWithRecording = () => {
       if (!humanState.recordingId) {
         setHumanStatus("Start a human recording first.");
@@ -457,6 +495,7 @@ selectors captured: none</pre>
         humanState.fakeErpOpened = false;
         humanState.recordingFinished = false;
         humanState.proofRun = false;
+        setSkillInspector("No skill inspected yet.");
         setHumanStatus(jsonText({
           recording_id: body.recording_id,
           name: body.name,
@@ -538,6 +577,7 @@ selectors captured: none</pre>
           name: body.name,
           llm_required_for_repeated_runs: body.llm_required_for_repeated_runs,
         }));
+        await inspectCompiledSkill();
       } catch (error) {
         setHumanStatus(`Failed to compile recording: ${String(error)}`);
       } finally {

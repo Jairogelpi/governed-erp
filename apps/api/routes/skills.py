@@ -137,6 +137,61 @@ def get_skill_endpoint(skill_id: str):
         session.close()
 
 
+@router.get("/skills/{skill_id}/inspect")
+def inspect_skill_endpoint(skill_id: str):
+    init_db()
+    session = SessionLocal()
+    try:
+        skill = get_skill(session, skill_id)
+        if skill is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_not_found",
+                        "message": f"Skill '{skill_id}' not found.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        latest_version = get_latest_skill_version(session, skill.id)
+        if latest_version is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_version_not_found",
+                        "message": f"Skill '{skill_id}' has no registered version.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        skill_package = json.loads(latest_version.skill_package_json)
+        guards = skill_package.get("guards", [])
+        workflow_steps = skill_package.get("workflow", [])
+        return {
+            "skill_id": skill.id,
+            "name": skill.name,
+            "version_id": latest_version.id,
+            "runtime_type": latest_version.runtime_type,
+            "llm_required_for_repeated_runs": latest_version.llm_required_for_repeated_runs,
+            "inputs": skill_package.get("inputs", {}),
+            "guards": guards,
+            "workflow_steps": workflow_steps,
+            "compiled_from_recording_id": skill_package.get("compiled_from_recording_id"),
+            "safety_summary": {
+                "has_guards": bool(guards),
+                "guard_count": len(guards),
+                "has_write_actions": _has_write_actions(workflow_steps),
+                "requires_llm_for_replay": bool(latest_version.llm_required_for_repeated_runs),
+            },
+        }
+    finally:
+        session.close()
+
+
 @router.post("/skills/{skill_id}/run", response_model=SkillRunResponse)
 def run_skill_endpoint(skill_id: str, request: SkillRunRequest):
     init_db()
@@ -368,6 +423,11 @@ def _run_response(run, skill_id: str, output: dict) -> dict:
         "output": output,
         "token_economics": _TOKEN_ECONOMICS,
     }
+
+
+def _has_write_actions(workflow_steps: list[dict]) -> bool:
+    write_action_types = {"write", "create", "update", "delete", "execute", "post", "confirm", "approve"}
+    return any(str(step.get("type", "")).casefold() in write_action_types for step in workflow_steps)
 
 
 def _ui_run_response(run, skill_id: str, output: dict, visited_urls: list[str], selectors_used: list[str], steps, no_llm_used: bool = True) -> dict:
