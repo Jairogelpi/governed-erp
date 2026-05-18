@@ -144,6 +144,26 @@ curl -X POST http://127.0.0.1:8000/v1/demo/full-record-to-skill-flow ^
 
 The known-good end-to-end response is stored at [docs/demo/full_record_to_skill_success_response.json](docs/demo/full_record_to_skill_success_response.json).
 
+## Demo Dashboard
+
+Start the API:
+
+```bash
+uvicorn apps.api.main:app --reload
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8000/demo
+```
+
+If you want the live browser path to run, install Chromium first:
+
+```bash
+python -m playwright install chromium
+```
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
