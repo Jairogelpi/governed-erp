@@ -1,0 +1,75 @@
+{
+  "source": "generated_from_testclient",
+  "recording_id": "recording_2081fdb76b5a477abc7d737efb399818",
+  "recording_status": "finished",
+  "event_count": 5,
+  "readiness": "ready",
+  "readiness_steps": [
+    {
+      "id": "sales_orders_navigation",
+      "status": "observed"
+    },
+    {
+      "id": "order_search",
+      "status": "observed"
+    },
+    {
+      "id": "open_order",
+      "status": "observed"
+    },
+    {
+      "id": "formula_tab",
+      "status": "observed"
+    },
+    {
+      "id": "review_formula",
+      "status": "observed"
+    }
+  ],
+  "diagnostics": [],
+  "skill_id": "skill_4ee19f190072474e915afab0fb420308",
+  "version_id": "skill_version_38d98ad54c66461583bbf0f11e7290e6",
+  "valid_order_reference": "SO-VALID",
+  "valid_decision": "allow",
+  "invalid_order_reference": "SO-FORMULA-MISMATCH",
+  "invalid_decision": "block",
+  "invalid_issues_count": 1,
+  "repeated_execution_token_cost": 0,
+  "negative_readiness_evidence": [
+    {
+      "case": "order_search",
+      "recording_id": "recording_b47ad2f463f64dda998d4cdce42bd13e",
+      "readiness": "not_ready",
+      "missing_step_status": "missing",
+      "diagnostics": [
+        "missing_order_search_event"
+      ]
+    },
+    {
+      "case": "formula_tab",
+      "recording_id": "recording_ec821fa62d454a81bf5e6c64c33e36bd",
+      "readiness": "not_ready",
+      "missing_step_status": "missing",
+      "diagnostics": [
+        "missing_formula_tab_event"
+      ]
+    },
+    {
+      "case": "review_formula",
+      "recording_id": "recording_57811ddefd8c4de8af7eae634915e79a",
+      "readiness": "not_ready",
+      "missing_step_status": "missing",
+      "diagnostics": [
+        "missing_review_formula_event"
+      ]
+    }
+  ],
+  "proof": {
+    "teach_mode_readiness_ready": true,
+    "minimum_sequence_observed": true,
+    "compile_used_readiness_contract": true,
+    "deterministic_replay": true,
+    "erpguard_blocked_invalid_order": true,
+    "no_llm_used_for_repeated_runs": true
+  }
+}

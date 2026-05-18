@@ -245,6 +245,24 @@ The response reports:
 
 This is still a controlled Fake ERP demo path. It is not real Odoo UI automation, a browser extension, a free recorder, or an LLM-based flow builder.
 
+## Teach Mode v0.3 Evidence
+
+The frozen Teach Mode v0.3 evidence response is stored at [docs/demo/teach_mode_v0_3_success_response.json](docs/demo/teach_mode_v0_3_success_response.json).
+
+It was generated from a FastAPI `TestClient` flow that creates a controlled recording, adds the five required events, checks readiness, finishes the recording, compiles the skill, and runs `SO-VALID -> allow` plus `SO-FORMULA-MISMATCH -> block`.
+
+Verify the current evidence baseline with:
+
+```bash
+python -m pytest
+```
+
+Expected result for the Teach Mode v0.3 evidence freeze environment:
+
+```text
+148 passed, 9 skipped, 2 warnings
+```
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
