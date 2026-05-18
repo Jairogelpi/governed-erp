@@ -95,3 +95,19 @@ class RecordingCompileSkillResponse(BaseModel):
     runtime_type: str
     llm_required_for_repeated_runs: bool
     skill_package: dict[str, Any] = Field(default_factory=dict)
+
+
+class RecordingDemoRequest(BaseModel):
+    base_url: str
+    order_reference: str
+    actor: RecordingActorRequest
+
+
+class RecordingDemoResponse(BaseModel):
+    recording_id: str
+    status: str
+    event_count: int
+    order_reference: str
+    visited_urls: list[str] = Field(default_factory=list)
+    selectors_used: list[str] = Field(default_factory=list)
+    no_llm_used: bool = True

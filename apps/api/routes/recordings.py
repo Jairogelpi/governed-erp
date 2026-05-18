@@ -14,9 +14,12 @@ from apps.api.schemas.recordings import (
     RecordingEventRequest,
     RecordingEventResponse,
     RecordingFinishResponse,
+    RecordingDemoRequest,
+    RecordingDemoResponse,
     RecordingSummaryResponse,
 )
 from erpguard.compiler.recording_to_skill import compile_recording_to_skill_package
+from erpguard.recorder.browser_recorder import BrowserRuntimeUnavailableError, record_fake_erp_formula_review_flow
 from erpguard.db.repositories import (
     add_recording_event,
     create_recording_session,
@@ -244,6 +247,32 @@ def compile_recording_skill_endpoint(recording_id: str, request: RecordingCompil
         }
     finally:
         session.close()
+
+
+@router.post("/recordings/demo-fake-erp-formula-flow", response_model=RecordingDemoResponse)
+def demo_fake_erp_formula_flow_endpoint(request: RecordingDemoRequest):
+    try:
+        result = record_fake_erp_formula_review_flow(request.base_url, request.order_reference, request.actor.model_dump())
+    except BrowserRuntimeUnavailableError:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": {
+                    "code": "browser_runtime_unavailable",
+                    "message": "Playwright browser binaries are unavailable.",
+                    "details": {},
+                }
+            },
+        )
+    return {
+        "recording_id": result.recording_id,
+        "status": result.status,
+        "event_count": result.event_count,
+        "order_reference": result.order_reference,
+        "visited_urls": result.visited_urls,
+        "selectors_used": result.selectors_used,
+        "no_llm_used": result.no_llm_used,
+    }
 
 
 def _serialize_recording(recording, events) -> dict:

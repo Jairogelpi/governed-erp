@@ -124,6 +124,14 @@ curl -X POST http://127.0.0.1:8000/v1/recordings/recording_.../compile-skill ^
   -d "{\"name\":\"Recorded Fake ERP Formula Review\",\"description\":\"Compiled from a demonstrated Fake ERP formula review flow.\",\"runtime_type\":\"deterministic_browser\"}"
 ```
 
+Run the demo recorder:
+
+```bash
+curl -X POST http://127.0.0.1:8000/v1/recordings/demo-fake-erp-formula-flow ^
+  -H "Content-Type: application/json" ^
+  -d "{\"base_url\":\"http://127.0.0.1:8000\",\"order_reference\":\"SO-FORMULA-MISMATCH\",\"actor\":{\"type\":\"user\",\"id\":\"user_1\",\"display_name\":\"Test User\"}}"
+```
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
@@ -154,6 +162,7 @@ Implemented now:
 - deterministic Skill Run endpoint
 - Playwright browser runtime for Fake ERP
 - Recording Session API
+- Browser Recorder MVP for Fake ERP
 - read-only Odoo adapter skeleton
 - Formula Guard policy evaluation for `confirm_sales_order`
 - preflight persistence and audit retrieval
