@@ -92,6 +92,14 @@ curl -X POST http://127.0.0.1:8000/v1/skills/skill_.../run ^
 
 The repeated run path is deterministic and does not use the LLM.
 
+Run the browser UI runtime:
+
+```bash
+curl -X POST http://127.0.0.1:8000/v1/skills/skill_.../run-ui ^
+  -H "Content-Type: application/json" ^
+  -d "{\"inputs\":{\"order_reference\":\"SO-FORMULA-MISMATCH\"},\"runtime\":{\"base_url\":\"http://127.0.0.1:8000\"}}"
+```
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
@@ -120,6 +128,7 @@ Implemented now:
 - fake ERP web demo surface
 - skill registry MVP
 - deterministic Skill Run endpoint
+- Playwright browser runtime for Fake ERP
 - read-only Odoo adapter skeleton
 - Formula Guard policy evaluation for `confirm_sales_order`
 - preflight persistence and audit retrieval

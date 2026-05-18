@@ -76,10 +76,12 @@ class SkillRunStepResponse(BaseModel):
     step_id: str
     step_type: str
     status: str
+    url: str | None = None
+    selector: str | None = None
     input_json: dict[str, Any] | None = None
     output_json: dict[str, Any] | None = None
     error_text: str | None = None
-    created_at: str
+    created_at: str | None = None
 
 
 class SkillRunDetailResponse(SkillRunResponse):
@@ -89,3 +91,19 @@ class SkillRunDetailResponse(SkillRunResponse):
     created_at: str
     finished_at: str | None = None
     steps: list[SkillRunStepResponse] = Field(default_factory=list)
+
+
+class SkillRuntimeRequest(BaseModel):
+    base_url: str
+
+
+class SkillUIRunRequest(BaseModel):
+    inputs: SkillRunInputsRequest
+    runtime: SkillRuntimeRequest
+
+
+class SkillUIRunResponse(SkillRunResponse):
+    visited_urls: list[str] = Field(default_factory=list)
+    selectors_used: list[str] = Field(default_factory=list)
+    steps: list[SkillRunStepResponse] = Field(default_factory=list)
+    no_llm_used: bool = True

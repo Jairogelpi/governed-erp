@@ -8,10 +8,14 @@ apps/api/routes/audit.py
 apps/api/routes/connections.py
 apps/api/routes/health.py
 apps/api/routes/preflight.py
+apps/api/routes/skills.py
 apps/api/schemas/__init__.py
 apps/api/schemas/audit.py
 apps/api/schemas/connections.py
 apps/api/schemas/preflight.py
+apps/api/schemas/skills.py
+apps/fake_erp/__init__.py
+apps/fake_erp/routes.py
 erpguard/__init__.py
 erpguard/config.py
 erpguard.egg-info/PKG-INFO
@@ -36,6 +40,7 @@ erpguard/core/__init__.py
 erpguard/core/errors.py
 erpguard/core/preflight.py
 erpguard/core/results.py
+erpguard/core/risk_engine.py
 erpguard/db/__init__.py
 erpguard/db/base.py
 erpguard/db/models.py
@@ -53,6 +58,7 @@ tests/test_audit_api.py
 tests/test_canonical_models.py
 tests/test_connections_api.py
 tests/test_fake_adapter.py
+tests/test_fake_erp_web.py
 tests/test_formula_guard.py
 tests/test_health.py
 tests/test_odoo_adapter.py
@@ -64,3 +70,8 @@ tests/test_preflight_persistence.py
 tests/test_preflight_retrieval_api.py
 tests/test_preflight_service.py
 tests/test_preflight_with_connection_api.py
+tests/test_risk_engine.py
+tests/test_skill_registry.py
+tests/test_skill_run_api.py
+tests/test_skill_runtime.py
+tests/test_skills_api.py

@@ -13,6 +13,8 @@ from apps.api.schemas.skills import (
     SkillRunRequest,
     SkillRunResponse,
     SkillRunStepResponse,
+    SkillUIRunRequest,
+    SkillUIRunResponse,
     SkillSummaryResponse,
 )
 from erpguard.adapters.fake import FakeERPAdapter
@@ -32,6 +34,7 @@ from erpguard.db.repositories import (
 )
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.policies.engine import PolicyEngine
+from erpguard.runtime.browser_runtime import BrowserRuntimeUnavailableError, is_playwright_browser_available, run_fake_erp_formula_skill_ui
 
 
 router = APIRouter(prefix="/v1", tags=["skills"])
@@ -341,6 +344,124 @@ def get_skill_run_endpoint(skill_id: str, skill_run_id: str):
         session.close()
 
 
+@router.post("/skills/{skill_id}/run-ui", response_model=SkillUIRunResponse)
+def run_skill_ui_endpoint(skill_id: str, request: SkillUIRunRequest):
+    init_db()
+    session = SessionLocal()
+    try:
+        skill = get_skill(session, skill_id)
+        if skill is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_not_found",
+                        "message": f"Skill '{skill_id}' not found.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        skill_version = get_latest_skill_version(session, skill.id)
+        if skill_version is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_version_not_found",
+                        "message": f"Skill '{skill_id}' has no registered version.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        if not is_playwright_browser_available():
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "error": {
+                        "code": "browser_runtime_unavailable",
+                        "message": "Playwright browser binaries are unavailable.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        inputs = request.inputs.model_dump(mode="json")
+        order_reference = inputs["order_reference"]
+
+        run = create_skill_run(
+            session=session,
+            skill_id=skill.id,
+            skill_version_id=skill_version.id,
+            status="running",
+            input_json=json.dumps({"inputs": inputs, "runtime": request.runtime.model_dump(mode="json")}, default=str),
+        )
+
+        try:
+            browser_result = run_fake_erp_formula_skill_ui(request.runtime.base_url, order_reference)
+        except BrowserRuntimeUnavailableError as exc:
+            finished = finish_skill_run(
+                session=session,
+                skill_run_id=run.id,
+                status="failed",
+                decision="block",
+                error_text=str(exc),
+                output_json=json.dumps(
+                    {
+                        "order_reference": order_reference,
+                        "policy_id": "formula_guard",
+                        "policy_version": "0.1.0",
+                        "issues": [],
+                    },
+                    default=str,
+                ),
+                estimated_tokens_saved=2000,
+            )
+            create_skill_run_step(
+                session=session,
+                skill_run_id=run.id,
+                step_id="browser_runtime",
+                step_type="runtime",
+                status="failed",
+                error_text=str(exc),
+            )
+            return _ui_run_response(finished, skill.id, {"order_reference": order_reference, "policy_id": "formula_guard", "policy_version": "0.1.0", "issues": []}, [], [], [])
+
+        for step in browser_result.steps:
+            create_skill_run_step(
+                session=session,
+                skill_run_id=run.id,
+                step_id=step.step_id,
+                step_type=step.step_type,
+                status=step.status,
+                input_json=json.dumps(step.input_json, default=str) if step.input_json is not None else None,
+                output_json=json.dumps(step.output_json, default=str) if step.output_json is not None else None,
+                error_text=step.error_text,
+            )
+
+        finished = finish_skill_run(
+            session=session,
+            skill_run_id=run.id,
+            status=browser_result.status,
+            output_json=json.dumps(browser_result.output, default=str),
+            decision=browser_result.decision,
+            error_text=browser_result.error_text,
+            estimated_tokens_saved=browser_result.token_economics["estimated_tokens_saved"],
+        )
+        return _ui_run_response(
+            finished,
+            skill.id,
+            browser_result.output,
+            browser_result.visited_urls,
+            browser_result.selectors_used,
+            browser_result.steps,
+            no_llm_used=browser_result.no_llm_used,
+        )
+    finally:
+        session.close()
+
+
 def _run_response(run, skill_id: str, output: dict) -> dict:
     return {
         "skill_run_id": run.id,
@@ -349,4 +470,33 @@ def _run_response(run, skill_id: str, output: dict) -> dict:
         "decision": run.decision,
         "output": output,
         "token_economics": _TOKEN_ECONOMICS,
+    }
+
+
+def _ui_run_response(run, skill_id: str, output: dict, visited_urls: list[str], selectors_used: list[str], steps, no_llm_used: bool = True) -> dict:
+    return {
+        "skill_run_id": run.id,
+        "skill_id": skill_id,
+        "status": run.status,
+        "decision": run.decision,
+        "output": output,
+        "token_economics": _TOKEN_ECONOMICS,
+        "visited_urls": visited_urls,
+        "selectors_used": selectors_used,
+        "steps": [
+            {
+                "id": f"step_{index + 1}",
+                "step_id": step.step_id,
+                "step_type": step.step_type,
+                "status": step.status,
+                "url": step.url,
+                "selector": step.selector,
+                "input_json": step.input_json,
+                "output_json": step.output_json,
+                "error_text": step.error_text,
+                "created_at": None,
+            }
+            for index, step in enumerate(steps)
+        ],
+        "no_llm_used": no_llm_used,
     }
