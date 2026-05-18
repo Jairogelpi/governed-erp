@@ -1,0 +1,39 @@
+{
+  "status": "success",
+  "recording": {
+    "recording_id": "recording_e7081d7a54164d888fb1823e98d9a665",
+    "status": "finished",
+    "event_count": 5
+  },
+  "skill": {
+    "skill_id": "skill_6a3a79fcb3ba4a3aa572a89127cb338e",
+    "version_id": "skill_version_752637594536475e863e5794ee066fb9",
+    "name": "Demo Recorded Fake ERP Formula Review",
+    "llm_required_for_repeated_runs": false
+  },
+  "runs": {
+    "valid": {
+      "skill_run_id": "skill_run_8c027690ce6a4e9a87dfaa8cbad4b02b",
+      "order_reference": "SO-VALID",
+      "decision": "allow"
+    },
+    "invalid": {
+      "skill_run_id": "skill_run_3d5745d6bf974d12a2761e3f4180bf0f",
+      "order_reference": "SO-FORMULA-MISMATCH",
+      "decision": "block",
+      "issues_count": 1
+    }
+  },
+  "token_economics": {
+    "creation_token_cost_estimate": 2000,
+    "repeated_execution_token_cost": 0,
+    "estimated_tokens_saved_per_run": 2000,
+    "total_estimated_tokens_saved": 4000
+  },
+  "proof": {
+    "record_to_skill": true,
+    "deterministic_replay": true,
+    "erpguard_blocked_invalid_order": true,
+    "no_llm_used_for_repeated_runs": true
+  }
+}

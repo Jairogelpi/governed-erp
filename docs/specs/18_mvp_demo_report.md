@@ -136,7 +136,7 @@ python -m playwright install chromium
 Current known test status:
 
 ```text
-128 passed, 8 skipped
+139 passed
 ```
 
 ## 8. Next Recommended Implementation Block
@@ -158,3 +158,11 @@ demo recorder
 -> return one consolidated report
 
 Do not implement it yet in this documentation block.
+
+## 9. Known Good Demo Run
+
+- Date: May 18, 2026
+- Endpoint used: `POST /v1/demo/full-record-to-skill-flow`
+- Expected valid decision: allow
+- Expected invalid decision: block
+- Evidence file path: [docs/demo/full_record_to_skill_success_response.json](docs/demo/full_record_to_skill_success_response.json)

@@ -81,8 +81,14 @@ def _coerce_event(event) -> _EventView:
 
 def _detect_order_reference(events: list[_EventView]) -> str | None:
     for event in events:
+        ordered_values = [event.selector, event.input_value, event.element_text, event.url, event.page_title]
         for candidate in _KNOWN_ORDER_REFERENCES:
-            if any(_contains(value, candidate) for value in _event_text_values(event)):
+            if any(_contains(value, candidate) for value in ordered_values if value):
+                return candidate
+
+    for event in events:
+        for candidate in _KNOWN_ORDER_REFERENCES:
+            if any(_contains(value, candidate) for value in _event_snapshot_values(event)):
                 return candidate
     return None
 
@@ -96,15 +102,8 @@ def _is_fake_erp_formula_review_flow(events: list[_EventView], order_reference: 
     return has_open_order and has_formula_surface and bool(has_interaction)
 
 
-def _event_text_values(event: _EventView) -> list[str]:
+def _event_snapshot_values(event: _EventView) -> list[str]:
     values = [
-        event.url,
-        event.page_title,
-        event.element_role,
-        event.element_text,
-        event.element_label,
-        event.selector,
-        event.input_value,
         event.before_text_snapshot,
         event.after_text_snapshot,
     ]
