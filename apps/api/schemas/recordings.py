@@ -79,3 +79,19 @@ class RecordingDetailResponse(RecordingSummaryResponse):
 class RecordingFinishResponse(BaseModel):
     recording_id: str
     status: str
+
+
+class RecordingCompileSkillRequest(BaseModel):
+    name: str
+    description: str
+    runtime_type: str
+
+
+class RecordingCompileSkillResponse(BaseModel):
+    recording_id: str
+    skill_id: str
+    version_id: str
+    name: str
+    runtime_type: str
+    llm_required_for_repeated_runs: bool
+    skill_package: dict[str, Any] = Field(default_factory=dict)

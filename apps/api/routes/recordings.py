@@ -8,15 +8,20 @@ from fastapi.responses import JSONResponse
 from apps.api.schemas.recordings import (
     RecordingCreateRequest,
     RecordingCreateResponse,
+    RecordingCompileSkillRequest,
+    RecordingCompileSkillResponse,
     RecordingDetailResponse,
     RecordingEventRequest,
     RecordingEventResponse,
     RecordingFinishResponse,
     RecordingSummaryResponse,
 )
+from erpguard.compiler.recording_to_skill import compile_recording_to_skill_package
 from erpguard.db.repositories import (
     add_recording_event,
     create_recording_session,
+    create_skill,
+    create_skill_version,
     finish_recording_session,
     get_recording_session,
     list_recording_events,
@@ -159,6 +164,84 @@ def finish_recording_endpoint(recording_id: str):
                 },
             )
         return {"recording_id": recording.id, "status": recording.status}
+    finally:
+        session.close()
+
+
+@router.post("/recordings/{recording_id}/compile-skill", response_model=RecordingCompileSkillResponse)
+def compile_recording_skill_endpoint(recording_id: str, request: RecordingCompileSkillRequest):
+    init_db()
+    session = SessionLocal()
+    try:
+        recording = get_recording_session(session, recording_id)
+        if recording is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "recording_not_found",
+                        "message": f"Recording '{recording_id}' not found.",
+                        "details": {"recording_id": recording_id},
+                    }
+                },
+            )
+        if recording.status != "finished":
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "recording_not_finished",
+                        "message": f"Recording '{recording_id}' must be finished before compilation.",
+                        "details": {"recording_id": recording_id, "status": recording.status},
+                    }
+                },
+            )
+
+        events = list_recording_events(session, recording_id)
+        if not events:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "recording_has_no_events",
+                        "message": f"Recording '{recording_id}' has no events to compile.",
+                        "details": {"recording_id": recording_id},
+                    }
+                },
+            )
+
+        try:
+            skill_package = compile_recording_to_skill_package(recording, events)
+        except ValueError as exc:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "unsupported_recording_flow",
+                        "message": str(exc),
+                        "details": {"recording_id": recording_id},
+                    }
+                },
+            )
+
+        skill = create_skill(session, request.name, request.description)
+        version = create_skill_version(
+            session=session,
+            skill_id=skill.id,
+            version="1.0.0",
+            skill_package_json=json.dumps(skill_package, default=str),
+            runtime_type=request.runtime_type,
+            llm_required_for_repeated_runs=bool(skill_package.get("llm_required_for_repeated_runs", False)),
+        )
+        return {
+            "recording_id": recording.id,
+            "skill_id": skill.id,
+            "version_id": version.id,
+            "name": skill.name,
+            "runtime_type": version.runtime_type,
+            "llm_required_for_repeated_runs": version.llm_required_for_repeated_runs,
+            "skill_package": skill_package,
+        }
     finally:
         session.close()
 
