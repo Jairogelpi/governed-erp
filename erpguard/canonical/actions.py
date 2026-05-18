@@ -26,9 +26,9 @@ CANONICAL_ACTIONS: dict[CanonicalAction, CanonicalActionDefinition] = {
     ),
     CanonicalAction.VALIDATE_FORMULA: CanonicalActionDefinition(
         name=CanonicalAction.VALIDATE_FORMULA,
-        canonical_object="SalesOrderLine",
+        canonical_object="SalesOrder",
         default_risk_level=RiskLevel.R0,
-        description="Validate formula quantities for a sales order line.",
+        description="Validate formula quantities for a sales order without changing ERP state.",
     ),
     CanonicalAction.INSPECT_ACCESS_RULES: CanonicalActionDefinition(
         name=CanonicalAction.INSPECT_ACCESS_RULES,

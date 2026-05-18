@@ -21,6 +21,10 @@ dev = [
     "pytest>=8.0",
 ]
 
+[tool.setuptools.packages.find]
+include = ["apps*", "erpguard*"]
+exclude = ["docs*", "policies*", "scripts*", "tests*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q -p no:cacheprovider"

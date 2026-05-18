@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 
 from erpguard.adapters.fake import FakeERPAdapter
-from erpguard.canonical.enums import PreflightDecision, RiskLevel
+from erpguard.canonical.enums import CanonicalAction, PreflightDecision, RiskLevel
 from erpguard.canonical.objects import Product, SalesOrder, SalesOrderLine
 from erpguard.core.errors import PolicyNotFoundError
 from erpguard.policies.engine import PolicyEngine, evaluate_formula_guard_policy
@@ -43,6 +43,16 @@ def test_valid_formula_returns_allow():
     assert result.issues == []
     assert "passed" in result.summary
     assert result.evidence["formula_summary"]["is_valid"] is True
+
+
+def test_valid_formula_for_confirm_sales_order_requires_approval():
+    order = FakeERPAdapter().get_sales_order("so_valid")
+
+    result = evaluate_formula_guard_policy(order, canonical_action=CanonicalAction.CONFIRM_SALES_ORDER)
+
+    assert result.decision is PreflightDecision.REQUIRE_APPROVAL
+    assert result.risk_level is RiskLevel.R3
+    assert result.issues == []
 
 
 def test_invalid_formula_returns_block():

@@ -16,7 +16,7 @@ def test_formula_guard_yaml_loads_successfully():
     assert policy.version == "0.1.0"
     assert policy.status == "active"
     assert policy.applies_to.canonical_object == "SalesOrder"
-    assert policy.applies_to.canonical_action == "validate_formula"
+    assert policy.applies_to.canonical_action == "confirm_sales_order"
     assert policy.risk_level_on_fail is RiskLevel.R3
     assert policy.decision_on_fail is PreflightDecision.BLOCK
     assert [check.id for check in policy.checks] == [

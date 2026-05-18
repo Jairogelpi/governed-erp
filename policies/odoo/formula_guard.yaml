@@ -3,7 +3,7 @@ version: 0.1.0
 status: active
 applies_to:
   canonical_object: SalesOrder
-  canonical_action: validate_formula
+  canonical_action: confirm_sales_order
 description: Validates formula quantities against product capacity for sales order lines.
 risk_level_on_fail: R3
 decision_on_fail: block

@@ -25,6 +25,20 @@ def test_valid_fake_order_returns_allow_preflight_result():
     assert result.evidence["target"]["reference"] == "SO-VALID"
 
 
+def test_valid_confirm_sales_order_requires_approval():
+    result = run_preflight(
+        adapter=FakeERPAdapter(),
+        actor=ACTOR,
+        canonical_action=CanonicalAction.CONFIRM_SALES_ORDER,
+        target_id="so_valid",
+    )
+
+    assert result.decision is PreflightDecision.REQUIRE_APPROVAL
+    assert result.risk_level is RiskLevel.R3
+    assert result.approval_required is True
+    assert result.predicted_impact["simulation_status"] == "not_implemented"
+
+
 def test_invalid_fake_order_returns_block_preflight_result():
     result = run_preflight(
         adapter=FakeERPAdapter(),

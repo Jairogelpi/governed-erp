@@ -32,14 +32,20 @@ def make_connection_payload(connection_id: str, target_id: str = "so_valid", pol
             "display_name": "Test User",
         },
         "action": {
-            "canonical_action": "validate_formula",
-            "target_id": target_id,
+            "canonical_action": "confirm_sales_order",
+            "canonical_object": "SalesOrder",
+            "native": {
+                "model": "sale.order",
+                "method": "action_confirm",
+                "record_id": target_id,
+            },
         },
+        "options": {"simulate": True, "allow_write": False},
         "policy_id": policy_id,
     }
 
 
-def test_preflight_with_fake_connection_valid_order_returns_allow():
+def test_preflight_with_fake_connection_valid_order_requires_approval():
     client = TestClient(app)
     connection = create_connection(client, erp_type="fake")
 
@@ -47,8 +53,9 @@ def test_preflight_with_fake_connection_valid_order_returns_allow():
 
     assert response.status_code == 200
     body = response.json()
-    assert body["decision"] == "allow"
-    assert body["risk_level"] == "R0"
+    assert body["decision"] == "require_approval"
+    assert body["risk_level"] == "R3"
+    assert body["approval_required"] is True
     assert body["target_id"] == "so_valid"
 
 
@@ -102,13 +109,13 @@ def test_old_erp_type_fake_preflight_request_still_works():
         json={
             "erp_type": "fake",
             "actor": {"type": "user", "id": "user_1", "display_name": "Test User"},
-            "action": {"canonical_action": "validate_formula", "target_id": "so_valid"},
+            "action": {"canonical_action": "confirm_sales_order", "target_id": "so_valid"},
             "policy_id": "formula_guard",
         },
     )
 
     assert response.status_code == 200
-    assert response.json()["decision"] == "allow"
+    assert response.json()["decision"] == "require_approval"
 
 
 def test_invalid_connection_config_returns_controlled_400():

@@ -37,8 +37,8 @@ def test_persistence_stores_preflight_case():
 
     assert loaded is not None
     assert loaded.id == case.id
-    assert loaded.decision == "allow"
-    assert loaded.risk_level == "R0"
+    assert loaded.decision == "require_approval"
+    assert loaded.risk_level == "R3"
     assert json.loads(loaded.actor_json)["id"] == "actor_1"
 
 
@@ -83,4 +83,4 @@ def test_persistence_stores_audit_event():
     assert len(stored_events) == 2
     assert created_event.event_type == PREFLIGHT_CREATED
     assert decided_event.event_type == PREFLIGHT_DECIDED
-    assert json.loads(decided_event.event_json)["decision"] == "allow"
+    assert json.loads(decided_event.event_json)["decision"] == "require_approval"

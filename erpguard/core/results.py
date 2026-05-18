@@ -12,13 +12,17 @@ class PreflightResult(BaseModel):
 
     id: str = Field(default_factory=lambda: f"pf_{uuid4().hex}")
     actor: dict[str, Any]
+    action: dict[str, Any] = Field(default_factory=dict)
     canonical_action: CanonicalAction
+    canonical_object: str
     target_id: str
     decision: PreflightDecision
     risk_level: RiskLevel
     summary: str
     issues: list[PolicyIssue] = Field(default_factory=list)
     warnings: list[PolicyWarning] = Field(default_factory=list)
+    predicted_impact: dict[str, Any] = Field(default_factory=dict)
+    approval_required: bool = False
     evidence: dict[str, Any] = Field(default_factory=dict)
     policy_id: str
     policy_version: str

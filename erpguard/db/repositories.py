@@ -37,11 +37,16 @@ def create_preflight_case(session: Session, result: PreflightResult, connection_
         id=result.id,
         connection_id=connection_id,
         actor_json=_to_json(result.actor),
-        action_json=_to_json({"canonical_action": result.canonical_action.value, "target_id": result.target_id}),
+        action_json=_to_json(result.action),
         canonical_action=result.canonical_action.value,
-        canonical_object="SalesOrder",
+        canonical_object=result.canonical_object,
         state_snapshot_json=_to_json(result.evidence.get("target", {})),
-        simulation_json=_to_json(result.evidence),
+        simulation_json=_to_json(
+            {
+                "predicted_impact": result.predicted_impact,
+                "evidence": result.evidence,
+            }
+        ),
         decision=result.decision.value,
         risk_level=result.risk_level.value,
         summary=result.summary,

@@ -45,7 +45,7 @@ Run preflight using a stored connection:
 ```bash
 curl -X POST http://127.0.0.1:8000/v1/preflight ^
   -H "Content-Type: application/json" ^
-  -d "{\"connection_id\":\"conn_...\",\"actor\":{\"type\":\"user\",\"id\":\"user_1\",\"display_name\":\"Test User\"},\"action\":{\"canonical_action\":\"validate_formula\",\"target_id\":\"so_formula_mismatch\"},\"policy_id\":\"formula_guard\"}"
+  -d "{\"connection_id\":\"conn_...\",\"actor\":{\"type\":\"user\",\"native_user_id\":\"6\",\"display_name\":\"Test User\"},\"action\":{\"canonical_action\":\"confirm_sales_order\",\"canonical_object\":\"SalesOrder\",\"native\":{\"model\":\"sale.order\",\"method\":\"action_confirm\",\"record_id\":\"so_formula_mismatch\"}},\"options\":{\"simulate\":true,\"allow_write\":false},\"policy_id\":\"formula_guard\"}"
 ```
 
 The older `erp_type: "fake"` preflight request is still supported for local development, but `connection_id` is the recommended flow.
@@ -86,13 +86,17 @@ Implemented now:
 - configuration module
 - SQLAlchemy database base/session setup
 - initial database models
+- fake adapter demo path
+- read-only Odoo adapter skeleton
+- Formula Guard policy evaluation for `confirm_sales_order`
+- preflight persistence and audit retrieval
+- minimal centralized risk semantics for canonical action defaults
 - pytest foundation
 
 Not implemented yet:
 
-- Odoo adapter
-- Formula Guard
-- policy evaluation
 - UI
 - LLM features
 - ERP write/execution actions
+- approval submission flow
+- stock/manufacturing simulation

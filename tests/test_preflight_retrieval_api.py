@@ -18,7 +18,7 @@ def run_preflight(client: TestClient, connection_id: str, target_id: str) -> dic
         json={
             "connection_id": connection_id,
             "actor": {"type": "user", "id": "user_1", "display_name": "Test User"},
-            "action": {"canonical_action": "validate_formula", "target_id": target_id},
+            "action": {"canonical_action": "confirm_sales_order", "target_id": target_id},
             "policy_id": "formula_guard",
         },
     )
@@ -39,7 +39,7 @@ def test_get_preflight_by_id_returns_same_decision():
     assert body["decision"] == created["decision"]
     assert body["risk_level"] == created["risk_level"]
     assert body["actor"]["id"] == "user_1"
-    assert body["canonical_action"] == "validate_formula"
+    assert body["canonical_action"] == "confirm_sales_order"
     assert body["canonical_object"] == "SalesOrder"
     assert body["created_at"]
 

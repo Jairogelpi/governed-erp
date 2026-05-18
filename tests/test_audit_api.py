@@ -13,7 +13,7 @@ def create_connection_and_preflight(client: TestClient, target_id: str = "so_for
         json={
             "connection_id": connection["id"],
             "actor": {"type": "user", "id": "user_1", "display_name": "Test User"},
-            "action": {"canonical_action": "validate_formula", "target_id": target_id},
+            "action": {"canonical_action": "confirm_sales_order", "target_id": target_id},
             "policy_id": "formula_guard",
         },
     )

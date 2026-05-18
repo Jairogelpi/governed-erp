@@ -9,6 +9,7 @@ from erpguard.adapters.factory import create_adapter_from_connection, get_adapte
 from erpguard.canonical.enums import CanonicalAction, ERPType
 from erpguard.core.errors import AdapterConfigurationError, AdapterNotImplementedError
 from erpguard.core.preflight import PREFLIGHT_CREATED, PREFLIGHT_DECIDED, run_preflight
+from erpguard.core.risk_engine import canonical_object_for_action
 from erpguard.db.repositories import (
     create_audit_event,
     create_invariant_results_from_policy_issues,
@@ -33,12 +34,38 @@ def preflight(request: PreflightRequest):
     if isinstance(canonical_action, JSONResponse):
         return canonical_action
 
+    canonical_object = _parse_canonical_object(request.action.canonical_object, canonical_action)
+    if isinstance(canonical_object, JSONResponse):
+        return canonical_object
+
+    if request.options.allow_write:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": {
+                    "code": "writes_not_supported",
+                    "message": "Phase 1 preflight does not execute ERP write actions.",
+                    "details": {"allow_write": request.options.allow_write},
+                }
+            },
+        )
+
+    target_id = _extract_target_id(request)
+    if isinstance(target_id, JSONResponse):
+        return target_id
+
+    action_payload = request.action.model_dump(mode="json", exclude_none=True)
+    action_payload["canonical_object"] = canonical_object
+    action_payload["target_id"] = target_id
+
     result = run_preflight(
         adapter=adapter,
         actor=request.actor,
         canonical_action=canonical_action,
-        target_id=request.action.target_id,
+        target_id=target_id,
         policy_id=request.policy_id,
+        action=action_payload,
+        options=request.options.model_dump(mode="json"),
     )
     _persist_preflight_result(result, connection_id=connection_id)
     return _to_response(result)
@@ -172,6 +199,41 @@ def _parse_canonical_action(value: str) -> CanonicalAction | JSONResponse:
         )
 
 
+def _parse_canonical_object(value: str | None, canonical_action: CanonicalAction) -> str | JSONResponse:
+    expected = canonical_object_for_action(canonical_action)
+    if value is None:
+        return expected
+    if value != expected:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": {
+                    "code": "canonical_object_mismatch",
+                    "message": f"Canonical action '{canonical_action.value}' expects object '{expected}'.",
+                    "details": {"canonical_action": canonical_action.value, "canonical_object": value, "expected": expected},
+                }
+            },
+        )
+    return value
+
+
+def _extract_target_id(request: PreflightRequest) -> str | JSONResponse:
+    if request.action.target_id:
+        return request.action.target_id
+    if request.action.native and request.action.native.record_id is not None:
+        return str(request.action.native.record_id)
+    return JSONResponse(
+        status_code=400,
+        content={
+            "error": {
+                "code": "target_id_required",
+                "message": "Preflight requires action.target_id or action.native.record_id.",
+                "details": {},
+            }
+        },
+    )
+
+
 def _persist_preflight_result(result, connection_id: str) -> None:
     init_db()
     session = SessionLocal()
@@ -185,15 +247,20 @@ def _persist_preflight_result(result, connection_id: str) -> None:
 
 
 def _to_response(result) -> dict:
+    issues = [issue.model_dump(mode="json") for issue in result.issues]
     return {
         "preflight_id": result.id,
         "decision": result.decision.value,
         "risk_level": result.risk_level.value,
         "summary": result.summary,
-        "issues": [issue.model_dump(mode="json") for issue in result.issues],
+        "blocking_issues": issues,
+        "issues": issues,
         "warnings": [warning.model_dump(mode="json") for warning in result.warnings],
+        "predicted_impact": result.predicted_impact,
+        "approval_required": result.approval_required,
         "actor": result.actor,
         "canonical_action": result.canonical_action.value,
+        "canonical_object": result.canonical_object,
         "target_id": result.target_id,
         "policy_id": result.policy_id,
         "policy_version": result.policy_version,
