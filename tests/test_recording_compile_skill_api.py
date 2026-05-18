@@ -20,6 +20,30 @@ def add_formula_flow_events(recording_id: str):
     client.post(
         f"/v1/recordings/{recording_id}/events",
         json={
+            "event_type": "navigate",
+            "url": "http://127.0.0.1:8000/fake-erp/sales/orders",
+            "page_title": "Fake ERP Sales Orders",
+            "before_text_snapshot": "",
+            "after_text_snapshot": "Sales Orders...",
+        },
+    )
+    client.post(
+        f"/v1/recordings/{recording_id}/events",
+        json={
+            "event_type": "fill",
+            "url": "http://127.0.0.1:8000/fake-erp/sales/orders",
+            "page_title": "Fake ERP Sales Orders",
+            "element_role": "searchbox",
+            "element_text": "SO-FORMULA-MISMATCH",
+            "selector": "[data-testid='order-search']",
+            "input_value": "SO-FORMULA-MISMATCH",
+            "before_text_snapshot": "Sales Orders...",
+            "after_text_snapshot": "Sales Orders...",
+        },
+    )
+    client.post(
+        f"/v1/recordings/{recording_id}/events",
+        json={
             "event_type": "click",
             "url": "http://127.0.0.1:8000/fake-erp/sales/orders",
             "page_title": "Fake ERP Sales Orders",
@@ -33,10 +57,26 @@ def add_formula_flow_events(recording_id: str):
     client.post(
         f"/v1/recordings/{recording_id}/events",
         json={
-            "event_type": "navigate",
+            "event_type": "click",
+            "url": "http://127.0.0.1:8000/fake-erp/sales/orders/SO-FORMULA-MISMATCH",
+            "page_title": "Fake ERP Order SO-FORMULA-MISMATCH",
+            "element_role": "link",
+            "element_text": "Formula tab",
+            "selector": "[data-testid='formula-tab']",
+            "before_text_snapshot": "Order SO-FORMULA-MISMATCH...",
+            "after_text_snapshot": "Order SO-FORMULA-MISMATCH...",
+        },
+    )
+    client.post(
+        f"/v1/recordings/{recording_id}/events",
+        json={
+            "event_type": "click",
             "url": "http://127.0.0.1:8000/fake-erp/sales/orders/SO-FORMULA-MISMATCH/formula",
             "page_title": "Fake ERP Formula SO-FORMULA-MISMATCH",
+            "element_role": "button",
+            "element_text": "Review formula",
             "selector": "[data-testid='review-formula']",
+            "before_text_snapshot": "Formula status...",
             "after_text_snapshot": "Formula status...",
         },
     )

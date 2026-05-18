@@ -196,6 +196,11 @@ def demo_dashboard() -> str:
         </div>
         <p class="tiny">The capture mode only listens to the known Fake ERP selectors and keeps the recording id across navigation.</p>
         <pre id="humanStatus">No human recording started.</pre>
+        <h3>Recording Preview</h3>
+        <p class="tiny">Shows ordered events, selectors captured, and compiler readiness before compilation.</p>
+        <pre id="humanPreview">compiler readiness: not_ready
+ordered events: none
+selectors captured: none</pre>
         <pre id="humanResults">No compiled skill yet.</pre>
       </div>
     </section>
@@ -245,6 +250,7 @@ def demo_dashboard() -> str:
     const compileHumanRecordingButton = document.getElementById("compileHumanRecording");
     const runHumanRecordingButton = document.getElementById("runHumanRecording");
     const humanStatus = document.getElementById("humanStatus");
+    const humanPreview = document.getElementById("humanPreview");
     const humanResults = document.getElementById("humanResults");
 
     const humanState = {
@@ -269,6 +275,57 @@ def demo_dashboard() -> str:
 
     const setHumanResults = (value) => {
       humanResults.textContent = value;
+    };
+
+    const eventSummary = (event) => ({
+      index: event.event_index,
+      type: event.event_type,
+      selector: event.selector,
+      input_value: event.input_value,
+      text: event.element_text,
+      url: event.url,
+    });
+
+    const compilerReadiness = (events) => {
+      const selectors = events.map((event) => event.selector).filter(Boolean);
+      const hasNavigation = events.some((event) =>
+        event.event_type === "navigate" && String(event.url || "").includes("/fake-erp/sales/orders")
+      );
+      const hasSearch = events.some((event) =>
+        event.event_type === "fill" && event.selector === "[data-testid='order-search']"
+      );
+      const hasOpenOrder = selectors.some((selector) => selector.startsWith("[data-testid='open-order-"));
+      const hasFormulaTab = selectors.includes("[data-testid='formula-tab']");
+      const hasReviewFormula = selectors.includes("[data-testid='review-formula']");
+      return hasNavigation && hasSearch && hasOpenOrder && hasFormulaTab && hasReviewFormula ? "ready" : "not_ready";
+    };
+
+    const renderRecordingPreview = (recording) => {
+      const events = recording.events || [];
+      const selectors = [...new Set(events.map((event) => event.selector).filter(Boolean))];
+      humanPreview.textContent = jsonText({
+        recording_id: recording.recording_id,
+        status: recording.status,
+        event_count: recording.event_count,
+        "ordered events": events.map(eventSummary),
+        "selectors captured": selectors,
+        "compiler readiness": compilerReadiness(events),
+      });
+    };
+
+    const refreshRecordingPreview = async () => {
+      if (!humanState.recordingId) {
+        humanPreview.textContent = "compiler readiness: not_ready\nordered events: none\nselectors captured: none";
+        return;
+      }
+
+      const response = await fetch(`/v1/recordings/${humanState.recordingId}`);
+      const body = await response.json();
+      if (!response.ok) {
+        humanPreview.textContent = `Preview unavailable: ${body?.error?.message || "unknown error"}`;
+        return;
+      }
+      renderRecordingPreview(body);
     };
 
     const openFakeErpWithRecording = () => {
@@ -314,6 +371,7 @@ def demo_dashboard() -> str:
           target_base_url: body.target_base_url,
           instruction: "Open Fake ERP sales orders and perform the controlled flow.",
         }));
+        await refreshRecordingPreview();
         setHumanResults("Recording started. Use the open button, then perform the controlled Fake ERP flow in the new tab.");
       } catch (error) {
         setHumanStatus(`Failed to start recording: ${String(error)}`);
@@ -343,6 +401,7 @@ def demo_dashboard() -> str:
         }
 
         setHumanStatus(jsonText(body));
+        await refreshRecordingPreview();
       } catch (error) {
         setHumanStatus(`Failed to finish recording: ${String(error)}`);
       } finally {

@@ -193,6 +193,19 @@ The controlled browser path only works when Chromium is installed:
 python -m playwright install chromium
 ```
 
+## Human Recording v0.2.1 Hardening
+
+The `/demo` dashboard now shows a human recording preview after finish:
+
+- `recording_id`
+- recording status
+- event count
+- ordered event summaries
+- captured selectors
+- compiler readiness: `ready` or `not_ready`
+
+The recording-to-skill compiler also validates the minimum controlled Fake ERP sequence before creating a skill, so incomplete recordings return clear diagnostics such as `missing_order_search_event`, `missing_formula_tab_event`, or `missing_review_formula_event`.
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
@@ -226,6 +239,7 @@ Implemented now:
 - Browser Recorder MVP for Fake ERP
 - Demo orchestrator endpoint for the current full MVP loop
 - Controlled Human Recording v0.2 for the Fake ERP formula review flow
+- Controlled Human Recording v0.2.1 hardening with compiler diagnostics and `/demo` preview/readiness
 - read-only Odoo adapter skeleton
 - Formula Guard policy evaluation for `confirm_sales_order`
 - preflight persistence and audit retrieval

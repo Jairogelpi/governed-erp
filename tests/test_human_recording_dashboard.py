@@ -74,6 +74,32 @@ def _recording_events_payload() -> list[dict]:
     ]
 
 
+def _create_finished_recording_with_events(events: list[dict]) -> str:
+    create_response = client.post("/v1/recordings", json=_human_recording_payload())
+    assert create_response.status_code == 200
+    recording_id = create_response.json()["recording_id"]
+
+    for event in events:
+      response = client.post(f"/v1/recordings/{recording_id}/events", json=event)
+      assert response.status_code == 200
+
+    finish_response = client.post(f"/v1/recordings/{recording_id}/finish")
+    assert finish_response.status_code == 200
+    assert finish_response.json()["status"] == "finished"
+    return recording_id
+
+
+def _compile_recording(recording_id: str):
+    return client.post(
+        f"/v1/recordings/{recording_id}/compile-skill",
+        json={
+            "name": "Human Recorded Fake ERP Formula Review",
+            "description": "Compiled from controlled human recording.",
+            "runtime_type": "deterministic_browser",
+        },
+    )
+
+
 def test_demo_dashboard_exposes_human_recording_controls():
     response = client.get("/demo")
 
@@ -87,33 +113,27 @@ def test_demo_dashboard_exposes_human_recording_controls():
     assert "Run compiled skill" in html
 
 
-def test_human_recording_pipeline_compiles_and_runs_allow_block():
-    create_response = client.post("/v1/recordings", json=_human_recording_payload())
-    assert create_response.status_code == 200
-    recording_id = create_response.json()["recording_id"]
+def test_demo_dashboard_exposes_human_recording_preview_and_readiness():
+    response = client.get("/demo")
 
-    events = _recording_events_payload()
-    for event in events:
-      response = client.post(f"/v1/recordings/{recording_id}/events", json=event)
-      assert response.status_code == 200
+    assert response.status_code == 200
+    html = response.text
+    assert "Recording Preview" in html
+    assert "compiler readiness" in html
+    assert "humanPreview" in html
+    assert "ordered events" in html
+    assert "selectors captured" in html
+
+
+def test_human_recording_pipeline_compiles_and_runs_allow_block():
+    recording_id = _create_finished_recording_with_events(_recording_events_payload())
 
     detail_response = client.get(f"/v1/recordings/{recording_id}")
     assert detail_response.status_code == 200
     detail_body = detail_response.json()
     assert [event["event_index"] for event in detail_body["events"]] == [1, 2, 3, 4, 5]
 
-    finish_response = client.post(f"/v1/recordings/{recording_id}/finish")
-    assert finish_response.status_code == 200
-    assert finish_response.json()["status"] == "finished"
-
-    compile_response = client.post(
-        f"/v1/recordings/{recording_id}/compile-skill",
-        json={
-            "name": "Human Recorded Fake ERP Formula Review",
-            "description": "Compiled from controlled human recording.",
-            "runtime_type": "deterministic_browser",
-        },
-    )
+    compile_response = _compile_recording(recording_id)
     assert compile_response.status_code == 200
     compile_body = compile_response.json()
     skill_id = compile_body["skill_id"]
@@ -130,6 +150,39 @@ def test_human_recording_pipeline_compiles_and_runs_allow_block():
     assert invalid_run.status_code == 200
     assert invalid_run.json()["decision"] == "block"
     assert invalid_run.json()["output"]["issues"]
+
+
+def test_human_recording_compile_without_search_event_reports_diagnostic():
+    events = [event for event in _recording_events_payload() if event.get("selector") != "[data-testid='order-search']"]
+    recording_id = _create_finished_recording_with_events(events)
+
+    response = _compile_recording(recording_id)
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "unsupported_recording_flow"
+    assert response.json()["error"]["message"] == "missing_order_search_event"
+
+
+def test_human_recording_compile_without_formula_tab_reports_diagnostic():
+    events = [event for event in _recording_events_payload() if event.get("selector") != "[data-testid='formula-tab']"]
+    recording_id = _create_finished_recording_with_events(events)
+
+    response = _compile_recording(recording_id)
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "unsupported_recording_flow"
+    assert response.json()["error"]["message"] == "missing_formula_tab_event"
+
+
+def test_human_recording_compile_without_review_formula_reports_diagnostic():
+    events = [event for event in _recording_events_payload() if event.get("selector") != "[data-testid='review-formula']"]
+    recording_id = _create_finished_recording_with_events(events)
+
+    response = _compile_recording(recording_id)
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "unsupported_recording_flow"
+    assert response.json()["error"]["message"] == "missing_review_formula_event"
 
 
 def test_health_endpoint_still_works_after_human_recording_routes():

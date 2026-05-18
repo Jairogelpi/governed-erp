@@ -20,6 +20,28 @@ def test_compiler_generalizes_order_reference_and_builds_expected_workflow():
         add_recording_event(
             session=session,
             recording_session_id=recording.id,
+            event_type="navigate",
+            url="http://127.0.0.1:8000/fake-erp/sales/orders",
+            page_title="Fake ERP Sales Orders",
+            before_text_snapshot="",
+            after_text_snapshot="Sales Orders...",
+        )
+        add_recording_event(
+            session=session,
+            recording_session_id=recording.id,
+            event_type="fill",
+            url="http://127.0.0.1:8000/fake-erp/sales/orders",
+            page_title="Fake ERP Sales Orders",
+            element_role="searchbox",
+            element_text="SO-FORMULA-MISMATCH",
+            selector="[data-testid='order-search']",
+            input_value="SO-FORMULA-MISMATCH",
+            before_text_snapshot="Sales Orders...",
+            after_text_snapshot="Sales Orders...",
+        )
+        add_recording_event(
+            session=session,
+            recording_session_id=recording.id,
             event_type="click",
             url="http://127.0.0.1:8000/fake-erp/sales/orders",
             page_title="Fake ERP Sales Orders",
@@ -32,10 +54,25 @@ def test_compiler_generalizes_order_reference_and_builds_expected_workflow():
         add_recording_event(
             session=session,
             recording_session_id=recording.id,
-            event_type="navigate",
+            event_type="click",
+            url="http://127.0.0.1:8000/fake-erp/sales/orders/SO-FORMULA-MISMATCH",
+            page_title="Fake ERP Order SO-FORMULA-MISMATCH",
+            element_role="link",
+            element_text="Formula tab",
+            selector="[data-testid='formula-tab']",
+            before_text_snapshot="Order SO-FORMULA-MISMATCH...",
+            after_text_snapshot="Order SO-FORMULA-MISMATCH...",
+        )
+        add_recording_event(
+            session=session,
+            recording_session_id=recording.id,
+            event_type="click",
             url="http://127.0.0.1:8000/fake-erp/sales/orders/SO-FORMULA-MISMATCH/formula",
             page_title="Fake ERP Formula SO-FORMULA-MISMATCH",
+            element_role="button",
+            element_text="Review formula",
             selector="[data-testid='review-formula']",
+            before_text_snapshot="Formula status...",
             after_text_snapshot="Formula status...",
         )
         finish_recording_session(session, recording.id)
