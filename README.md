@@ -132,6 +132,14 @@ curl -X POST http://127.0.0.1:8000/v1/recordings/demo-fake-erp-formula-flow ^
   -d "{\"base_url\":\"http://127.0.0.1:8000\",\"order_reference\":\"SO-FORMULA-MISMATCH\",\"actor\":{\"type\":\"user\",\"id\":\"user_1\",\"display_name\":\"Test User\"}}"
 ```
 
+Run the full MVP demo orchestrator:
+
+```bash
+curl -X POST http://127.0.0.1:8000/v1/demo/full-record-to-skill-flow ^
+  -H "Content-Type: application/json" ^
+  -d "{\"base_url\":\"http://127.0.0.1:8000\",\"record_order_reference\":\"SO-FORMULA-MISMATCH\",\"valid_order_reference\":\"SO-VALID\",\"invalid_order_reference\":\"SO-FORMULA-MISMATCH\",\"actor\":{\"type\":\"user\",\"id\":\"user_1\",\"display_name\":\"Test User\"}}"
+```
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
@@ -163,6 +171,7 @@ Implemented now:
 - Playwright browser runtime for Fake ERP
 - Recording Session API
 - Browser Recorder MVP for Fake ERP
+- Demo orchestrator endpoint for the current full MVP loop
 - read-only Odoo adapter skeleton
 - Formula Guard policy evaluation for `confirm_sales_order`
 - preflight persistence and audit retrieval

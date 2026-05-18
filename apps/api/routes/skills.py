@@ -20,6 +20,7 @@ from apps.api.schemas.skills import (
 from erpguard.adapters.fake import FakeERPAdapter
 from erpguard.canonical.enums import CanonicalAction
 from erpguard.core.errors import ObjectNotFoundError
+from erpguard.demo.full_flow import run_deterministic_skill_for_order_reference
 from erpguard.db.repositories import (
     create_skill,
     create_skill_run,
@@ -170,114 +171,10 @@ def run_skill_endpoint(skill_id: str, request: SkillRunRequest):
         inputs = request.inputs.model_dump(mode="json")
         order_reference = inputs["order_reference"]
 
-        run = create_skill_run(
-            session=session,
-            skill_id=skill.id,
-            skill_version_id=skill_version.id,
-            status="running",
-            input_json=json.dumps(inputs, default=str),
-        )
-        create_skill_run_step(
-            session=session,
-            skill_run_id=run.id,
-            step_id="load_skill",
-            step_type="load",
-            status="passed",
-            input_json=json.dumps({"skill_id": skill.id, "version_id": skill_version.id}, default=str),
-            output_json=json.dumps({"runtime_type": skill_version.runtime_type}, default=str),
-        )
-
-        adapter = FakeERPAdapter()
-        try:
-            order = adapter.get_sales_order_by_reference(order_reference)
-        except ObjectNotFoundError as exc:
-            create_skill_run_step(
-                session=session,
-                skill_run_id=run.id,
-                step_id="load_order",
-                step_type="load",
-                status="failed",
-                input_json=json.dumps({"order_reference": order_reference}, default=str),
-                error_text=str(exc),
-            )
-            create_skill_run_step(
-                session=session,
-                skill_run_id=run.id,
-                step_id="formula_guard",
-                step_type="guard",
-                status="failed",
-                input_json=json.dumps({"policy_id": "formula_guard", "policy_version": "0.1.0"}, default=str),
-                error_text=str(exc),
-            )
-            output = {
-                "order_reference": order_reference,
-                "policy_id": "formula_guard",
-                "policy_version": "0.1.0",
-                "issues": [],
-            }
-            finished = finish_skill_run(
-                session=session,
-                skill_run_id=run.id,
-                status="failed",
-                output_json=json.dumps(output, default=str),
-                decision="block",
-                error_text=str(exc),
-                estimated_tokens_saved=_TOKEN_ECONOMICS["estimated_tokens_saved"],
-            )
-            create_skill_run_step(
-                session=session,
-                skill_run_id=run.id,
-                step_id="produce_result",
-                step_type="result",
-                status="passed",
-                output_json=json.dumps({"decision": "block", "issues_count": 0}, default=str),
-            )
-            return _run_response(finished, skill.id, output)
-
-        create_skill_run_step(
-            session=session,
-            skill_run_id=run.id,
-            step_id="load_order",
-            step_type="load",
-            status="passed",
-            input_json=json.dumps({"order_reference": order_reference}, default=str),
-            output_json=json.dumps({"order_id": order.id, "reference": order.reference}, default=str),
-        )
-
-        policy_result = PolicyEngine().evaluate("formula_guard", order, canonical_action=CanonicalAction.VALIDATE_FORMULA)
-        create_skill_run_step(
-            session=session,
-            skill_run_id=run.id,
-            step_id="formula_guard",
-            step_type="guard",
-            status="blocked" if policy_result.decision.value == "block" else "passed",
-            input_json=json.dumps({"policy_id": policy_result.policy_id, "policy_version": policy_result.policy_version}, default=str),
-            output_json=json.dumps(policy_result.model_dump(mode="json"), default=str),
-        )
-
-        output = {
-            "order_reference": order.reference,
-            "policy_id": policy_result.policy_id,
-            "policy_version": policy_result.policy_version,
-            "issues": [issue.model_dump(mode="json") for issue in policy_result.issues],
-        }
-        finished = finish_skill_run(
-            session=session,
-            skill_run_id=run.id,
-            status="success",
-            output_json=json.dumps(output, default=str),
-            decision=policy_result.decision.value,
-            estimated_tokens_saved=_TOKEN_ECONOMICS["estimated_tokens_saved"],
-        )
-        create_skill_run_step(
-            session=session,
-            skill_run_id=run.id,
-            step_id="produce_result",
-            step_type="result",
-            status="passed",
-            output_json=json.dumps({"decision": policy_result.decision.value, "issues_count": len(policy_result.issues)}, default=str),
-        )
-        return _run_response(finished, skill.id, output)
+        run_result = run_deterministic_skill_for_order_reference(session=session, skill_id=skill.id, order_reference=order_reference)
+        run = get_skill_run(session, run_result.skill_run_id)
+        output = run.output_json and json.loads(run.output_json) or {}
+        return _run_response(run, skill.id, output)
     finally:
         session.close()
 
