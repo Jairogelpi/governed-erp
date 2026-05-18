@@ -206,6 +206,24 @@ The `/demo` dashboard now shows a human recording preview after finish:
 
 The recording-to-skill compiler also validates the minimum controlled Fake ERP sequence before creating a skill, so incomplete recordings return clear diagnostics such as `missing_order_search_event`, `missing_formula_tab_event`, or `missing_review_formula_event`.
 
+## Human Recording v0.2.1 Evidence
+
+The frozen v0.2.1 evidence response is stored at [docs/demo/human_recording_v0_2_1_success_response.json](docs/demo/human_recording_v0_2_1_success_response.json).
+
+It was generated from a FastAPI `TestClient` flow that creates a controlled recording, posts the five required Fake ERP events, compiles the recording, and runs the compiled skill for `SO-VALID` and `SO-FORMULA-MISMATCH`.
+
+Verify the current evidence baseline with:
+
+```bash
+python -m pytest
+```
+
+Expected result for the v0.2.1 evidence freeze environment:
+
+```text
+141 passed, 9 skipped, 2 warnings
+```
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:

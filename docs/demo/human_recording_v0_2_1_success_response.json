@@ -1,0 +1,79 @@
+{
+  "source": "generated_from_testclient",
+  "recording_id": "recording_b7a39610bb4648cc9d9c327cedbd17e3",
+  "recording_status": "finished",
+  "event_count": 5,
+  "ordered_events": [
+    {
+      "event_index": 1,
+      "event_type": "navigate",
+      "selector": null,
+      "input_value": null,
+      "element_text": null,
+      "url": "http://127.0.0.1:8000/fake-erp/sales/orders?recording_id=recording_test"
+    },
+    {
+      "event_index": 2,
+      "event_type": "fill",
+      "selector": "[data-testid='order-search']",
+      "input_value": "SO-FORMULA-MISMATCH",
+      "element_text": "SO-FORMULA-MISMATCH",
+      "url": "http://127.0.0.1:8000/fake-erp/sales/orders?recording_id=recording_test"
+    },
+    {
+      "event_index": 3,
+      "event_type": "click",
+      "selector": "[data-testid='open-order-SO-FORMULA-MISMATCH']",
+      "input_value": null,
+      "element_text": "Open SO-FORMULA-MISMATCH",
+      "url": "http://127.0.0.1:8000/fake-erp/sales/orders/SO-FORMULA-MISMATCH?recording_id=recording_test"
+    },
+    {
+      "event_index": 4,
+      "event_type": "click",
+      "selector": "[data-testid='formula-tab']",
+      "input_value": null,
+      "element_text": "Formula tab",
+      "url": "http://127.0.0.1:8000/fake-erp/sales/orders/SO-FORMULA-MISMATCH/formula?recording_id=recording_test"
+    },
+    {
+      "event_index": 5,
+      "event_type": "click",
+      "selector": "[data-testid='review-formula']",
+      "input_value": null,
+      "element_text": "Review formula",
+      "url": "http://127.0.0.1:8000/fake-erp/sales/orders/SO-FORMULA-MISMATCH/formula?recording_id=recording_test"
+    }
+  ],
+  "selectors_captured": [
+    "[data-testid='order-search']",
+    "[data-testid='open-order-SO-FORMULA-MISMATCH']",
+    "[data-testid='formula-tab']",
+    "[data-testid='review-formula']"
+  ],
+  "compiler_readiness": "ready",
+  "skill_id": "skill_5fc5cc6a8c77429c80f2a846972283e6",
+  "version_id": "skill_version_776a42c9de50474fa29f30f66a0507e0",
+  "valid_order_reference": "SO-VALID",
+  "valid_decision": "allow",
+  "invalid_order_reference": "SO-FORMULA-MISMATCH",
+  "invalid_decision": "block",
+  "invalid_issues_count": 1,
+  "repeated_execution_token_cost": 0,
+  "diagnostics_supported": [
+    "missing_sales_orders_navigation",
+    "missing_order_search_event",
+    "missing_open_order_event",
+    "missing_formula_tab_event",
+    "missing_review_formula_event",
+    "unsupported_order_reference",
+    "unsupported_fake_erp_formula_flow"
+  ],
+  "proof": {
+    "human_recording_captured": true,
+    "compiler_validated_minimum_sequence": true,
+    "deterministic_replay": true,
+    "erpguard_blocked_invalid_order": true,
+    "no_llm_used_for_repeated_runs": true
+  }
+}
