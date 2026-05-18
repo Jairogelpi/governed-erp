@@ -82,6 +82,16 @@ Get a skill by id:
 curl http://127.0.0.1:8000/v1/skills/skill_...
 ```
 
+Run a skill:
+
+```bash
+curl -X POST http://127.0.0.1:8000/v1/skills/skill_.../run ^
+  -H "Content-Type: application/json" ^
+  -d "{\"inputs\":{\"order_reference\":\"SO-FORMULA-MISMATCH\"}}"
+```
+
+The repeated run path is deterministic and does not use the LLM.
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
@@ -109,6 +119,7 @@ Implemented now:
 - fake adapter demo path
 - fake ERP web demo surface
 - skill registry MVP
+- deterministic Skill Run endpoint
 - read-only Odoo adapter skeleton
 - Formula Guard policy evaluation for `confirm_sales_order`
 - preflight persistence and audit retrieval

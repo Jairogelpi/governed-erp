@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from sqlalchemy.orm import Session
@@ -179,7 +180,7 @@ def create_skill_run(
     decision: str | None = None,
     error_text: str | None = None,
     estimated_tokens_saved: int | None = None,
-    finished_at=None,
+    finished_at: datetime | None = None,
 ) -> SkillRun:
     skill_run = SkillRun(
         id=f"skill_run_{uuid4().hex}",
@@ -242,10 +243,23 @@ def finish_skill_run(
     skill_run.decision = decision
     skill_run.error_text = error_text
     skill_run.estimated_tokens_saved = estimated_tokens_saved
-    skill_run.finished_at = __import__("datetime").datetime.now(__import__("datetime").timezone.utc)
+    skill_run.finished_at = datetime.now(timezone.utc)
     session.commit()
     session.refresh(skill_run)
     return skill_run
+
+
+def get_skill_run(session: Session, skill_run_id: str) -> SkillRun | None:
+    return session.get(SkillRun, skill_run_id)
+
+
+def list_skill_run_steps(session: Session, skill_run_id: str) -> list[SkillRunStep]:
+    return list(
+        session.query(SkillRunStep)
+        .filter(SkillRunStep.skill_run_id == skill_run_id)
+        .order_by(SkillRunStep.created_at.asc())
+        .all()
+    )
 
 
 def _to_json(value) -> str:

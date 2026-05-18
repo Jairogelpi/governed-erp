@@ -46,3 +46,46 @@ class SkillDetailResponse(SkillSummaryResponse):
     skill_package: dict[str, Any] = Field(default_factory=dict)
     version: str | None = None
     version_created_at: str | None = None
+
+
+class SkillRunInputsRequest(BaseModel):
+    order_reference: str = Field(min_length=1)
+
+
+class SkillRunRequest(BaseModel):
+    inputs: SkillRunInputsRequest
+
+
+class SkillRunTokenEconomics(BaseModel):
+    creation_token_cost_estimate: int
+    repeated_execution_token_cost: int
+    estimated_tokens_saved: int
+
+
+class SkillRunResponse(BaseModel):
+    skill_run_id: str
+    skill_id: str
+    status: str
+    decision: str
+    output: dict[str, Any]
+    token_economics: SkillRunTokenEconomics
+
+
+class SkillRunStepResponse(BaseModel):
+    id: str
+    step_id: str
+    step_type: str
+    status: str
+    input_json: dict[str, Any] | None = None
+    output_json: dict[str, Any] | None = None
+    error_text: str | None = None
+    created_at: str
+
+
+class SkillRunDetailResponse(SkillRunResponse):
+    skill_version_id: str
+    input: dict[str, Any] | None = None
+    error_text: str | None = None
+    created_at: str
+    finished_at: str | None = None
+    steps: list[SkillRunStepResponse] = Field(default_factory=list)

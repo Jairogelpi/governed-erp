@@ -5,18 +5,41 @@ import json
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from apps.api.schemas.skills import SkillCreateRequest, SkillCreateResponse, SkillDetailResponse, SkillSummaryResponse
+from apps.api.schemas.skills import (
+    SkillCreateRequest,
+    SkillCreateResponse,
+    SkillDetailResponse,
+    SkillRunDetailResponse,
+    SkillRunRequest,
+    SkillRunResponse,
+    SkillRunStepResponse,
+    SkillSummaryResponse,
+)
+from erpguard.adapters.fake import FakeERPAdapter
+from erpguard.canonical.enums import CanonicalAction
+from erpguard.core.errors import ObjectNotFoundError
 from erpguard.db.repositories import (
     create_skill,
+    create_skill_run,
+    create_skill_run_step,
     create_skill_version,
+    finish_skill_run,
     get_latest_skill_version,
     get_skill,
+    get_skill_run,
     list_skills,
+    list_skill_run_steps,
 )
 from erpguard.db.session import SessionLocal, init_db
+from erpguard.policies.engine import PolicyEngine
 
 
 router = APIRouter(prefix="/v1", tags=["skills"])
+_TOKEN_ECONOMICS = {
+    "creation_token_cost_estimate": 2000,
+    "repeated_execution_token_cost": 0,
+    "estimated_tokens_saved": 2000,
+}
 
 
 @router.post("/skills", response_model=SkillCreateResponse)
@@ -108,3 +131,222 @@ def get_skill_endpoint(skill_id: str):
         }
     finally:
         session.close()
+
+
+@router.post("/skills/{skill_id}/run", response_model=SkillRunResponse)
+def run_skill_endpoint(skill_id: str, request: SkillRunRequest):
+    init_db()
+    session = SessionLocal()
+    try:
+        skill = get_skill(session, skill_id)
+        if skill is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_not_found",
+                        "message": f"Skill '{skill_id}' not found.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        skill_version = get_latest_skill_version(session, skill.id)
+        if skill_version is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_version_not_found",
+                        "message": f"Skill '{skill_id}' has no registered version.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        inputs = request.inputs.model_dump(mode="json")
+        order_reference = inputs["order_reference"]
+
+        run = create_skill_run(
+            session=session,
+            skill_id=skill.id,
+            skill_version_id=skill_version.id,
+            status="running",
+            input_json=json.dumps(inputs, default=str),
+        )
+        create_skill_run_step(
+            session=session,
+            skill_run_id=run.id,
+            step_id="load_skill",
+            step_type="load",
+            status="passed",
+            input_json=json.dumps({"skill_id": skill.id, "version_id": skill_version.id}, default=str),
+            output_json=json.dumps({"runtime_type": skill_version.runtime_type}, default=str),
+        )
+
+        adapter = FakeERPAdapter()
+        try:
+            order = adapter.get_sales_order_by_reference(order_reference)
+        except ObjectNotFoundError as exc:
+            create_skill_run_step(
+                session=session,
+                skill_run_id=run.id,
+                step_id="load_order",
+                step_type="load",
+                status="failed",
+                input_json=json.dumps({"order_reference": order_reference}, default=str),
+                error_text=str(exc),
+            )
+            create_skill_run_step(
+                session=session,
+                skill_run_id=run.id,
+                step_id="formula_guard",
+                step_type="guard",
+                status="failed",
+                input_json=json.dumps({"policy_id": "formula_guard", "policy_version": "0.1.0"}, default=str),
+                error_text=str(exc),
+            )
+            output = {
+                "order_reference": order_reference,
+                "policy_id": "formula_guard",
+                "policy_version": "0.1.0",
+                "issues": [],
+            }
+            finished = finish_skill_run(
+                session=session,
+                skill_run_id=run.id,
+                status="failed",
+                output_json=json.dumps(output, default=str),
+                decision="block",
+                error_text=str(exc),
+                estimated_tokens_saved=_TOKEN_ECONOMICS["estimated_tokens_saved"],
+            )
+            create_skill_run_step(
+                session=session,
+                skill_run_id=run.id,
+                step_id="produce_result",
+                step_type="result",
+                status="passed",
+                output_json=json.dumps({"decision": "block", "issues_count": 0}, default=str),
+            )
+            return _run_response(finished, skill.id, output)
+
+        create_skill_run_step(
+            session=session,
+            skill_run_id=run.id,
+            step_id="load_order",
+            step_type="load",
+            status="passed",
+            input_json=json.dumps({"order_reference": order_reference}, default=str),
+            output_json=json.dumps({"order_id": order.id, "reference": order.reference}, default=str),
+        )
+
+        policy_result = PolicyEngine().evaluate("formula_guard", order, canonical_action=CanonicalAction.VALIDATE_FORMULA)
+        create_skill_run_step(
+            session=session,
+            skill_run_id=run.id,
+            step_id="formula_guard",
+            step_type="guard",
+            status="blocked" if policy_result.decision.value == "block" else "passed",
+            input_json=json.dumps({"policy_id": policy_result.policy_id, "policy_version": policy_result.policy_version}, default=str),
+            output_json=json.dumps(policy_result.model_dump(mode="json"), default=str),
+        )
+
+        output = {
+            "order_reference": order.reference,
+            "policy_id": policy_result.policy_id,
+            "policy_version": policy_result.policy_version,
+            "issues": [issue.model_dump(mode="json") for issue in policy_result.issues],
+        }
+        finished = finish_skill_run(
+            session=session,
+            skill_run_id=run.id,
+            status="success",
+            output_json=json.dumps(output, default=str),
+            decision=policy_result.decision.value,
+            estimated_tokens_saved=_TOKEN_ECONOMICS["estimated_tokens_saved"],
+        )
+        create_skill_run_step(
+            session=session,
+            skill_run_id=run.id,
+            step_id="produce_result",
+            step_type="result",
+            status="passed",
+            output_json=json.dumps({"decision": policy_result.decision.value, "issues_count": len(policy_result.issues)}, default=str),
+        )
+        return _run_response(finished, skill.id, output)
+    finally:
+        session.close()
+
+
+@router.get("/skills/{skill_id}/runs/{skill_run_id}", response_model=SkillRunDetailResponse)
+def get_skill_run_endpoint(skill_id: str, skill_run_id: str):
+    init_db()
+    session = SessionLocal()
+    try:
+        skill = get_skill(session, skill_id)
+        if skill is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_not_found",
+                        "message": f"Skill '{skill_id}' not found.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+        run = get_skill_run(session, skill_run_id)
+        if run is None or run.skill_id != skill_id:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_run_not_found",
+                        "message": f"Skill run '{skill_run_id}' not found for skill '{skill_id}'.",
+                        "details": {"skill_id": skill_id, "skill_run_id": skill_run_id},
+                    }
+                },
+            )
+
+        steps = list_skill_run_steps(session, skill_run_id)
+        output = json.loads(run.output_json) if run.output_json else {}
+        return {
+            "skill_run_id": run.id,
+            "skill_id": run.skill_id,
+            "skill_version_id": run.skill_version_id,
+            "status": run.status,
+            "decision": run.decision or output.get("policy_id", ""),
+            "output": output,
+            "token_economics": _TOKEN_ECONOMICS,
+            "input": json.loads(run.input_json) if run.input_json else None,
+            "error_text": run.error_text,
+            "created_at": run.created_at.isoformat(),
+            "finished_at": run.finished_at.isoformat() if run.finished_at else None,
+            "steps": [
+                {
+                    "id": step.id,
+                    "step_id": step.step_id,
+                    "step_type": step.step_type,
+                    "status": step.status,
+                    "input_json": json.loads(step.input_json) if step.input_json else None,
+                    "output_json": json.loads(step.output_json) if step.output_json else None,
+                    "error_text": step.error_text,
+                    "created_at": step.created_at.isoformat(),
+                }
+                for step in steps
+            ],
+        }
+    finally:
+        session.close()
+
+
+def _run_response(run, skill_id: str, output: dict) -> dict:
+    return {
+        "skill_run_id": run.id,
+        "skill_id": skill_id,
+        "status": run.status,
+        "decision": run.decision,
+        "output": output,
+        "token_economics": _TOKEN_ECONOMICS,
+    }
