@@ -138,6 +138,34 @@ def demo_dashboard() -> str:
     .bad { color: var(--danger); }
     .full { grid-column: 1 / -1; }
     .tiny { font-size: 0.9rem; color: var(--muted); }
+    .teach-steps {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+    .teach-steps li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid rgba(29, 26, 22, 0.08);
+      background: rgba(29, 26, 22, 0.035);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .step-state {
+      font-family: Consolas, "Liberation Mono", monospace;
+      font-size: 0.8rem;
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: rgba(29, 26, 22, 0.08);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .step-state.observed, .step-state.ready { color: var(--success); }
+    .step-state.missing { color: var(--danger); }
     @media (max-width: 860px) {
       .hero, .grid { grid-template-columns: 1fr; }
       .full { grid-column: auto; }
@@ -196,6 +224,20 @@ def demo_dashboard() -> str:
         </div>
         <p class="tiny">The capture mode only listens to the known Fake ERP selectors and keeps the recording id across navigation.</p>
         <pre id="humanStatus">No human recording started.</pre>
+        <h3>Teach Mode v0.3</h3>
+        <ol class="teach-steps" id="teachModeSteps">
+          <li data-step-id="start_recording">Start recording <span class="step-state pending">pending</span></li>
+          <li data-step-id="open_fake_erp">Open Fake ERP <span class="step-state pending">pending</span></li>
+          <li data-step-id="order_search">Search order <span class="step-state pending">pending</span></li>
+          <li data-step-id="open_order">Open order <span class="step-state pending">pending</span></li>
+          <li data-step-id="formula_tab">Open formula tab <span class="step-state pending">pending</span></li>
+          <li data-step-id="review_formula">Review formula <span class="step-state pending">pending</span></li>
+          <li data-step-id="finish_recording">Finish recording <span class="step-state pending">pending</span></li>
+          <li data-step-id="compile_skill">Compile skill <span class="step-state pending">pending</span></li>
+          <li data-step-id="run_allow_block_proof">Run allow/block proof <span class="step-state pending">pending</span></li>
+          <li hidden data-step-id="sales_orders_navigation">sales_orders_navigation <span class="step-state pending">pending</span></li>
+        </ol>
+        <p class="tiny" id="teachModeReadiness">Teach Mode readiness: not_ready</p>
         <h3>Recording Preview</h3>
         <p class="tiny">Shows ordered events, selectors captured, and compiler readiness before compilation.</p>
         <pre id="humanPreview">compiler readiness: not_ready
@@ -252,11 +294,15 @@ selectors captured: none</pre>
     const humanStatus = document.getElementById("humanStatus");
     const humanPreview = document.getElementById("humanPreview");
     const humanResults = document.getElementById("humanResults");
+    const teachModeReadiness = document.getElementById("teachModeReadiness");
 
     const humanState = {
       recordingId: null,
       skillId: null,
       versionId: null,
+      fakeErpOpened: false,
+      recordingFinished: false,
+      proofRun: false,
     };
 
     const humanDefaults = {
@@ -313,9 +359,50 @@ selectors captured: none</pre>
       });
     };
 
+    const setTeachStepState = (stepId, state) => {
+      const step = document.querySelector(`[data-step-id="${stepId}"]`);
+      if (!step) return;
+      const badge = step.querySelector(".step-state");
+      if (!badge) return;
+      badge.textContent = state;
+      badge.className = `step-state ${state}`;
+    };
+
+    const renderTeachMode = (readiness) => {
+      const serverSteps = Object.fromEntries((readiness.steps || []).map((step) => [step.id, step.status]));
+      setTeachStepState("start_recording", humanState.recordingId ? "observed" : "pending");
+      setTeachStepState("open_fake_erp", humanState.fakeErpOpened ? "observed" : "pending");
+      setTeachStepState("order_search", serverSteps.order_search || "pending");
+      setTeachStepState("open_order", serverSteps.open_order || "pending");
+      setTeachStepState("formula_tab", serverSteps.formula_tab || "pending");
+      setTeachStepState("review_formula", serverSteps.review_formula || "pending");
+      setTeachStepState("finish_recording", humanState.recordingFinished ? "observed" : "pending");
+      setTeachStepState("compile_skill", readiness.readiness === "ready" ? "ready" : "pending");
+      setTeachStepState("run_allow_block_proof", humanState.proofRun ? "observed" : "pending");
+      setTeachStepState("sales_orders_navigation", serverSteps.sales_orders_navigation || "pending");
+      teachModeReadiness.textContent = `Teach Mode readiness: ${readiness.readiness || "not_ready"}`;
+    };
+
+    const refreshTeachModeReadiness = async () => {
+      if (!humanState.recordingId) {
+        renderTeachMode({ readiness: "not_ready", steps: [] });
+        return null;
+      }
+
+      const response = await fetch(`/v1/recordings/${humanState.recordingId}/readiness`);
+      const body = await response.json();
+      if (!response.ok) {
+        teachModeReadiness.textContent = `Teach Mode readiness unavailable: ${body?.error?.message || "unknown error"}`;
+        return null;
+      }
+      renderTeachMode(body);
+      return body;
+    };
+
     const refreshRecordingPreview = async () => {
       if (!humanState.recordingId) {
         humanPreview.textContent = "compiler readiness: not_ready\nordered events: none\nselectors captured: none";
+        await refreshTeachModeReadiness();
         return;
       }
 
@@ -326,6 +413,7 @@ selectors captured: none</pre>
         return;
       }
       renderRecordingPreview(body);
+      await refreshTeachModeReadiness();
     };
 
     const openFakeErpWithRecording = () => {
@@ -337,6 +425,8 @@ selectors captured: none</pre>
       const url = new URL("/fake-erp/sales/orders", currentBaseUrl());
       url.searchParams.set("recording_id", humanState.recordingId);
       window.open(url.toString(), "_blank", "noopener,noreferrer");
+      humanState.fakeErpOpened = true;
+      renderTeachMode({ readiness: "not_ready", steps: [] });
       setHumanStatus(`Opened Fake ERP sales orders with recording_id=${humanState.recordingId}`);
     };
 
@@ -364,6 +454,9 @@ selectors captured: none</pre>
         humanState.recordingId = body.recording_id;
         humanState.skillId = null;
         humanState.versionId = null;
+        humanState.fakeErpOpened = false;
+        humanState.recordingFinished = false;
+        humanState.proofRun = false;
         setHumanStatus(jsonText({
           recording_id: body.recording_id,
           name: body.name,
@@ -401,6 +494,7 @@ selectors captured: none</pre>
         }
 
         setHumanStatus(jsonText(body));
+        humanState.recordingFinished = true;
         await refreshRecordingPreview();
       } catch (error) {
         setHumanStatus(`Failed to finish recording: ${String(error)}`);
@@ -436,6 +530,7 @@ selectors captured: none</pre>
 
         humanState.skillId = body.skill_id;
         humanState.versionId = body.version_id;
+        setTeachStepState("compile_skill", "observed");
         setHumanStatus(jsonText({
           recording_id: body.recording_id,
           skill_id: body.skill_id,
@@ -490,6 +585,8 @@ selectors captured: none</pre>
           invalid_issues_count: invalidBody.output?.issues?.length ?? 0,
           repeated_execution_token_cost: validBody.token_economics?.repeated_execution_token_cost,
         }));
+        humanState.proofRun = true;
+        setTeachStepState("run_allow_block_proof", "observed");
       } catch (error) {
         setHumanResults(`Failed to run compiled skill: ${String(error)}`);
       } finally {

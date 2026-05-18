@@ -100,6 +100,14 @@ def _compile_recording(recording_id: str):
     )
 
 
+def _readiness(recording_id: str):
+    return client.get(f"/v1/recordings/{recording_id}/readiness")
+
+
+def _step_statuses(body: dict) -> dict[str, str]:
+    return {step["id"]: step["status"] for step in body["steps"]}
+
+
 def test_demo_dashboard_exposes_human_recording_controls():
     response = client.get("/demo")
 
@@ -113,6 +121,29 @@ def test_demo_dashboard_exposes_human_recording_controls():
     assert "Run compiled skill" in html
 
 
+def test_demo_dashboard_exposes_teach_mode_steps():
+    response = client.get("/demo")
+
+    assert response.status_code == 200
+    html = response.text
+    assert "Teach Mode v0.3" in html
+    assert "teachModeSteps" in html
+    assert "Start recording" in html
+    assert "Open Fake ERP" in html
+    assert "Search order" in html
+    assert "Open order" in html
+    assert "Open formula tab" in html
+    assert "Review formula" in html
+    assert "Finish recording" in html
+    assert "Compile skill" in html
+    assert "Run allow/block proof" in html
+    assert "sales_orders_navigation" in html
+    assert "order_search" in html
+    assert "open_order" in html
+    assert "formula_tab" in html
+    assert "review_formula" in html
+
+
 def test_demo_dashboard_exposes_human_recording_preview_and_readiness():
     response = client.get("/demo")
 
@@ -123,6 +154,66 @@ def test_demo_dashboard_exposes_human_recording_preview_and_readiness():
     assert "humanPreview" in html
     assert "ordered events" in html
     assert "selectors captured" in html
+
+
+def test_readiness_for_complete_recording_returns_ready():
+    recording_id = _create_finished_recording_with_events(_recording_events_payload())
+
+    response = _readiness(recording_id)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["recording_id"] == recording_id
+    assert body["status"] == "finished"
+    assert body["event_count"] == 5
+    assert body["readiness"] == "ready"
+    assert body["diagnostics"] == []
+    assert _step_statuses(body) == {
+        "sales_orders_navigation": "observed",
+        "order_search": "observed",
+        "open_order": "observed",
+        "formula_tab": "observed",
+        "review_formula": "observed",
+    }
+
+
+def test_readiness_without_search_event_reports_missing_order_search():
+    events = [event for event in _recording_events_payload() if event.get("selector") != "[data-testid='order-search']"]
+    recording_id = _create_finished_recording_with_events(events)
+
+    response = _readiness(recording_id)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["readiness"] == "not_ready"
+    assert _step_statuses(body)["order_search"] == "missing"
+    assert "missing_order_search_event" in body["diagnostics"]
+
+
+def test_readiness_without_formula_tab_reports_missing_formula_tab():
+    events = [event for event in _recording_events_payload() if event.get("selector") != "[data-testid='formula-tab']"]
+    recording_id = _create_finished_recording_with_events(events)
+
+    response = _readiness(recording_id)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["readiness"] == "not_ready"
+    assert _step_statuses(body)["formula_tab"] == "missing"
+    assert "missing_formula_tab_event" in body["diagnostics"]
+
+
+def test_readiness_without_review_formula_reports_missing_review_formula():
+    events = [event for event in _recording_events_payload() if event.get("selector") != "[data-testid='review-formula']"]
+    recording_id = _create_finished_recording_with_events(events)
+
+    response = _readiness(recording_id)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["readiness"] == "not_ready"
+    assert _step_statuses(body)["review_formula"] == "missing"
+    assert "missing_review_formula_event" in body["diagnostics"]
 
 
 def test_human_recording_pipeline_compiles_and_runs_allow_block():
@@ -150,6 +241,31 @@ def test_human_recording_pipeline_compiles_and_runs_allow_block():
     assert invalid_run.status_code == 200
     assert invalid_run.json()["decision"] == "block"
     assert invalid_run.json()["output"]["issues"]
+
+
+def test_human_recording_compile_succeeds_when_readiness_ready():
+    recording_id = _create_finished_recording_with_events(_recording_events_payload())
+    readiness_response = _readiness(recording_id)
+    assert readiness_response.status_code == 200
+    assert readiness_response.json()["readiness"] == "ready"
+
+    compile_response = _compile_recording(recording_id)
+
+    assert compile_response.status_code == 200
+    assert compile_response.json()["recording_id"] == recording_id
+
+
+def test_human_recording_compile_fails_when_readiness_not_ready():
+    events = [event for event in _recording_events_payload() if event.get("selector") != "[data-testid='order-search']"]
+    recording_id = _create_finished_recording_with_events(events)
+    readiness_response = _readiness(recording_id)
+    assert readiness_response.status_code == 200
+    assert readiness_response.json()["readiness"] == "not_ready"
+
+    compile_response = _compile_recording(recording_id)
+
+    assert compile_response.status_code == 400
+    assert compile_response.json()["error"]["message"] == "missing_order_search_event"
 
 
 def test_human_recording_compile_without_search_event_reports_diagnostic():

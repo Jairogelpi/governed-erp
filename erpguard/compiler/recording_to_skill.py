@@ -26,12 +26,39 @@ class _EventView:
     after_text_snapshot: str | None
 
 
-def compile_recording_to_skill_package(recording, events) -> dict[str, Any]:
-    ordered_events = [_coerce_event(event) for event in events]
-    if not ordered_events:
-        raise ValueError("unsupported_fake_erp_formula_flow")
+@dataclass(frozen=True)
+class RecordingReadinessStep:
+    id: str
+    status: str
 
-    order_reference = _validate_fake_erp_formula_review_sequence(ordered_events)
+
+@dataclass(frozen=True)
+class RecordingReadinessAnalysis:
+    recording_id: str
+    status: str
+    event_count: int
+    readiness: str
+    steps: list[RecordingReadinessStep]
+    diagnostics: list[str]
+    order_reference: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "recording_id": self.recording_id,
+            "status": self.status,
+            "event_count": self.event_count,
+            "readiness": self.readiness,
+            "steps": [{"id": step.id, "status": step.status} for step in self.steps],
+            "diagnostics": self.diagnostics,
+        }
+
+
+def compile_recording_to_skill_package(recording, events) -> dict[str, Any]:
+    analysis = analyze_recording_readiness(recording, events)
+    if analysis.readiness != "ready":
+        raise ValueError(analysis.diagnostics[0] if analysis.diagnostics else "unsupported_fake_erp_formula_flow")
+
+    order_reference = analysis.order_reference
 
     return {
         "skill_id": "recorded_fake_erp_formula_review",
@@ -74,60 +101,91 @@ def _coerce_event(event) -> _EventView:
     )
 
 
-def _validate_fake_erp_formula_review_sequence(events: list[_EventView]) -> str:
+def analyze_recording_readiness(recording, events) -> RecordingReadinessAnalysis:
+    ordered_events = [_coerce_event(event) for event in events]
+    recording_id = _get(recording, "id") or _get(recording, "recording_id")
+    recording_status = _get(recording, "status")
+    steps = [
+        RecordingReadinessStep("sales_orders_navigation", "missing"),
+        RecordingReadinessStep("order_search", "missing"),
+        RecordingReadinessStep("open_order", "missing"),
+        RecordingReadinessStep("formula_tab", "missing"),
+        RecordingReadinessStep("review_formula", "missing"),
+    ]
+
+    def result(diagnostic: str | None, order_reference: str | None = None) -> RecordingReadinessAnalysis:
+        diagnostics = [diagnostic] if diagnostic else []
+        return RecordingReadinessAnalysis(
+            recording_id=recording_id,
+            status=recording_status,
+            event_count=len(ordered_events),
+            readiness="not_ready" if diagnostics else "ready",
+            steps=steps,
+            diagnostics=diagnostics,
+            order_reference=order_reference,
+        )
+
+    if not ordered_events:
+        return result("unsupported_fake_erp_formula_flow")
+
     navigation_index = _find_event_index(
-        events,
+        ordered_events,
         start=0,
         predicate=lambda event: event.event_type == "navigate"
         and _contains(event.url or "", "/fake-erp/sales/orders"),
     )
     if navigation_index is None:
-        raise ValueError("missing_sales_orders_navigation")
+        return result("missing_sales_orders_navigation")
+    steps[0] = RecordingReadinessStep("sales_orders_navigation", "observed")
 
     search_index = _find_event_index(
-        events,
+        ordered_events,
         start=navigation_index + 1,
         predicate=lambda event: event.event_type == "fill"
         and event.selector == "[data-testid='order-search']",
     )
     if search_index is None:
-        raise ValueError("missing_order_search_event")
+        return result("missing_order_search_event")
+    steps[1] = RecordingReadinessStep("order_search", "observed")
 
-    order_reference = _supported_order_reference_from_event(events[search_index])
+    order_reference = _supported_order_reference_from_event(ordered_events[search_index])
     if order_reference is None:
-        raise ValueError("unsupported_order_reference")
+        return result("unsupported_order_reference")
 
     open_order_index = _find_event_index(
-        events,
+        ordered_events,
         start=search_index + 1,
         predicate=lambda event: event.event_type == "click"
         and event.selector == f"[data-testid='open-order-{order_reference}']",
     )
     if open_order_index is None:
-        raise ValueError("missing_open_order_event")
+        return result("missing_open_order_event", order_reference)
+    steps[2] = RecordingReadinessStep("open_order", "observed")
 
     formula_tab_index = _find_event_index(
-        events,
+        ordered_events,
         start=open_order_index + 1,
         predicate=lambda event: event.event_type == "click"
         and event.selector == "[data-testid='formula-tab']",
     )
     if formula_tab_index is None:
-        raise ValueError("missing_formula_tab_event")
+        return result("missing_formula_tab_event", order_reference)
+    steps[3] = RecordingReadinessStep("formula_tab", "observed")
 
     review_formula_index = _find_event_index(
-        events,
+        ordered_events,
         start=formula_tab_index + 1,
         predicate=lambda event: event.event_type == "click"
         and event.selector == "[data-testid='review-formula']",
     )
     if review_formula_index is None:
-        raise ValueError("missing_review_formula_event")
+        return result("missing_review_formula_event", order_reference)
+    steps[4] = RecordingReadinessStep("review_formula", "observed")
 
-    if not all(_contains(event.url or "", "/fake-erp/") for event in events if event.url):
-        raise ValueError("unsupported_fake_erp_formula_flow")
+    if not all(_contains(event.url or "", "/fake-erp/") for event in ordered_events if event.url):
+        return result("unsupported_fake_erp_formula_flow", order_reference)
 
-    return order_reference
+    return result(None, order_reference)
 
 
 def _find_event_index(events: list[_EventView], *, start: int, predicate) -> int | None:

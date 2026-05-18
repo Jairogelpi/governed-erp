@@ -18,7 +18,7 @@ from apps.api.schemas.recordings import (
     RecordingDemoResponse,
     RecordingSummaryResponse,
 )
-from erpguard.compiler.recording_to_skill import compile_recording_to_skill_package
+from erpguard.compiler.recording_to_skill import analyze_recording_readiness, compile_recording_to_skill_package
 from erpguard.recorder.browser_recorder import BrowserRuntimeUnavailableError, record_fake_erp_formula_review_flow
 from erpguard.db.repositories import (
     add_recording_event,
@@ -107,6 +107,29 @@ def get_recording_endpoint(recording_id: str):
             )
         events = list_recording_events(session, recording_id)
         return _serialize_recording(recording, events)
+    finally:
+        session.close()
+
+
+@router.get("/recordings/{recording_id}/readiness")
+def get_recording_readiness_endpoint(recording_id: str):
+    init_db()
+    session = SessionLocal()
+    try:
+        recording = get_recording_session(session, recording_id)
+        if recording is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "recording_not_found",
+                        "message": f"Recording '{recording_id}' not found.",
+                        "details": {"recording_id": recording_id},
+                    }
+                },
+            )
+        events = list_recording_events(session, recording_id)
+        return analyze_recording_readiness(recording, events).to_dict()
     finally:
         session.close()
 

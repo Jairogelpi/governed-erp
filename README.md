@@ -224,6 +224,27 @@ Expected result for the v0.2.1 evidence freeze environment:
 141 passed, 9 skipped, 2 warnings
 ```
 
+## Teach Mode v0.3
+
+Teach Mode v0.3 keeps the same controlled Fake ERP formula review flow, but renders it as a teach-the-process checklist in `/demo`.
+
+The dashboard now shows the expected teaching steps from start recording through allow/block proof, and uses the readiness API to mark recorded evidence as `observed`, `missing`, or `ready`.
+
+Inspect readiness for a recording:
+
+```bash
+curl http://127.0.0.1:8000/v1/recordings/recording_.../readiness
+```
+
+The response reports:
+
+- `readiness`: `ready` or `not_ready`
+- `event_count`
+- step status for `sales_orders_navigation`, `order_search`, `open_order`, `formula_tab`, and `review_formula`
+- compiler-compatible diagnostics for missing steps
+
+This is still a controlled Fake ERP demo path. It is not real Odoo UI automation, a browser extension, a free recorder, or an LLM-based flow builder.
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
@@ -258,6 +279,7 @@ Implemented now:
 - Demo orchestrator endpoint for the current full MVP loop
 - Controlled Human Recording v0.2 for the Fake ERP formula review flow
 - Controlled Human Recording v0.2.1 hardening with compiler diagnostics and `/demo` preview/readiness
+- Teach Mode v0.3 readiness endpoint and `/demo` checklist for the controlled Fake ERP teaching flow
 - read-only Odoo adapter skeleton
 - Formula Guard policy evaluation for `confirm_sales_order`
 - preflight persistence and audit retrieval
