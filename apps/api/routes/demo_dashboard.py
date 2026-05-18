@@ -180,6 +180,27 @@ def demo_dashboard() -> str:
     </section>
 
     <section class="grid">
+      <div class="card full">
+        <h2>Human Recording v0.2</h2>
+        <p>
+          Controlled browser-side capture for the Fake ERP formula review flow only.
+          Start a session here, open the Fake ERP sales orders page with a recording id,
+          then finish, compile, and run the resulting skill.
+        </p>
+        <div class="toolbar">
+          <button id="startHumanRecording" type="button">Start human recording</button>
+          <button id="openHumanRecording" type="button">Open Fake ERP sales orders</button>
+          <button id="finishHumanRecording" type="button">Finish recording</button>
+          <button id="compileHumanRecording" type="button">Compile recording</button>
+          <button id="runHumanRecording" type="button">Run compiled skill</button>
+        </div>
+        <p class="tiny">The capture mode only listens to the known Fake ERP selectors and keeps the recording id across navigation.</p>
+        <pre id="humanStatus">No human recording started.</pre>
+        <pre id="humanResults">No compiled skill yet.</pre>
+      </div>
+    </section>
+
+    <section class="grid">
       <div class="card">
         <h2>Results</h2>
         <pre id="results">Waiting for a demo run.</pre>
@@ -218,6 +239,204 @@ def demo_dashboard() -> str:
     const proof = document.getElementById("proof");
     const runButton = document.getElementById("runButton");
     const baseUrlInput = document.getElementById("baseUrl");
+    const startHumanRecordingButton = document.getElementById("startHumanRecording");
+    const openHumanRecordingButton = document.getElementById("openHumanRecording");
+    const finishHumanRecordingButton = document.getElementById("finishHumanRecording");
+    const compileHumanRecordingButton = document.getElementById("compileHumanRecording");
+    const runHumanRecordingButton = document.getElementById("runHumanRecording");
+    const humanStatus = document.getElementById("humanStatus");
+    const humanResults = document.getElementById("humanResults");
+
+    const humanState = {
+      recordingId: null,
+      skillId: null,
+      versionId: null,
+    };
+
+    const humanDefaults = {
+      name: "Human Recorded Fake ERP Formula Review",
+      description: "Controlled human recording from the demo surface.",
+      erp_type: "fake",
+      target_base_url: defaults.base_url,
+      actor: { type: "user", id: "demo_user", display_name: "Demo User" },
+    };
+
+    const currentBaseUrl = () => baseUrlInput.value.trim() || defaults.base_url;
+
+    const setHumanStatus = (value) => {
+      humanStatus.textContent = value;
+    };
+
+    const setHumanResults = (value) => {
+      humanResults.textContent = value;
+    };
+
+    const openFakeErpWithRecording = () => {
+      if (!humanState.recordingId) {
+        setHumanStatus("Start a human recording first.");
+        return;
+      }
+
+      const url = new URL("/fake-erp/sales/orders", currentBaseUrl());
+      url.searchParams.set("recording_id", humanState.recordingId);
+      window.open(url.toString(), "_blank", "noopener,noreferrer");
+      setHumanStatus(`Opened Fake ERP sales orders with recording_id=${humanState.recordingId}`);
+    };
+
+    const jsonText = (value) => JSON.stringify(value, null, 2);
+
+    startHumanRecordingButton.addEventListener("click", async () => {
+      startHumanRecordingButton.disabled = true;
+      setHumanStatus("Starting human recording...");
+      try {
+        const response = await fetch("/v1/recordings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...humanDefaults,
+            target_base_url: currentBaseUrl(),
+          }),
+        });
+
+        const body = await response.json();
+        if (!response.ok) {
+          setHumanStatus(`Failed to start recording: ${body?.error?.message || "unknown error"}`);
+          return;
+        }
+
+        humanState.recordingId = body.recording_id;
+        humanState.skillId = null;
+        humanState.versionId = null;
+        setHumanStatus(jsonText({
+          recording_id: body.recording_id,
+          name: body.name,
+          status: body.status,
+          target_base_url: body.target_base_url,
+          instruction: "Open Fake ERP sales orders and perform the controlled flow.",
+        }));
+        setHumanResults("Recording started. Use the open button, then perform the controlled Fake ERP flow in the new tab.");
+      } catch (error) {
+        setHumanStatus(`Failed to start recording: ${String(error)}`);
+      } finally {
+        startHumanRecordingButton.disabled = false;
+      }
+    });
+
+    openHumanRecordingButton.addEventListener("click", openFakeErpWithRecording);
+
+    finishHumanRecordingButton.addEventListener("click", async () => {
+      if (!humanState.recordingId) {
+        setHumanStatus("Start a human recording first.");
+        return;
+      }
+
+      finishHumanRecordingButton.disabled = true;
+      setHumanStatus(`Finishing recording ${humanState.recordingId}...`);
+      try {
+        const response = await fetch(`/v1/recordings/${humanState.recordingId}/finish`, {
+          method: "POST",
+        });
+        const body = await response.json();
+        if (!response.ok) {
+          setHumanStatus(`Failed to finish recording: ${body?.error?.message || "unknown error"}`);
+          return;
+        }
+
+        setHumanStatus(jsonText(body));
+      } catch (error) {
+        setHumanStatus(`Failed to finish recording: ${String(error)}`);
+      } finally {
+        finishHumanRecordingButton.disabled = false;
+      }
+    });
+
+    compileHumanRecordingButton.addEventListener("click", async () => {
+      if (!humanState.recordingId) {
+        setHumanStatus("Start a human recording first.");
+        return;
+      }
+
+      compileHumanRecordingButton.disabled = true;
+      setHumanStatus(`Compiling recording ${humanState.recordingId}...`);
+      try {
+        const response = await fetch(`/v1/recordings/${humanState.recordingId}/compile-skill`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: humanDefaults.name,
+            description: humanDefaults.description,
+            runtime_type: "deterministic_browser",
+          }),
+        });
+
+        const body = await response.json();
+        if (!response.ok) {
+          setHumanStatus(`Failed to compile recording: ${body?.error?.message || "unknown error"}`);
+          return;
+        }
+
+        humanState.skillId = body.skill_id;
+        humanState.versionId = body.version_id;
+        setHumanStatus(jsonText({
+          recording_id: body.recording_id,
+          skill_id: body.skill_id,
+          version_id: body.version_id,
+          name: body.name,
+          llm_required_for_repeated_runs: body.llm_required_for_repeated_runs,
+        }));
+      } catch (error) {
+        setHumanStatus(`Failed to compile recording: ${String(error)}`);
+      } finally {
+        compileHumanRecordingButton.disabled = false;
+      }
+    });
+
+    runHumanRecordingButton.addEventListener("click", async () => {
+      if (!humanState.skillId) {
+        setHumanStatus("Compile the human recording first.");
+        return;
+      }
+
+      runHumanRecordingButton.disabled = true;
+      setHumanResults("Running compiled skill...");
+      try {
+        const validResponse = await fetch(`/v1/skills/${humanState.skillId}/run`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ inputs: { order_reference: "SO-VALID" } }),
+        });
+        const validBody = await validResponse.json();
+
+        const invalidResponse = await fetch(`/v1/skills/${humanState.skillId}/run`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ inputs: { order_reference: "SO-FORMULA-MISMATCH" } }),
+        });
+        const invalidBody = await invalidResponse.json();
+
+        if (!validResponse.ok || !invalidResponse.ok) {
+          setHumanResults(jsonText({
+            valid_error: validBody,
+            invalid_error: invalidBody,
+          }));
+          return;
+        }
+
+        setHumanResults(jsonText({
+          recording_id: humanState.recordingId,
+          skill_id: humanState.skillId,
+          version_id: humanState.versionId,
+          valid_decision: validBody.decision,
+          invalid_decision: invalidBody.decision,
+          invalid_issues_count: invalidBody.output?.issues?.length ?? 0,
+          repeated_execution_token_cost: validBody.token_economics?.repeated_execution_token_cost,
+        }));
+      } catch (error) {
+        setHumanResults(`Failed to run compiled skill: ${String(error)}`);
+      } finally {
+        runHumanRecordingButton.disabled = false;
+      }
+    });
 
     runButton.addEventListener("click", async () => {
       runButton.disabled = true;

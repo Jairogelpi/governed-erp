@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import html
 from decimal import Decimal
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Query
 from fastapi.responses import HTMLResponse
@@ -93,8 +95,139 @@ def _first_line(order: SalesOrder) -> SalesOrderLine | None:
     return order.lines[0] if order.lines else None
 
 
+def _recording_url(path: str, recording_id: str | None, **params: str | None) -> str:
+    query: dict[str, str] = {key: value for key, value in params.items() if value is not None}
+    if recording_id:
+        query["recording_id"] = recording_id
+    if not query:
+        return path
+    return f"{path}?{urlencode(query)}"
+
+
+def _recording_hidden_input(recording_id: str | None) -> str:
+    if not recording_id:
+        return ""
+    return f'<input type="hidden" name="recording_id" value="{html.escape(recording_id)}">'
+
+
+def _recording_script(recording_id: str | None) -> str:
+    if not recording_id:
+        return ""
+
+    recording_id_json = json.dumps(recording_id)
+    return f"""
+      <script>
+        (() => {{
+          const recordingId = {recording_id_json};
+          const endpoint = `/v1/recordings/${{recordingId}}/events`;
+          const sessionKey = "erpguard_human_recording_v0_2";
+
+          const bodyText = () => document.body ? document.body.innerText.trim() : "";
+
+          const postEvent = (payload) => {{
+            try {{
+              const blob = new Blob([JSON.stringify(payload)], {{ type: "application/json" }});
+              if (navigator.sendBeacon(endpoint, blob)) {{
+                return;
+              }}
+            }} catch (error) {{
+              console.warn("Beacon recording failed", error);
+            }}
+
+            fetch(endpoint, {{
+              method: "POST",
+              headers: {{ "Content-Type": "application/json" }},
+              body: JSON.stringify(payload),
+              keepalive: true,
+            }}).catch((error) => console.warn("Recording event failed", error));
+          }};
+
+          const capture = (eventType, selector, extra = {{}}) => {{
+            postEvent({{
+              event_type: eventType,
+              url: window.location.href,
+              page_title: document.title,
+              element_role: extra.element_role ?? null,
+              element_text: extra.element_text ?? null,
+              selector,
+              input_value: extra.input_value ?? null,
+              before_text_snapshot: extra.before_text_snapshot ?? null,
+              after_text_snapshot: extra.after_text_snapshot ?? null,
+              metadata_json: {{ source: "human_recording_v0_2" }},
+            }});
+          }};
+
+          const attach = () => {{
+            if (sessionStorage.getItem(sessionKey) !== recordingId) {{
+              sessionStorage.setItem(sessionKey, recordingId);
+              capture("navigate", null, {{ before_text_snapshot: "", after_text_snapshot: bodyText() }});
+            }}
+
+            const orderSearch = document.querySelector("[data-testid='order-search']");
+            if (orderSearch) {{
+              orderSearch.addEventListener("change", (event) => {{
+                capture("fill", "[data-testid='order-search']", {{
+                  element_role: "searchbox",
+                  element_text: event.target.value,
+                  input_value: event.target.value,
+                  before_text_snapshot: bodyText(),
+                  after_text_snapshot: bodyText(),
+                }});
+              }});
+            }}
+
+            document.querySelectorAll("[data-testid^='open-order-']").forEach((element) => {{
+              element.addEventListener("click", () => {{
+                const testId = element.getAttribute("data-testid");
+                capture("click", testId ? `[data-testid='${{testId}}']` : null, {{
+                  element_role: "link",
+                  element_text: element.innerText.trim(),
+                  before_text_snapshot: bodyText(),
+                  after_text_snapshot: bodyText(),
+                }});
+              }});
+            }});
+
+            const formulaTab = document.querySelector("[data-testid='formula-tab']");
+            if (formulaTab) {{
+              formulaTab.addEventListener("click", () => {{
+                capture("click", "[data-testid='formula-tab']", {{
+                  element_role: "link",
+                  element_text: formulaTab.innerText.trim(),
+                  before_text_snapshot: bodyText(),
+                  after_text_snapshot: bodyText(),
+                }});
+              }});
+            }}
+
+            const reviewFormula = document.querySelector("[data-testid='review-formula']");
+            if (reviewFormula) {{
+              reviewFormula.addEventListener("click", () => {{
+                capture("click", "[data-testid='review-formula']", {{
+                  element_role: "button",
+                  element_text: reviewFormula.innerText.trim(),
+                  before_text_snapshot: bodyText(),
+                  after_text_snapshot: bodyText(),
+                }});
+              }});
+            }}
+          }};
+
+          if (document.readyState === "loading") {{
+            document.addEventListener("DOMContentLoaded", attach);
+          }} else {{
+            attach();
+          }}
+        }})();
+      </script>
+    """
+
+
 @router.get("/sales/orders", response_class=HTMLResponse)
-def sales_orders_page(q: str | None = Query(default=None, alias="q")) -> HTMLResponse:
+def sales_orders_page(
+  q: str | None = Query(default=None, alias="q"),
+  recording_id: str | None = Query(default=None),
+) -> HTMLResponse:
     orders = _known_orders()
     if q:
         query = q.casefold()
@@ -115,7 +248,7 @@ def sales_orders_page(q: str | None = Query(default=None, alias="q")) -> HTMLRes
               <td>{html.escape(order.customer.name if order.customer else '-')}</td>
               <td>{html.escape(order.state.value)}</td>
               <td>{len(order.lines)}</td>
-              <td><a class="button" data-testid="open-order-{html.escape(order.reference)}" href="/fake-erp/sales/orders/{html.escape(order.reference)}">Open order</a></td>
+              <td><a class="button" data-testid="open-order-{html.escape(order.reference)}" href="{_recording_url(f'/fake-erp/sales/orders/{html.escape(order.reference)}', recording_id)}">Open order</a></td>
             </tr>
             """
         )
@@ -123,9 +256,10 @@ def sales_orders_page(q: str | None = Query(default=None, alias="q")) -> HTMLRes
     body = f"""
       <h1>Fake ERP Sales Orders</h1>
       <p class="muted">Local demo surface for Record-to-Skill and Formula Guard scenarios.</p>
-      <form class="toolbar" method="get">
+      <form class="toolbar" method="get" action="/fake-erp/sales/orders">
         <label for="order-search">Search order</label>
         <input id="order-search" data-testid="order-search" type="search" name="q" value="{html.escape(q or '')}" placeholder="Search order">
+        {_recording_hidden_input(recording_id)}
       </form>
       <table>
         <thead>
@@ -141,12 +275,13 @@ def sales_orders_page(q: str | None = Query(default=None, alias="q")) -> HTMLRes
           {''.join(rows)}
         </tbody>
       </table>
+      {_recording_script(recording_id)}
     """
     return _layout("Fake ERP Sales Orders", body)
 
 
 @router.get("/sales/orders/{order_id}", response_class=HTMLResponse)
-def sales_order_detail(order_id: str) -> HTMLResponse:
+def sales_order_detail(order_id: str, recording_id: str | None = Query(default=None)) -> HTMLResponse:
     order = _find_order(order_id)
     line = _first_line(order)
     status_text = "No order lines available" if line is None else "Formula ready for review"
@@ -192,14 +327,15 @@ def sales_order_detail(order_id: str) -> HTMLResponse:
         <div>{html.escape(status_text)}</div>
       </div>
       <p class="toolbar">
-        <a class="button secondary" data-testid="formula-tab" href="/fake-erp/sales/orders/{html.escape(order.reference)}/formula">Formula tab</a>
+        <a class="button secondary" data-testid="formula-tab" href="{_recording_url(f'/fake-erp/sales/orders/{html.escape(order.reference)}/formula', recording_id)}">Formula tab</a>
       </p>
+      {_recording_script(recording_id)}
     """
     return _layout(f"Fake ERP Order {order.reference}", body)
 
 
 @router.get("/sales/orders/{order_id}/formula", response_class=HTMLResponse)
-def sales_order_formula(order_id: str) -> HTMLResponse:
+def sales_order_formula(order_id: str, recording_id: str | None = Query(default=None)) -> HTMLResponse:
     order = _find_order(order_id)
     line = _first_line(order)
 
@@ -249,5 +385,6 @@ def sales_order_formula(order_id: str) -> HTMLResponse:
       <p class="toolbar">
         <button data-testid="review-formula" type="button">Review formula</button>
       </p>
+      {_recording_script(recording_id)}
     """
     return _layout(f"Fake ERP Formula {order.reference}", body)

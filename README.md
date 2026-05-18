@@ -164,6 +164,35 @@ If you want the live browser path to run, install Chromium first:
 python -m playwright install chromium
 ```
 
+## Human Recording v0.2
+
+Start the API and open the demo dashboard:
+
+```bash
+uvicorn apps.api.main:app --reload
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8000/demo
+```
+
+Use the Human Recording v0.2 controls to:
+
+- start a controlled recording session
+- open the Fake ERP sales orders page
+- perform the formula review flow manually
+- finish the recording
+- compile it into a skill
+- run the compiled skill for `SO-VALID` and `SO-FORMULA-MISMATCH`
+
+The controlled browser path only works when Chromium is installed:
+
+```bash
+python -m playwright install chromium
+```
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
@@ -196,6 +225,7 @@ Implemented now:
 - Recording Session API
 - Browser Recorder MVP for Fake ERP
 - Demo orchestrator endpoint for the current full MVP loop
+- Controlled Human Recording v0.2 for the Fake ERP formula review flow
 - read-only Odoo adapter skeleton
 - Formula Guard policy evaluation for `confirm_sales_order`
 - preflight persistence and audit retrieval
