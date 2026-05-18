@@ -62,6 +62,26 @@ Retrieve the audit trail:
 curl http://127.0.0.1:8000/v1/audit/pf_...
 ```
 
+Create a skill in the Skill Registry:
+
+```bash
+curl -X POST http://127.0.0.1:8000/v1/skills ^
+  -H "Content-Type: application/json" ^
+  -d "{\"name\":\"Safe Formula Guard UI Preflight\",\"description\":\"Validates a sales order formula through the Fake ERP flow.\",\"runtime_type\":\"deterministic_browser\",\"llm_required_for_repeated_runs\":false,\"skill_package\":{\"skill_id\":\"safe_formula_guard_ui_preflight\",\"inputs\":{\"order_reference\":\"string\"},\"guards\":[\"formula_guard\"],\"workflow\":[{\"id\":\"open_orders\",\"type\":\"navigate\",\"target\":\"/fake-erp/sales/orders\"},{\"id\":\"search_order\",\"type\":\"fill\",\"selector\":\"[data-testid='order-search']\"},{\"id\":\"open_order\",\"type\":\"click\",\"selector_template\":\"[data-testid='open-order-{{order_reference}}']\"},{\"id\":\"open_formula\",\"type\":\"click\",\"selector\":\"[data-testid='formula-tab']\"},{\"id\":\"review_formula\",\"type\":\"guard\",\"guard\":\"formula_guard\"}]}}"
+```
+
+List skills:
+
+```bash
+curl http://127.0.0.1:8000/v1/skills
+```
+
+Get a skill by id:
+
+```bash
+curl http://127.0.0.1:8000/v1/skills/skill_...
+```
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
@@ -87,6 +107,8 @@ Implemented now:
 - SQLAlchemy database base/session setup
 - initial database models
 - fake adapter demo path
+- fake ERP web demo surface
+- skill registry MVP
 - read-only Odoo adapter skeleton
 - Formula Guard policy evaluation for `confirm_sales_order`
 - preflight persistence and audit retrieval

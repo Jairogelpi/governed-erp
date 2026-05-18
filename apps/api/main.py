@@ -4,6 +4,7 @@ from apps.api.routes.audit import router as audit_router
 from apps.api.routes.connections import router as connections_router
 from apps.api.routes.health import router as health_router
 from apps.api.routes.preflight import router as preflight_router
+from apps.api.routes.skills import router as skills_router
 from apps.fake_erp.routes import router as fake_erp_router
 
 
@@ -12,4 +13,5 @@ app.include_router(health_router)
 app.include_router(connections_router)
 app.include_router(preflight_router)
 app.include_router(audit_router)
+app.include_router(skills_router)
 app.include_router(fake_erp_router)

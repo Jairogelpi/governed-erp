@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from erpguard.canonical.enums import ERPType, InvariantSeverity, InvariantStatus
 from erpguard.core.results import PreflightResult
-from erpguard.db.models import AuditEvent, Connection, InvariantResult, PreflightCase
+from erpguard.db.models import AuditEvent, Connection, InvariantResult, PreflightCase, Skill, SkillRun, SkillRunStep, SkillVersion
 from erpguard.policies.results import PolicyIssue
 
 
@@ -115,6 +115,137 @@ def list_audit_events(session: Session, case_id: str) -> list[AuditEvent]:
         .order_by(AuditEvent.created_at.asc())
         .all()
     )
+
+
+def create_skill(session: Session, name: str, description: str | None, status: str = "draft") -> Skill:
+    skill = Skill(
+        id=f"skill_{uuid4().hex}",
+        name=name,
+        description=description,
+        status=status,
+    )
+    session.add(skill)
+    session.commit()
+    session.refresh(skill)
+    return skill
+
+
+def get_skill(session: Session, skill_id: str) -> Skill | None:
+    return session.get(Skill, skill_id)
+
+
+def list_skills(session: Session) -> list[Skill]:
+    return list(session.query(Skill).order_by(Skill.created_at.desc()).all())
+
+
+def create_skill_version(
+    session: Session,
+    skill_id: str,
+    version: str,
+    skill_package_json: str,
+    runtime_type: str,
+    llm_required_for_repeated_runs: bool,
+) -> SkillVersion:
+    skill_version = SkillVersion(
+        id=f"skill_version_{uuid4().hex}",
+        skill_id=skill_id,
+        version=version,
+        skill_package_json=skill_package_json,
+        runtime_type=runtime_type,
+        llm_required_for_repeated_runs=llm_required_for_repeated_runs,
+    )
+    session.add(skill_version)
+    session.commit()
+    session.refresh(skill_version)
+    return skill_version
+
+
+def get_latest_skill_version(session: Session, skill_id: str) -> SkillVersion | None:
+    return (
+        session.query(SkillVersion)
+        .filter(SkillVersion.skill_id == skill_id)
+        .order_by(SkillVersion.created_at.desc())
+        .first()
+    )
+
+
+def create_skill_run(
+    session: Session,
+    skill_id: str,
+    skill_version_id: str,
+    status: str,
+    input_json: str | None = None,
+    output_json: str | None = None,
+    decision: str | None = None,
+    error_text: str | None = None,
+    estimated_tokens_saved: int | None = None,
+    finished_at=None,
+) -> SkillRun:
+    skill_run = SkillRun(
+        id=f"skill_run_{uuid4().hex}",
+        skill_id=skill_id,
+        skill_version_id=skill_version_id,
+        status=status,
+        input_json=input_json,
+        output_json=output_json,
+        decision=decision,
+        error_text=error_text,
+        estimated_tokens_saved=estimated_tokens_saved,
+        finished_at=finished_at,
+    )
+    session.add(skill_run)
+    session.commit()
+    session.refresh(skill_run)
+    return skill_run
+
+
+def create_skill_run_step(
+    session: Session,
+    skill_run_id: str,
+    step_id: str,
+    step_type: str,
+    status: str,
+    input_json: str | None = None,
+    output_json: str | None = None,
+    error_text: str | None = None,
+) -> SkillRunStep:
+    skill_run_step = SkillRunStep(
+        id=f"skill_run_step_{uuid4().hex}",
+        skill_run_id=skill_run_id,
+        step_id=step_id,
+        step_type=step_type,
+        status=status,
+        input_json=input_json,
+        output_json=output_json,
+        error_text=error_text,
+    )
+    session.add(skill_run_step)
+    session.commit()
+    session.refresh(skill_run_step)
+    return skill_run_step
+
+
+def finish_skill_run(
+    session: Session,
+    skill_run_id: str,
+    status: str,
+    output_json: str | None = None,
+    decision: str | None = None,
+    error_text: str | None = None,
+    estimated_tokens_saved: int | None = None,
+):
+    skill_run = session.get(SkillRun, skill_run_id)
+    if skill_run is None:
+        return None
+    skill_run.status = status
+    skill_run.output_json = output_json
+    skill_run.decision = decision
+    skill_run.error_text = error_text
+    skill_run.estimated_tokens_saved = estimated_tokens_saved
+    skill_run.finished_at = __import__("datetime").datetime.now(__import__("datetime").timezone.utc)
+    session.commit()
+    session.refresh(skill_run)
+    return skill_run
 
 
 def _to_json(value) -> str:
