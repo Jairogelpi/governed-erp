@@ -357,6 +357,35 @@ The endpoint does not execute `confirm_sales_order`, does not write to ERP, and 
 
 The `/demo` page includes an Approval Gate / Safe Action Plan v0.6 panel after compile and inspect, so the operator can preview the critical action before trusting it.
 
+## Approval Gate / Safe Action Plan v0.6 Evidence
+
+The v0.6 evidence freeze captures the live FastAPI `TestClient` proof for the approval gate dry-run layer.
+
+Artifact:
+
+- [docs/demo/approval_gate_safe_action_plan_v0_6_success_response.json](docs/demo/approval_gate_safe_action_plan_v0_6_success_response.json)
+
+It records:
+
+- dry-run approval planning for `confirm_sales_order`;
+- `approval_required = true` and `risk_level = R3`;
+- Formula Guard preview for `SO-VALID` returning `allow`;
+- Formula Guard preview for `SO-FORMULA-MISMATCH` returning `block`;
+- no `SkillRun` rows created by the planning endpoint;
+- controlled `unsupported_action` and `skill_not_found` errors.
+
+Verification command:
+
+```bash
+python -m pytest
+```
+
+Observed result:
+
+```text
+159 passed, 9 skipped
+```
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:

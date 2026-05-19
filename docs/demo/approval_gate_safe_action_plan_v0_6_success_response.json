@@ -1,0 +1,140 @@
+{
+  "source": "fastapi_testclient",
+  "recording_id": "recording_c1207099b28b4b14a41f1bea28beaba1",
+  "skill_id": "skill_1cd0dddd3f27410ba9e1611b45357f0b",
+  "compiled_skill": {
+    "version_id": "skill_version_5f37ad4c2d744b478a4115cc1d246ee6",
+    "runtime_type": "deterministic_browser",
+    "llm_required_for_repeated_runs": false
+  },
+  "plan_allow": {
+    "skill_id": "skill_1cd0dddd3f27410ba9e1611b45357f0b",
+    "requested_action": "confirm_sales_order",
+    "approval_required": true,
+    "risk_level": "R3",
+    "status": "approval_required",
+    "plan": {
+      "summary": "Plan critical action confirm_sales_order on SalesOrder with Formula Guard preview and human approval before execution.",
+      "steps": [
+        {
+          "id": "load_skill",
+          "type": "load",
+          "description": "Load the compiled skill package and critical-action context."
+        },
+        {
+          "id": "load_order",
+          "type": "load",
+          "description": "Load the sales order identified by order_reference=SO-VALID."
+        },
+        {
+          "id": "run_formula_guard",
+          "type": "guard",
+          "description": "Preview ERPGuard Formula Guard before any approval is requested."
+        },
+        {
+          "id": "request_human_approval",
+          "type": "approval",
+          "description": "Request human approval for the critical sales-order confirmation."
+        },
+        {
+          "id": "blocked_before_real_execution",
+          "type": "safety_stop",
+          "description": "Stop before any real ERP write or confirm_sales_order execution."
+        }
+      ]
+    },
+    "guard_preview": {
+      "decision": "allow",
+      "issues_count": 0
+    },
+    "proof": {
+      "critical_action_detected": true,
+      "approval_required": true,
+      "guard_checked_before_approval": true,
+      "real_erp_write_blocked": true,
+      "no_real_execution": true
+    }
+  },
+  "plan_block": {
+    "skill_id": "skill_1cd0dddd3f27410ba9e1611b45357f0b",
+    "requested_action": "confirm_sales_order",
+    "approval_required": true,
+    "risk_level": "R3",
+    "status": "approval_required",
+    "plan": {
+      "summary": "Plan critical action confirm_sales_order on SalesOrder with Formula Guard preview and human approval before execution.",
+      "steps": [
+        {
+          "id": "load_skill",
+          "type": "load",
+          "description": "Load the compiled skill package and critical-action context."
+        },
+        {
+          "id": "load_order",
+          "type": "load",
+          "description": "Load the sales order identified by order_reference=SO-FORMULA-MISMATCH."
+        },
+        {
+          "id": "run_formula_guard",
+          "type": "guard",
+          "description": "Preview ERPGuard Formula Guard before any approval is requested."
+        },
+        {
+          "id": "request_human_approval",
+          "type": "approval",
+          "description": "Request human approval for the critical sales-order confirmation."
+        },
+        {
+          "id": "blocked_before_real_execution",
+          "type": "safety_stop",
+          "description": "Stop before any real ERP write or confirm_sales_order execution."
+        }
+      ]
+    },
+    "guard_preview": {
+      "decision": "block",
+      "issues_count": 1
+    },
+    "proof": {
+      "critical_action_detected": true,
+      "approval_required": true,
+      "guard_checked_before_approval": true,
+      "real_erp_write_blocked": true,
+      "no_real_execution": true
+    }
+  },
+  "no_runs_before_plan": 0,
+  "no_runs_after_plan": 0,
+  "proof": {
+    "critical_action_detected": true,
+    "approval_required": true,
+    "guard_checked_before_approval": true,
+    "real_erp_write_blocked": true,
+    "no_real_execution": true,
+    "no_skill_runs_created": true
+  },
+  "negative_evidence": {
+    "unknown_action": {
+      "error": {
+        "code": "unsupported_action",
+        "message": "Requested action 'inspect_access_rules' is not supported for safe planning.",
+        "details": {
+          "skill_id": "skill_1cd0dddd3f27410ba9e1611b45357f0b",
+          "requested_action": "inspect_access_rules",
+          "supported_actions": [
+            "confirm_sales_order"
+          ]
+        }
+      }
+    },
+    "missing_skill": {
+      "error": {
+        "code": "skill_not_found",
+        "message": "Skill 'missing-skill' not found.",
+        "details": {
+          "skill_id": "missing-skill"
+        }
+      }
+    }
+  }
+}
