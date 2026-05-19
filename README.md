@@ -2,6 +2,26 @@
 
 ERPGuard is a semantic safety layer for ERP operations. This repository is currently in Phase 1: the Odoo Preflight Core backend foundation.
 
+## Current Demo Story
+
+Implemented: record once in the Fake ERP demo, validate readiness, compile a reusable skill, inspect the compiled package, run it deterministically, and audit the resulting runs and steps.
+
+Simulated: an approval gate that plans the critical `confirm_sales_order` action, and an approval decision simulation that records approve/reject evidence without executing ERP writes.
+
+Not implemented: real Odoo UI automation, real ERP writes, a full approval workflow, browser-extension capture, MCP, or an LLM-driven builder.
+
+The flow is intentionally small and defensible: record -> readiness -> compile -> inspect -> run -> audit -> safe plan -> simulated decision.
+
+The core product evidence lives in the runtime features and frozen JSON artifacts, while the last two stages are simulation layers that demonstrate safety boundaries.
+
+No real Odoo calls are made in this repository yet.
+
+The MVP stops at a controlled demo and audit trail.
+
+The next step after this story is consolidation, not more feature growth.
+
+This README is written to explain what exists today, what is simulated for the demo, and what remains intentionally out of scope.
+
 ## Local Setup
 
 Create and activate a virtual environment, then install the project in editable mode:

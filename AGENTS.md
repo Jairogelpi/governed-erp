@@ -126,3 +126,9 @@
 - Ran focused validation with `python -m pytest tests/test_approval_decision_simulation_api.py tests/test_approval_gate_api.py tests/test_demo_dashboard.py -q`; result: `9 passed`.
 - Ran full verification with `python -m pytest`; result: `162 passed, 9 skipped`. The skipped tests are the browser-dependent paths in this shell because Chromium/browser runtime availability is not active for the plain `python -m pytest` run.
 - Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, approval persistence tables, or real ERP write actions.
+- Added `docs/specs/33_mvp_scope_consolidation_and_demo_story.md` to freeze the current MVP story and separate core automation from simulated safety layers. No runtime behavior changed.
+- Added `docs/demo/operator_demo_script_v0_7.md` as a guided evaluator script for explaining the demo without overpromising real Odoo automation.
+- Added `docs/demo/mvp_boundaries_v0_7.md` to list what exists, what is simulated, what does not exist, the technical risks, and the freeze recommendation before any real Odoo phase.
+- Updated `README.md` with a `Current Demo Story` section that summarizes the implemented, simulated, and not implemented parts of the MVP.
+- Ran `python -m pytest`; result: `162 passed, 9 skipped`.
+- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, approval persistence tables, or real ERP write actions.
