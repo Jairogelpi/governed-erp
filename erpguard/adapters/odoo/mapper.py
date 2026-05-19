@@ -10,11 +10,12 @@ def map_odoo_sale_order_to_canonical(
     line_payloads: list[dict],
     product_payloads: list[dict],
     formula_payloads: list[dict] | None = None,
+    capacity_field: str = "x_capacity_ml",
 ) -> SalesOrder:
-    product_by_id = {_native_id(product["id"]): _map_product(product) for product in product_payloads}
+    product_by_id = {_native_id(product["id"]): _map_product(product, capacity_field) for product in product_payloads}
     formulas_by_line_id = _group_formulas_by_line_id(formula_payloads or [])
     lines = [
-        _map_line(line, product_by_id, formulas_by_line_id.get(_native_id(line["id"]), []))
+        _map_line(line, product_by_id, formulas_by_line_id.get(_native_id(line["id"]), []), capacity_field)
         for line in line_payloads
     ]
 
@@ -48,7 +49,7 @@ def _map_customer(value) -> Customer | None:
     return Customer(id=f"odoo:res.partner:{native_id}", native_id=native_id, name=name, active=True)
 
 
-def _map_product(payload: dict) -> Product:
+def _map_product(payload: dict, capacity_field: str) -> Product:
     native_id = _native_id(payload["id"])
     return Product(
         id=f"odoo:product.product:{native_id}",
@@ -62,12 +63,17 @@ def _map_product(payload: dict) -> Product:
         cost=_decimal_or_none(payload.get("standard_price")),
         sale_price=_decimal_or_none(payload.get("lst_price")),
         uom=_many2one_name(payload.get("uom_id")),
-        capacity_ml=_decimal_or_none(payload.get("x_capacity_ml")),
+        capacity_ml=_decimal_or_none(payload.get(capacity_field)),
         native_metadata={"odoo_model": "product.product", "payload": payload},
     )
 
 
-def _map_line(line: dict, product_by_id: dict[str, Product], formula_lines: list[FormulaLine]) -> SalesOrderLine:
+def _map_line(
+    line: dict,
+    product_by_id: dict[str, Product],
+    formula_lines: list[FormulaLine],
+    capacity_field: str,
+) -> SalesOrderLine:
     native_id = _native_id(line["id"])
     product_native_id = _many2one_id(line.get("product_id"))
     product = product_by_id.get(product_native_id) or Product(

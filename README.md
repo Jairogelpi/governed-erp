@@ -32,6 +32,25 @@ It should not confirm orders, write records, or expand into a broader automation
 
 If pursued, it should be treated as a separate phase with its own evidence freeze and acceptance criteria.
 
+## Sprint 1 - Real Odoo Connection & Diagnosis
+
+This sprint adds the first real Odoo-facing capability: a read-only connection test and diagnosis flow.
+
+The API-first entry points are:
+
+- `POST /v1/odoo/connections`
+- `POST /v1/odoo/connections/{connection_id}/test`
+- `POST /v1/odoo/connections/{connection_id}/diagnose`
+- `GET /v1/odoo/connections/{connection_id}/sales-orders/{order_reference}/raw-summary`
+
+The flow validates credentials, reads the Odoo version and uid, inspects modules/models/fields, detects custom fields, reads limited samples, and returns a read-only diagnosis.
+
+Read-only mode is enforced in code: no Odoo write methods are allowed in this sprint.
+
+Secrets are redacted in API responses.
+
+This sprint is the first practical bridge from the controlled Fake ERP MVP toward the real Odoo preflight phase.
+
 ## Local Setup
 
 Create and activate a virtual environment, then install the project in editable mode:

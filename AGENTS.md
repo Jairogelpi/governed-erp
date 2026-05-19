@@ -137,3 +137,9 @@
 - Ran `git diff --check`; result: clean.
 - Updated `docs/demo/operator_demo_script_v0_7.md` with a compact TFM defense plan that frames the repo as a controlled MVP, separates vision from current implementation, and positions v0.8 as a narrow read-only Odoo preflight phase.
 - Ran `git diff --check` on the edited markdown; result: clean.
+- Added `docs/product/03_sprint_1_odoo_connection_diagnosis.md` to define the first real Odoo sprint: read-only connection, diagnosis, sample reads, and strict no-write constraints.
+- Implemented `erpguard/adapters/odoo/readonly_client.py`, `erpguard/adapters/odoo/diagnosis.py`, `erpguard/adapters/odoo/field_discovery.py`, `apps/api/schemas/odoo.py`, and `apps/api/routes/odoo.py` for the API-first Odoo diagnosis flow.
+- Registered the Odoo router in `apps/api/main.py` and updated the Odoo mapper to honor the configured capacity field.
+- Added tests for the read-only client, diagnosis service, and Odoo diagnosis API; focused validation passed with `33 passed`.
+- Ran `git diff --check`; result: clean.
+- Ran `python -m pytest`; result: `195 passed, 9 skipped`.
