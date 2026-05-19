@@ -118,3 +118,11 @@
 - Updated `README.md` with an Approval Gate / Safe Action Plan v0.6 Evidence section linking the new JSON artifact and documenting the verification command and observed result.
 - Ran `python -m pytest`; result: `159 passed, 9 skipped`. The skipped tests are the browser-dependent paths in this shell because Chromium/browser runtime availability is not active for the plain `python -m pytest` run.
 - Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, new approval persistence tables, or real ERP write actions.
+- Added `docs/specs/32_approval_decision_simulation_v0_7.md` to define Approval Decision Simulation v0.7 as a stateless approve/reject evidence step over the safe plan. The scope explicitly stops before any real ERP write or real approval workflow.
+- Implemented `POST /v1/skills/{skill_id}/simulate-approval-decision` as a stateless approval simulation endpoint that reuses the v0.6 Formula Guard preview, reports approve/reject evidence, and never executes `confirm_sales_order` or writes to ERP.
+- Extended `/demo` with an Approval Decision Simulation v0.7 section so the operator can simulate approve and reject after generating a safe plan.
+- Added tests for approve/reject semantics, blocked-by-guard semantics, controlled unsupported-decision and unsupported-action errors, missing-skill handling, no SkillRun creation, `/demo` visibility, and health; plan-action coverage remains in place.
+- Updated `README.md` with an Approval Decision Simulation v0.7 section documenting the dry-run endpoint and the fact that `confirm_sales_order` still does not execute.
+- Ran focused validation with `python -m pytest tests/test_approval_decision_simulation_api.py tests/test_approval_gate_api.py tests/test_demo_dashboard.py -q`; result: `9 passed`.
+- Ran full verification with `python -m pytest`; result: `162 passed, 9 skipped`. The skipped tests are the browser-dependent paths in this shell because Chromium/browser runtime availability is not active for the plain `python -m pytest` run.
+- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, approval persistence tables, or real ERP write actions.

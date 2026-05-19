@@ -6,6 +6,11 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from apps.api.schemas.skills import (
+    SkillApprovalDecisionSimulationRequest,
+    SkillApprovalDecisionSimulationResponse,
+    SkillApprovalDecisionSimulatedExecutionResponse,
+    SkillApprovalDecisionSimulationProofResponse,
+    SkillApprovalDecisionApproverResponse,
     SkillApprovalGatePlanResponse,
     SkillApprovalGatePreviewResponse,
     SkillApprovalGateProofResponse,
@@ -341,6 +346,144 @@ def plan_skill_action_endpoint(skill_id: str, request: SkillApprovalGateRequest)
                 decision=guard_preview["decision"],
                 issues_count=guard_preview["issues_count"],
             ).model_dump(mode="json"),
+            "proof": proof.model_dump(mode="json"),
+        }
+    finally:
+        session.close()
+
+
+@router.post("/skills/{skill_id}/simulate-approval-decision", response_model=SkillApprovalDecisionSimulationResponse)
+def simulate_skill_approval_decision_endpoint(skill_id: str, request: SkillApprovalDecisionSimulationRequest):
+    init_db()
+    session = SessionLocal()
+    try:
+        skill = get_skill(session, skill_id)
+        if skill is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_not_found",
+                        "message": f"Skill '{skill_id}' not found.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        skill_version = get_latest_skill_version(session, skill.id)
+        if skill_version is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_version_not_found",
+                        "message": f"Skill '{skill_id}' has no registered version.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        try:
+            canonical_action = CanonicalAction(request.requested_action)
+        except ValueError:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "unsupported_action",
+                        "message": f"Requested action '{request.requested_action}' is not supported for approval simulation.",
+                        "details": {
+                            "skill_id": skill_id,
+                            "requested_action": request.requested_action,
+                            "supported_actions": [CanonicalAction.CONFIRM_SALES_ORDER.value],
+                        },
+                    }
+                },
+            )
+
+        if canonical_action is not CanonicalAction.CONFIRM_SALES_ORDER:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "unsupported_action",
+                        "message": f"Requested action '{request.requested_action}' is not supported for approval simulation.",
+                        "details": {
+                            "skill_id": skill_id,
+                            "requested_action": request.requested_action,
+                            "supported_actions": [CanonicalAction.CONFIRM_SALES_ORDER.value],
+                        },
+                    }
+                },
+            )
+
+        if request.decision not in {"approve", "reject"}:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "unsupported_decision",
+                        "message": f"Decision '{request.decision}' is not supported for approval simulation.",
+                        "details": {
+                            "skill_id": skill_id,
+                            "decision": request.decision,
+                            "supported_decisions": ["approve", "reject"],
+                        },
+                    }
+                },
+            )
+
+        risk_level = default_risk_level(canonical_action)
+        approval_required = approval_required_for_risk(risk_level)
+        guard_preview = _preview_formula_guard(request.inputs.order_reference)
+        approver = SkillApprovalDecisionApproverResponse(**request.approver.model_dump())
+        if request.decision == "reject":
+            approval_decision = "rejected"
+            status = "rejected_before_execution"
+            simulated_execution = SkillApprovalDecisionSimulatedExecutionResponse(
+                would_execute=False,
+                did_execute=False,
+                blocked_reason="rejected_by_human",
+            )
+        elif guard_preview["decision"] == "block":
+            approval_decision = "approved"
+            status = "blocked_before_execution"
+            simulated_execution = SkillApprovalDecisionSimulatedExecutionResponse(
+                would_execute=False,
+                did_execute=False,
+                blocked_reason="guard_blocked",
+            )
+        else:
+            approval_decision = "approved"
+            status = "approved_but_not_executed"
+            simulated_execution = SkillApprovalDecisionSimulatedExecutionResponse(
+                would_execute=True,
+                did_execute=False,
+                blocked_reason="real_erp_write_blocked_by_mvp_scope",
+            )
+
+        proof = SkillApprovalDecisionSimulationProofResponse(
+            approval_decision_recorded=True,
+            approval_required=approval_required,
+            guard_checked_before_decision=True,
+            real_erp_write_blocked=True,
+            no_real_execution=True,
+            human_decision_simulated=True,
+        )
+        return {
+            "skill_id": skill.id,
+            "requested_action": canonical_action.value,
+            "approval_decision": approval_decision,
+            "approval_required": approval_required,
+            "risk_level": risk_level.value,
+            "guard_preview": SkillApprovalGatePreviewResponse(
+                decision=guard_preview["decision"],
+                issues_count=guard_preview["issues_count"],
+            ).model_dump(mode="json"),
+            "approver": approver.model_dump(mode="json"),
+            "reason": request.reason,
+            "status": status,
+            "simulated_execution": simulated_execution.model_dump(mode="json"),
             "proof": proof.model_dump(mode="json"),
         }
     finally:

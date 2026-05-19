@@ -257,6 +257,13 @@ selectors captured: none</pre>
           <button id="planApprovalGate" type="button">Generate safe action plan</button>
         </div>
         <pre id="approvalGatePlan">No approval plan yet.</pre>
+        <h3>Approval Decision Simulation v0.7</h3>
+        <p class="tiny">Simulate approve or reject against the safe plan without executing confirm_sales_order.</p>
+        <div class="toolbar">
+          <button id="simulateApproveGate" type="button">Simulate approve for SO-VALID</button>
+          <button id="simulateRejectGate" type="button">Simulate reject for SO-FORMULA-MISMATCH</button>
+        </div>
+        <pre id="approvalDecisionSimulation">No approval decision simulated yet.</pre>
       </div>
     </section>
 
@@ -312,6 +319,9 @@ selectors captured: none</pre>
     const runTimeline = document.getElementById("runTimeline");
     const approvalGatePlan = document.getElementById("approvalGatePlan");
     const planApprovalGateButton = document.getElementById("planApprovalGate");
+    const approvalDecisionSimulation = document.getElementById("approvalDecisionSimulation");
+    const simulateApproveGateButton = document.getElementById("simulateApproveGate");
+    const simulateRejectGateButton = document.getElementById("simulateRejectGate");
     const teachModeReadiness = document.getElementById("teachModeReadiness");
 
     const humanState = {
@@ -467,6 +477,33 @@ selectors captured: none</pre>
       }
 
       approvalGatePlan.textContent = jsonText(body);
+      return body;
+    };
+
+    const refreshApprovalDecisionSimulation = async (orderReference, decision) => {
+      if (!humanState.skillId) {
+        approvalDecisionSimulation.textContent = "No approval decision simulated yet.";
+        return null;
+      }
+
+      const response = await fetch(`/v1/skills/${humanState.skillId}/simulate-approval-decision`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inputs: { order_reference: orderReference },
+          requested_action: "confirm_sales_order",
+          decision,
+          approver: { type: "user", id: "demo_approver", display_name: "Demo Approver" },
+          reason: decision === "approve" ? "Formula preview is clean." : "Formula Guard blocks this order.",
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        approvalDecisionSimulation.textContent = `Approval decision unavailable: ${body?.error?.message || "unknown error"}`;
+        return null;
+      }
+
+      approvalDecisionSimulation.textContent = jsonText(body);
       return body;
     };
 
@@ -651,6 +688,7 @@ selectors captured: none</pre>
         }));
         await refreshSkillInspector();
         approvalGatePlan.textContent = "No approval plan yet.";
+        approvalDecisionSimulation.textContent = "No approval decision simulated yet.";
       } catch (error) {
         setHumanStatus(`Failed to compile recording: ${String(error)}`);
       } finally {
@@ -723,6 +761,40 @@ selectors captured: none</pre>
         approvalGatePlan.textContent = `Failed to generate approval plan: ${String(error)}`;
       } finally {
         planApprovalGateButton.disabled = false;
+      }
+    });
+
+    simulateApproveGateButton.addEventListener("click", async () => {
+      if (!humanState.skillId) {
+        approvalDecisionSimulation.textContent = "Compile the human recording first.";
+        return;
+      }
+
+      simulateApproveGateButton.disabled = true;
+      approvalDecisionSimulation.textContent = "Simulating approval decision...";
+      try {
+        await refreshApprovalDecisionSimulation("SO-VALID", "approve");
+      } catch (error) {
+        approvalDecisionSimulation.textContent = `Failed to simulate approval decision: ${String(error)}`;
+      } finally {
+        simulateApproveGateButton.disabled = false;
+      }
+    });
+
+    simulateRejectGateButton.addEventListener("click", async () => {
+      if (!humanState.skillId) {
+        approvalDecisionSimulation.textContent = "Compile the human recording first.";
+        return;
+      }
+
+      simulateRejectGateButton.disabled = true;
+      approvalDecisionSimulation.textContent = "Simulating rejection decision...";
+      try {
+        await refreshApprovalDecisionSimulation("SO-FORMULA-MISMATCH", "reject");
+      } catch (error) {
+        approvalDecisionSimulation.textContent = `Failed to simulate approval decision: ${String(error)}`;
+      } finally {
+        simulateRejectGateButton.disabled = false;
       }
     });
 

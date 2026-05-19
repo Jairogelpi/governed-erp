@@ -386,6 +386,48 @@ Observed result:
 159 passed, 9 skipped
 ```
 
+## Approval Decision Simulation v0.7
+
+The approval decision simulation endpoint lets you simulate a human approve/reject choice for the critical `confirm_sales_order` path without executing a real ERP write:
+
+```http
+POST /v1/skills/{skill_id}/simulate-approval-decision
+```
+
+Request example:
+
+```json
+{
+  "inputs": {
+    "order_reference": "SO-VALID"
+  },
+  "requested_action": "confirm_sales_order",
+  "decision": "approve",
+  "approver": {
+    "type": "user",
+    "id": "demo_approver",
+    "display_name": "Demo Approver"
+  },
+  "reason": "Formula preview is clean."
+}
+```
+
+The endpoint reuses the same critical-action identity, risk level, and Formula Guard preview as v0.6, but it still does not execute `confirm_sales_order`, does not create a real approval workflow, and does not write to ERP.
+
+The `/demo` page includes an Approval Decision Simulation v0.7 panel with simulate-approve and simulate-reject buttons after the safe plan section.
+
+Verification command:
+
+```bash
+python -m pytest
+```
+
+Observed result:
+
+```text
+162 passed, 9 skipped
+```
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:

@@ -219,3 +219,52 @@ class SkillApprovalGateResponse(BaseModel):
     plan: SkillApprovalGatePlanResponse
     guard_preview: SkillApprovalGatePreviewResponse
     proof: SkillApprovalGateProofResponse
+
+
+class SkillApprovalDecisionApproverResponse(BaseModel):
+    type: str
+    id: str
+    display_name: str
+
+
+class SkillApprovalDecisionApproverRequest(BaseModel):
+    type: str
+    id: str
+    display_name: str
+
+
+class SkillApprovalDecisionSimulationRequest(BaseModel):
+    inputs: SkillRunInputsRequest
+    requested_action: str = Field(min_length=1)
+    decision: str = Field(min_length=1)
+    approver: SkillApprovalDecisionApproverRequest
+    reason: str = Field(min_length=1)
+
+
+class SkillApprovalDecisionSimulatedExecutionResponse(BaseModel):
+    would_execute: bool
+    did_execute: bool
+    blocked_reason: str
+
+
+class SkillApprovalDecisionSimulationProofResponse(BaseModel):
+    approval_decision_recorded: bool
+    approval_required: bool
+    guard_checked_before_decision: bool
+    real_erp_write_blocked: bool
+    no_real_execution: bool
+    human_decision_simulated: bool
+
+
+class SkillApprovalDecisionSimulationResponse(BaseModel):
+    skill_id: str
+    requested_action: str
+    approval_decision: str
+    approval_required: bool
+    risk_level: str
+    guard_preview: SkillApprovalGatePreviewResponse
+    approver: SkillApprovalDecisionApproverResponse
+    reason: str
+    status: str
+    simulated_execution: SkillApprovalDecisionSimulatedExecutionResponse
+    proof: SkillApprovalDecisionSimulationProofResponse
