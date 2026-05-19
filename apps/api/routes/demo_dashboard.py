@@ -244,6 +244,9 @@ def demo_dashboard() -> str:
 ordered events: none
 selectors captured: none</pre>
         <pre id="humanResults">No compiled skill yet.</pre>
+        <h3>Skill Inspector v0.4</h3>
+        <p class="tiny">Inspect the latest compiled skill package before trusting repeated runs.</p>
+        <pre id="skillInspector">No inspected skill yet.</pre>
       </div>
     </section>
 
@@ -294,6 +297,7 @@ selectors captured: none</pre>
     const humanStatus = document.getElementById("humanStatus");
     const humanPreview = document.getElementById("humanPreview");
     const humanResults = document.getElementById("humanResults");
+    const skillInspector = document.getElementById("skillInspector");
     const teachModeReadiness = document.getElementById("teachModeReadiness");
 
     const humanState = {
@@ -357,6 +361,38 @@ selectors captured: none</pre>
         "selectors captured": selectors,
         "compiler readiness": compilerReadiness(events),
       });
+    };
+
+    const renderSkillInspector = (inspection) => {
+      skillInspector.textContent = jsonText({
+        skill_id: inspection.skill_id,
+        name: inspection.name,
+        version_id: inspection.version_id,
+        runtime_type: inspection.runtime_type,
+        llm_required_for_repeated_runs: inspection.llm_required_for_repeated_runs,
+        inputs: inspection.inputs,
+        guards: inspection.guards,
+        workflow_steps: inspection.workflow_steps,
+        compiled_from_recording_id: inspection.compiled_from_recording_id,
+        safety_summary: inspection.safety_summary,
+      });
+    };
+
+    const refreshSkillInspector = async () => {
+      if (!humanState.skillId) {
+        skillInspector.textContent = "No inspected skill yet.";
+        return null;
+      }
+
+      const response = await fetch(`/v1/skills/${humanState.skillId}/inspect`);
+      const body = await response.json();
+      if (!response.ok) {
+        skillInspector.textContent = `Inspector unavailable: ${body?.error?.message || "unknown error"}`;
+        return null;
+      }
+
+      renderSkillInspector(body);
+      return body;
     };
 
     const setTeachStepState = (stepId, state) => {
@@ -538,6 +574,7 @@ selectors captured: none</pre>
           name: body.name,
           llm_required_for_repeated_runs: body.llm_required_for_repeated_runs,
         }));
+        await refreshSkillInspector();
       } catch (error) {
         setHumanStatus(`Failed to compile recording: ${String(error)}`);
       } finally {
@@ -587,6 +624,7 @@ selectors captured: none</pre>
         }));
         humanState.proofRun = true;
         setTeachStepState("run_allow_block_proof", "observed");
+        await refreshSkillInspector();
       } catch (error) {
         setHumanResults(`Failed to run compiled skill: ${String(error)}`);
       } finally {

@@ -80,3 +80,10 @@
 - This Teach Mode v0.3 evidence-freeze block made no runtime changes. It only added documentation/evidence artifacts and README/AGENTS notes.
 - Ran full verification with `python -m pytest`; result: `148 passed, 9 skipped, 2 warnings`. The skipped tests are the browser-dependent paths in this shell because Chromium/browser runtime availability is not active for the plain `python -m pytest` run.
 - Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, or real ERP write actions.
+- Added `docs/specs/26_skill_inspector_v0_4.md` to define Skill Inspector v0.4: read-only inspection of the latest compiled skill version, visible fields, registry/package relationship, test expectations, no-goals, and acceptance criteria.
+- Implemented `GET /v1/skills/{skill_id}/inspect` by reusing the existing Skill Registry and parsing the latest `SkillVersion.skill_package_json`; the endpoint now returns skill identity, runtime type, inputs, guards, workflow steps, `compiled_from_recording_id`, and a safety summary.
+- Extended `/demo` with a vanilla HTML/JS `Skill Inspector v0.4` section that refreshes after compile and again after the proof run so the user can inspect the compiled skill before and after execution.
+- Added tests for successful skill inspection, workflow step visibility, `formula_guard` exposure, safety summary flags, controlled 404 responses for missing skill and missing version, and `/demo` visibility; existing compile/run and health coverage remained in place.
+- Updated `README.md` with a Skill Inspector v0.4 section explaining `GET /v1/skills/{skill_id}/inspect` and how it helps review a compiled skill before trusting repeated runs.
+- Verified with focused pytest slices and then the full suite: `python -m pytest` -> `151 passed, 9 skipped`.
+- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, or real ERP write actions.

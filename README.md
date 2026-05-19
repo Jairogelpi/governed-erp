@@ -263,6 +263,16 @@ Expected result for the Teach Mode v0.3 evidence freeze environment:
 148 passed, 9 skipped, 2 warnings
 ```
 
+## Skill Inspector v0.4
+
+After compiling a skill, inspect the latest version before trusting repeated runs:
+
+```bash
+curl http://127.0.0.1:8000/v1/skills/skill_.../inspect
+```
+
+The inspector shows the skill name, version, runtime type, inputs, guards, workflow steps, the originating recording id, and a safety summary. The `/demo` dashboard renders the same Skill Inspector v0.4 section automatically after compilation and again after the proof run.
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
@@ -298,6 +308,7 @@ Implemented now:
 - Controlled Human Recording v0.2 for the Fake ERP formula review flow
 - Controlled Human Recording v0.2.1 hardening with compiler diagnostics and `/demo` preview/readiness
 - Teach Mode v0.3 readiness endpoint and `/demo` checklist for the controlled Fake ERP teaching flow
+- Skill Inspector v0.4 read-only inspection for compiled Fake ERP skills
 - read-only Odoo adapter skeleton
 - Formula Guard policy evaluation for `confirm_sales_order`
 - preflight persistence and audit retrieval

@@ -48,6 +48,36 @@ class SkillDetailResponse(SkillSummaryResponse):
     version_created_at: str | None = None
 
 
+class SkillInspectWorkflowStepResponse(BaseModel):
+    id: str
+    type: str
+    target: str | None = None
+    selector: str | None = None
+    selector_template: str | None = None
+    guard: str | None = None
+    value: str | None = None
+
+
+class SkillInspectSafetySummaryResponse(BaseModel):
+    has_guards: bool
+    guard_count: int
+    has_write_actions: bool
+    requires_llm_for_replay: bool
+
+
+class SkillInspectResponse(BaseModel):
+    skill_id: str
+    name: str
+    version_id: str
+    runtime_type: str
+    llm_required_for_repeated_runs: bool
+    inputs: dict[str, Any] = Field(default_factory=dict)
+    guards: list[str] = Field(default_factory=list)
+    workflow_steps: list[SkillInspectWorkflowStepResponse] = Field(default_factory=list)
+    compiled_from_recording_id: str | None = None
+    safety_summary: SkillInspectSafetySummaryResponse
+
+
 class SkillRunInputsRequest(BaseModel):
     order_reference: str = Field(min_length=1)
 

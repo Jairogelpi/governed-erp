@@ -9,6 +9,8 @@ from apps.api.schemas.skills import (
     SkillCreateRequest,
     SkillCreateResponse,
     SkillDetailResponse,
+    SkillInspectResponse,
+    SkillInspectSafetySummaryResponse,
     SkillRunDetailResponse,
     SkillRunRequest,
     SkillRunResponse,
@@ -137,6 +139,75 @@ def get_skill_endpoint(skill_id: str):
         session.close()
 
 
+@router.get("/skills/{skill_id}/inspect", response_model=SkillInspectResponse)
+def inspect_skill_endpoint(skill_id: str):
+    init_db()
+    session = SessionLocal()
+    try:
+        skill = get_skill(session, skill_id)
+        if skill is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_not_found",
+                        "message": f"Skill '{skill_id}' not found.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        skill_version = get_latest_skill_version(session, skill.id)
+        if skill_version is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_version_not_found",
+                        "message": f"Skill '{skill_id}' has no registered version.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        try:
+            skill_package = json.loads(skill_version.skill_package_json)
+        except json.JSONDecodeError:
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "error": {
+                        "code": "skill_package_invalid",
+                        "message": f"Skill '{skill_id}' has an invalid compiled package.",
+                        "details": {"skill_id": skill_id, "version_id": skill_version.id},
+                    }
+                },
+            )
+
+        workflow_steps = _skill_inspection_workflow_steps(skill_package)
+        guards = _skill_inspection_guards(skill_package, workflow_steps)
+        safety_summary = SkillInspectSafetySummaryResponse(
+            has_guards=bool(guards),
+            guard_count=len(guards),
+            has_write_actions=_skill_inspection_has_write_actions(workflow_steps),
+            requires_llm_for_replay=skill_version.llm_required_for_repeated_runs,
+        )
+        return {
+            "skill_id": skill.id,
+            "name": skill.name,
+            "version_id": skill_version.id,
+            "runtime_type": skill_version.runtime_type,
+            "llm_required_for_repeated_runs": skill_version.llm_required_for_repeated_runs,
+            "inputs": skill_package.get("inputs") if isinstance(skill_package.get("inputs"), dict) else {},
+            "guards": guards,
+            "workflow_steps": workflow_steps,
+            "compiled_from_recording_id": skill_package.get("compiled_from_recording_id"),
+            "safety_summary": safety_summary.model_dump(mode="json"),
+        }
+    finally:
+        session.close()
+
+
 @router.post("/skills/{skill_id}/run", response_model=SkillRunResponse)
 def run_skill_endpoint(skill_id: str, request: SkillRunRequest):
     init_db()
@@ -239,6 +310,43 @@ def get_skill_run_endpoint(skill_id: str, skill_run_id: str):
         }
     finally:
         session.close()
+
+
+def _skill_inspection_workflow_steps(skill_package: dict) -> list[dict]:
+    workflow = skill_package.get("workflow")
+    if not isinstance(workflow, list):
+        return []
+
+    return [
+        {
+            "id": step.get("id"),
+            "type": step.get("type"),
+            "target": step.get("target"),
+            "selector": step.get("selector"),
+            "selector_template": step.get("selector_template"),
+            "guard": step.get("guard"),
+            "value": step.get("value"),
+        }
+        for step in workflow
+        if isinstance(step, dict)
+    ]
+
+
+def _skill_inspection_guards(skill_package: dict, workflow_steps: list[dict]) -> list[str]:
+    guards = skill_package.get("guards")
+    if isinstance(guards, list):
+        return [guard for guard in guards if isinstance(guard, str) and guard]
+
+    return [
+        step["guard"]
+        for step in workflow_steps
+        if isinstance(step, dict) and isinstance(step.get("guard"), str) and step.get("guard")
+    ]
+
+
+def _skill_inspection_has_write_actions(workflow_steps: list[dict]) -> bool:
+    write_step_types = {"write", "create", "update", "delete", "submit", "confirm", "save"}
+    return any(step.get("type") in write_step_types for step in workflow_steps if isinstance(step, dict))
 
 
 @router.post("/skills/{skill_id}/run-ui", response_model=SkillUIRunResponse)
