@@ -11,10 +11,15 @@ from apps.api.schemas.skills import (
     SkillDetailResponse,
     SkillInspectResponse,
     SkillInspectSafetySummaryResponse,
+    SkillRunListResponse,
     SkillRunDetailResponse,
     SkillRunRequest,
+    SkillRunSummaryResponse,
     SkillRunResponse,
     SkillRunStepResponse,
+    SkillRunTimelineProofResponse,
+    SkillRunTimelineResponse,
+    SkillRunTimelineStepResponse,
     SkillUIRunRequest,
     SkillUIRunResponse,
     SkillSummaryResponse,
@@ -31,9 +36,11 @@ from erpguard.db.repositories import (
     finish_skill_run,
     get_latest_skill_version,
     get_skill,
+    get_skill_version,
     get_skill_run,
     list_skills,
     list_skill_run_steps,
+    list_skill_runs,
 )
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.policies.engine import PolicyEngine
@@ -312,6 +319,87 @@ def get_skill_run_endpoint(skill_id: str, skill_run_id: str):
         session.close()
 
 
+@router.get("/skills/{skill_id}/runs", response_model=SkillRunListResponse)
+def list_skill_runs_endpoint(skill_id: str):
+    init_db()
+    session = SessionLocal()
+    try:
+        skill = get_skill(session, skill_id)
+        if skill is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_not_found",
+                        "message": f"Skill '{skill_id}' not found.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        runs = list_skill_runs(session, skill.id)
+        return {
+            "skill_id": skill.id,
+            "runs": [_serialize_skill_run_summary(session, run) for run in runs],
+        }
+    finally:
+        session.close()
+
+
+@router.get("/skills/{skill_id}/runs/{skill_run_id}/timeline", response_model=SkillRunTimelineResponse)
+def get_skill_run_timeline_endpoint(skill_id: str, skill_run_id: str):
+    init_db()
+    session = SessionLocal()
+    try:
+        skill = get_skill(session, skill_id)
+        if skill is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_not_found",
+                        "message": f"Skill '{skill_id}' not found.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        run = get_skill_run(session, skill_run_id)
+        if run is None or run.skill_id != skill_id:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_run_not_found",
+                        "message": f"Skill run '{skill_run_id}' not found for skill '{skill_id}'.",
+                        "details": {"skill_id": skill_id, "skill_run_id": skill_run_id},
+                    }
+                },
+            )
+
+        skill_version = get_skill_version(session, run.skill_version_id)
+        steps = list_skill_run_steps(session, skill_run_id)
+        timeline = [_serialize_skill_run_step(step) for step in steps]
+        proof = SkillRunTimelineProofResponse(
+            has_guard_step=any(step.step_id == "formula_guard" for step in steps),
+            has_result_step=any(step.step_id == "produce_result" for step in steps),
+            decision_is_auditable=run.decision in {"allow", "block"}
+            and any(step.step_id == "formula_guard" for step in steps)
+            and any(step.step_id == "produce_result" for step in steps),
+            llm_replay_not_required=not skill_version.llm_required_for_repeated_runs if skill_version else False,
+        )
+        return {
+            "skill_id": skill.id,
+            "skill_run_id": run.id,
+            "status": run.status,
+            "decision": run.decision,
+            "timeline": timeline,
+            "proof": proof.model_dump(mode="json"),
+        }
+    finally:
+        session.close()
+
+
 def _skill_inspection_workflow_steps(skill_package: dict) -> list[dict]:
     workflow = skill_package.get("workflow")
     if not isinstance(workflow, list):
@@ -347,6 +435,48 @@ def _skill_inspection_guards(skill_package: dict, workflow_steps: list[dict]) ->
 def _skill_inspection_has_write_actions(workflow_steps: list[dict]) -> bool:
     write_step_types = {"write", "create", "update", "delete", "submit", "confirm", "save"}
     return any(step.get("type") in write_step_types for step in workflow_steps if isinstance(step, dict))
+
+
+def _serialize_skill_run_summary(session, run) -> dict:
+    input_json = json.loads(run.input_json) if run.input_json else None
+    output_json = json.loads(run.output_json) if run.output_json else {}
+    return {
+        "skill_run_id": run.id,
+        "skill_version_id": run.skill_version_id,
+        "status": run.status,
+        "decision": run.decision,
+        "created_at": run.created_at.isoformat(),
+        "finished_at": run.finished_at.isoformat() if run.finished_at else None,
+        "input": input_json,
+        "output_summary": {
+            "order_reference": output_json.get("order_reference") or _order_reference_from_run_input(input_json),
+            "issues_count": len(output_json.get("issues", [])) if isinstance(output_json.get("issues"), list) else 0,
+            "policy_id": output_json.get("policy_id"),
+        },
+        "estimated_tokens_saved": run.estimated_tokens_saved,
+    }
+
+
+def _serialize_skill_run_step(step) -> dict:
+    return {
+        "step_id": step.step_id,
+        "step_type": step.step_type,
+        "status": step.status,
+        "input": json.loads(step.input_json) if step.input_json else None,
+        "output": json.loads(step.output_json) if step.output_json else None,
+        "error": step.error_text,
+    }
+
+
+def _order_reference_from_run_input(input_json) -> str | None:
+    if not isinstance(input_json, dict):
+        return None
+    inputs = input_json.get("inputs")
+    if isinstance(inputs, dict):
+        order_reference = inputs.get("order_reference")
+        if isinstance(order_reference, str):
+            return order_reference
+    return None
 
 
 @router.post("/skills/{skill_id}/run-ui", response_model=SkillUIRunResponse)

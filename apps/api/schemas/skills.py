@@ -137,3 +137,45 @@ class SkillUIRunResponse(SkillRunResponse):
     selectors_used: list[str] = Field(default_factory=list)
     steps: list[SkillRunStepResponse] = Field(default_factory=list)
     no_llm_used: bool = True
+
+
+class SkillRunSummaryResponse(BaseModel):
+    skill_run_id: str
+    skill_version_id: str
+    status: str
+    decision: str | None = None
+    created_at: str
+    finished_at: str | None = None
+    input: dict[str, Any] | None = None
+    output_summary: dict[str, Any] = Field(default_factory=dict)
+    estimated_tokens_saved: int | None = None
+
+
+class SkillRunListResponse(BaseModel):
+    skill_id: str
+    runs: list[SkillRunSummaryResponse] = Field(default_factory=list)
+
+
+class SkillRunTimelineStepResponse(BaseModel):
+    step_id: str
+    step_type: str
+    status: str
+    input: dict[str, Any] | None = None
+    output: dict[str, Any] | None = None
+    error: str | None = None
+
+
+class SkillRunTimelineProofResponse(BaseModel):
+    has_guard_step: bool
+    has_result_step: bool
+    decision_is_auditable: bool
+    llm_replay_not_required: bool
+
+
+class SkillRunTimelineResponse(BaseModel):
+    skill_id: str
+    skill_run_id: str
+    status: str
+    decision: str | None = None
+    timeline: list[SkillRunTimelineStepResponse] = Field(default_factory=list)
+    proof: SkillRunTimelineProofResponse

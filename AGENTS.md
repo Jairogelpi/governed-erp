@@ -92,3 +92,11 @@
 - This freeze block made no runtime changes. It only added documentation/evidence artifacts and README/AGENTS notes.
 - Verified with `python -m pytest`; result: `151 passed, 9 skipped`.
 - Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, or real ERP write actions.
+- Added `docs/specs/28_run_history_audit_timeline_v0_5.md` to define Run History / Audit Timeline v0.5: execution history purpose, run/timeline contracts, `SkillRun`/`SkillRunStep` relationship, demo usage, tests, no-goals, and acceptance criteria.
+- Implemented `GET /v1/skills/{skill_id}/runs` and `GET /v1/skills/{skill_id}/runs/{skill_run_id}/timeline` as read-only projections over existing `SkillRun` and `SkillRunStep` records, plus minimal repository helpers for listing runs and loading the exact skill version.
+- Extended `/demo` with a `Run History / Audit Timeline v0.5` section that refreshes after running the compiled skill and shows the latest runs plus a timeline preview.
+- Added tests for run list ordering and decision coverage, timeline ordering and proof flags, controlled missing-skill and missing-run errors, `/demo` visibility, and health.
+- Updated `README.md` with a Run History / Audit Timeline v0.5 section documenting the new endpoints and what they audit.
+- This block made runtime changes: it added read-only run history and audit timeline endpoints plus the `/demo` audit panel.
+- Verified with focused pytest slices and then the full suite: `python -m pytest` -> `155 passed, 9 skipped`.
+- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, or real ERP write actions.

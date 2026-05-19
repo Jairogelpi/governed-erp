@@ -293,6 +293,17 @@ Expected result for the Skill Inspector v0.4 evidence freeze environment:
 
 The evidence artifact also includes negative controlled error responses for a missing skill and a skill with no latest version.
 
+## Run History / Audit Timeline v0.5
+
+After a compiled skill has been run, inspect the execution history and audit timeline:
+
+```bash
+curl http://127.0.0.1:8000/v1/skills/skill_.../runs
+curl http://127.0.0.1:8000/v1/skills/skill_.../runs/skill_run_.../timeline
+```
+
+The run list shows each execution with its decision, timestamps, input, summary output, and token savings. The timeline shows the ordered `load_skill`, `load_order`, `formula_guard`, and `produce_result` steps so you can audit what happened in a replay.
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:

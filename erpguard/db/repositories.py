@@ -146,6 +146,10 @@ def get_skill(session: Session, skill_id: str) -> Skill | None:
     return session.get(Skill, skill_id)
 
 
+def get_skill_version(session: Session, skill_version_id: str) -> SkillVersion | None:
+    return session.get(SkillVersion, skill_version_id)
+
+
 def list_skills(session: Session) -> list[Skill]:
     return list(session.query(Skill).order_by(Skill.created_at.desc()).all())
 
@@ -269,6 +273,15 @@ def list_skill_run_steps(session: Session, skill_run_id: str) -> list[SkillRunSt
         session.query(SkillRunStep)
         .filter(SkillRunStep.skill_run_id == skill_run_id)
         .order_by(SkillRunStep.created_at.asc())
+        .all()
+    )
+
+
+def list_skill_runs(session: Session, skill_id: str) -> list[SkillRun]:
+    return list(
+        session.query(SkillRun)
+        .filter(SkillRun.skill_id == skill_id)
+        .order_by(SkillRun.created_at.desc(), SkillRun.finished_at.desc())
         .all()
     )
 

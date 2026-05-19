@@ -247,6 +247,10 @@ selectors captured: none</pre>
         <h3>Skill Inspector v0.4</h3>
         <p class="tiny">Inspect the latest compiled skill package before trusting repeated runs.</p>
         <pre id="skillInspector">No inspected skill yet.</pre>
+        <h3>Run History / Audit Timeline v0.5</h3>
+        <p class="tiny">Shows the latest executions of the compiled skill and a step-by-step audit timeline.</p>
+        <pre id="runHistory">No run history yet.</pre>
+        <pre id="runTimeline">No audit timeline yet.</pre>
       </div>
     </section>
 
@@ -298,6 +302,8 @@ selectors captured: none</pre>
     const humanPreview = document.getElementById("humanPreview");
     const humanResults = document.getElementById("humanResults");
     const skillInspector = document.getElementById("skillInspector");
+    const runHistory = document.getElementById("runHistory");
+    const runTimeline = document.getElementById("runTimeline");
     const teachModeReadiness = document.getElementById("teachModeReadiness");
 
     const humanState = {
@@ -376,6 +382,43 @@ selectors captured: none</pre>
         compiled_from_recording_id: inspection.compiled_from_recording_id,
         safety_summary: inspection.safety_summary,
       });
+    };
+
+    const renderRunHistory = (history, timelinePreview) => {
+      runHistory.textContent = jsonText(history);
+      runTimeline.textContent = timelinePreview ? jsonText(timelinePreview) : "No audit timeline yet.";
+    };
+
+    const refreshRunHistory = async () => {
+      if (!humanState.skillId) {
+        runHistory.textContent = "No run history yet.";
+        runTimeline.textContent = "No audit timeline yet.";
+        return null;
+      }
+
+      const response = await fetch(`/v1/skills/${humanState.skillId}/runs`);
+      const body = await response.json();
+      if (!response.ok) {
+        runHistory.textContent = `Run history unavailable: ${body?.error?.message || "unknown error"}`;
+        runTimeline.textContent = "No audit timeline yet.";
+        return null;
+      }
+
+      const latestRun = body.runs?.[0];
+      if (!latestRun) {
+        renderRunHistory(body, null);
+        return body;
+      }
+
+      const timelineResponse = await fetch(`/v1/skills/${humanState.skillId}/runs/${latestRun.skill_run_id}/timeline`);
+      const timelineBody = await timelineResponse.json();
+      if (!timelineResponse.ok) {
+        renderRunHistory(body, { error: timelineBody?.error?.message || "unknown error" });
+        return body;
+      }
+
+      renderRunHistory(body, timelineBody);
+      return body;
     };
 
     const refreshSkillInspector = async () => {
@@ -625,6 +668,7 @@ selectors captured: none</pre>
         humanState.proofRun = true;
         setTeachStepState("run_allow_block_proof", "observed");
         await refreshSkillInspector();
+        await refreshRunHistory();
       } catch (error) {
         setHumanResults(`Failed to run compiled skill: ${String(error)}`);
       } finally {
