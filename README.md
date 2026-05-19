@@ -304,6 +304,59 @@ curl http://127.0.0.1:8000/v1/skills/skill_.../runs/skill_run_.../timeline
 
 The run list shows each execution with its decision, timestamps, input, summary output, and token savings. The timeline shows the ordered `load_skill`, `load_order`, `formula_guard`, and `produce_result` steps so you can audit what happened in a replay.
 
+## Run History / Audit Timeline v0.5 Evidence
+
+The v0.5 evidence freeze captures the live FastAPI `TestClient` proof for the run history and audit timeline layer.
+
+Artifact:
+
+- [docs/demo/run_history_audit_timeline_v0_5_success_response.json](docs/demo/run_history_audit_timeline_v0_5_success_response.json)
+
+It records:
+
+- recording readiness in the ready state;
+- skill compilation and inspection;
+- a valid run that returns `allow`;
+- an invalid run that returns `block`;
+- `GET /v1/skills/{skill_id}/runs` returning both runs;
+- `GET /v1/skills/{skill_id}/runs/{skill_run_id}/timeline` returning the ordered guard timeline;
+- controlled `skill_not_found` and `skill_run_not_found` error responses.
+
+Verification command:
+
+```bash
+python -m pytest
+```
+
+Observed result:
+
+```text
+155 passed, 9 skipped
+```
+
+## Approval Gate / Safe Action Plan v0.6
+
+The approval gate adds a dry-run planning endpoint for the critical `confirm_sales_order` action:
+
+```http
+POST /v1/skills/{skill_id}/plan-action
+```
+
+Request example:
+
+```json
+{
+  "inputs": {
+    "order_reference": "SO-VALID"
+  },
+  "requested_action": "confirm_sales_order"
+}
+```
+
+The endpoint does not execute `confirm_sales_order`, does not write to ERP, and does not create a full approval system yet. It only returns a safe plan, the Formula Guard preview, the R3 approval requirement, and proof that execution stopped before any real write.
+
+The `/demo` page includes an Approval Gate / Safe Action Plan v0.6 panel after compile and inspect, so the operator can preview the critical action before trusting it.
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:

@@ -6,6 +6,12 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from apps.api.schemas.skills import (
+    SkillApprovalGatePlanResponse,
+    SkillApprovalGatePreviewResponse,
+    SkillApprovalGateProofResponse,
+    SkillApprovalGateRequest,
+    SkillApprovalGateResponse,
+    SkillApprovalGateStepResponse,
     SkillCreateRequest,
     SkillCreateResponse,
     SkillDetailResponse,
@@ -27,6 +33,7 @@ from apps.api.schemas.skills import (
 from erpguard.adapters.fake import FakeERPAdapter
 from erpguard.canonical.enums import CanonicalAction
 from erpguard.core.errors import ObjectNotFoundError
+from erpguard.core.risk_engine import approval_required_for_risk, canonical_object_for_action, default_risk_level
 from erpguard.demo.full_flow import run_deterministic_skill_for_order_reference
 from erpguard.db.repositories import (
     create_skill,
@@ -210,6 +217,131 @@ def inspect_skill_endpoint(skill_id: str):
             "workflow_steps": workflow_steps,
             "compiled_from_recording_id": skill_package.get("compiled_from_recording_id"),
             "safety_summary": safety_summary.model_dump(mode="json"),
+        }
+    finally:
+        session.close()
+
+
+@router.post("/skills/{skill_id}/plan-action", response_model=SkillApprovalGateResponse)
+def plan_skill_action_endpoint(skill_id: str, request: SkillApprovalGateRequest):
+    init_db()
+    session = SessionLocal()
+    try:
+        skill = get_skill(session, skill_id)
+        if skill is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_not_found",
+                        "message": f"Skill '{skill_id}' not found.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        skill_version = get_latest_skill_version(session, skill.id)
+        if skill_version is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_version_not_found",
+                        "message": f"Skill '{skill_id}' has no registered version.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        try:
+            canonical_action = CanonicalAction(request.requested_action)
+        except ValueError:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "unsupported_action",
+                        "message": f"Requested action '{request.requested_action}' is not supported for safe planning.",
+                        "details": {
+                            "skill_id": skill_id,
+                            "requested_action": request.requested_action,
+                            "supported_actions": [CanonicalAction.CONFIRM_SALES_ORDER.value],
+                        },
+                    }
+                },
+            )
+
+        if canonical_action is not CanonicalAction.CONFIRM_SALES_ORDER:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "unsupported_action",
+                        "message": f"Requested action '{request.requested_action}' is not supported for safe planning.",
+                        "details": {
+                            "skill_id": skill_id,
+                            "requested_action": request.requested_action,
+                            "supported_actions": [CanonicalAction.CONFIRM_SALES_ORDER.value],
+                        },
+                    }
+                },
+            )
+
+        risk_level = default_risk_level(canonical_action)
+        approval_required = approval_required_for_risk(risk_level)
+        guard_preview = _preview_formula_guard(request.inputs.order_reference)
+        plan = SkillApprovalGatePlanResponse(
+            summary=(
+                f"Plan critical action {canonical_action.value} on {canonical_object_for_action(canonical_action)} "
+                f"with Formula Guard preview and human approval before execution."
+            ),
+            steps=[
+                SkillApprovalGateStepResponse(
+                    id="load_skill",
+                    type="load",
+                    description="Load the compiled skill package and critical-action context.",
+                ),
+                SkillApprovalGateStepResponse(
+                    id="load_order",
+                    type="load",
+                    description=f"Load the sales order identified by order_reference={request.inputs.order_reference}.",
+                ),
+                SkillApprovalGateStepResponse(
+                    id="run_formula_guard",
+                    type="guard",
+                    description="Preview ERPGuard Formula Guard before any approval is requested.",
+                ),
+                SkillApprovalGateStepResponse(
+                    id="request_human_approval",
+                    type="approval",
+                    description="Request human approval for the critical sales-order confirmation.",
+                ),
+                SkillApprovalGateStepResponse(
+                    id="blocked_before_real_execution",
+                    type="safety_stop",
+                    description="Stop before any real ERP write or confirm_sales_order execution.",
+                ),
+            ],
+        )
+        proof = SkillApprovalGateProofResponse(
+            critical_action_detected=True,
+            approval_required=approval_required,
+            guard_checked_before_approval=True,
+            real_erp_write_blocked=True,
+            no_real_execution=True,
+        )
+        return {
+            "skill_id": skill.id,
+            "requested_action": canonical_action.value,
+            "approval_required": approval_required,
+            "risk_level": risk_level.value,
+            "status": "approval_required" if approval_required else "ready_for_execution",
+            "plan": plan.model_dump(mode="json"),
+            "guard_preview": SkillApprovalGatePreviewResponse(
+                decision=guard_preview["decision"],
+                issues_count=guard_preview["issues_count"],
+            ).model_dump(mode="json"),
+            "proof": proof.model_dump(mode="json"),
         }
     finally:
         session.close()
@@ -435,6 +567,20 @@ def _skill_inspection_guards(skill_package: dict, workflow_steps: list[dict]) ->
 def _skill_inspection_has_write_actions(workflow_steps: list[dict]) -> bool:
     write_step_types = {"write", "create", "update", "delete", "submit", "confirm", "save"}
     return any(step.get("type") in write_step_types for step in workflow_steps if isinstance(step, dict))
+
+
+def _preview_formula_guard(order_reference: str) -> dict[str, int | str]:
+    adapter = FakeERPAdapter()
+    try:
+        order = adapter.get_sales_order_by_reference(order_reference)
+    except ObjectNotFoundError:
+        return {"decision": "block", "issues_count": 1}
+
+    policy_result = PolicyEngine().evaluate("formula_guard", order, canonical_action=CanonicalAction.VALIDATE_FORMULA)
+    return {
+        "decision": policy_result.decision.value,
+        "issues_count": len(policy_result.issues),
+    }
 
 
 def _serialize_skill_run_summary(session, run) -> dict:

@@ -251,6 +251,12 @@ selectors captured: none</pre>
         <p class="tiny">Shows the latest executions of the compiled skill and a step-by-step audit timeline.</p>
         <pre id="runHistory">No run history yet.</pre>
         <pre id="runTimeline">No audit timeline yet.</pre>
+        <h3>Approval Gate / Safe Action Plan v0.6</h3>
+        <p class="tiny">Preview the critical confirm_sales_order action and verify the approval gate before any real ERP write.</p>
+        <div class="toolbar">
+          <button id="planApprovalGate" type="button">Generate safe action plan</button>
+        </div>
+        <pre id="approvalGatePlan">No approval plan yet.</pre>
       </div>
     </section>
 
@@ -304,6 +310,8 @@ selectors captured: none</pre>
     const skillInspector = document.getElementById("skillInspector");
     const runHistory = document.getElementById("runHistory");
     const runTimeline = document.getElementById("runTimeline");
+    const approvalGatePlan = document.getElementById("approvalGatePlan");
+    const planApprovalGateButton = document.getElementById("planApprovalGate");
     const teachModeReadiness = document.getElementById("teachModeReadiness");
 
     const humanState = {
@@ -435,6 +443,30 @@ selectors captured: none</pre>
       }
 
       renderSkillInspector(body);
+      return body;
+    };
+
+    const refreshApprovalGatePlan = async () => {
+      if (!humanState.skillId) {
+        approvalGatePlan.textContent = "No approval plan yet.";
+        return null;
+      }
+
+      const response = await fetch(`/v1/skills/${humanState.skillId}/plan-action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inputs: { order_reference: "SO-VALID" },
+          requested_action: "confirm_sales_order",
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        approvalGatePlan.textContent = `Approval plan unavailable: ${body?.error?.message || "unknown error"}`;
+        return null;
+      }
+
+      approvalGatePlan.textContent = jsonText(body);
       return body;
     };
 
@@ -618,6 +650,7 @@ selectors captured: none</pre>
           llm_required_for_repeated_runs: body.llm_required_for_repeated_runs,
         }));
         await refreshSkillInspector();
+        approvalGatePlan.textContent = "No approval plan yet.";
       } catch (error) {
         setHumanStatus(`Failed to compile recording: ${String(error)}`);
       } finally {
@@ -673,6 +706,23 @@ selectors captured: none</pre>
         setHumanResults(`Failed to run compiled skill: ${String(error)}`);
       } finally {
         runHumanRecordingButton.disabled = false;
+      }
+    });
+
+    planApprovalGateButton.addEventListener("click", async () => {
+      if (!humanState.skillId) {
+        approvalGatePlan.textContent = "Compile the human recording first.";
+        return;
+      }
+
+      planApprovalGateButton.disabled = true;
+      approvalGatePlan.textContent = "Generating safe action plan...";
+      try {
+        await refreshApprovalGatePlan();
+      } catch (error) {
+        approvalGatePlan.textContent = `Failed to generate approval plan: ${String(error)}`;
+      } finally {
+        planApprovalGateButton.disabled = false;
       }
     });
 

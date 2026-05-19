@@ -100,3 +100,16 @@
 - This block made runtime changes: it added read-only run history and audit timeline endpoints plus the `/demo` audit panel.
 - Verified with focused pytest slices and then the full suite: `python -m pytest` -> `155 passed, 9 skipped`.
 - Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, or real ERP write actions.
+- Added `docs/specs/29_run_history_audit_timeline_v0_5_evidence_freeze.md` to freeze the Run History / Audit Timeline v0.5 evidence state. The freeze is documentation and evidence only; it does not change runtime behavior.
+- Added `docs/demo/run_history_audit_timeline_v0_5_success_response.json` from a live FastAPI `TestClient` flow that created a recording, reached readiness `ready`, compiled the skill, inspected it, ran `SO-VALID -> allow`, ran `SO-FORMULA-MISMATCH -> block`, listed run history, and loaded the timeline for the invalid run.
+- Updated `README.md` with a Run History / Audit Timeline v0.5 Evidence section linking the new JSON artifact and documenting the verification command and observed result.
+- Ran `python -m pytest`; result: `155 passed, 9 skipped`. The skipped tests are the browser-dependent paths in this shell because Chromium/browser runtime availability is not active for the plain `python -m pytest` run.
+- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, new run-history tables, or real ERP write actions.
+- Added `docs/specs/30_approval_gate_safe_action_plan_v0_6.md` to define Approval Gate / Safe Action Plan v0.6 as a dry-run critical-action planning block for `confirm_sales_order` with Formula Guard preview and human approval semantics. The scope explicitly stops before any real ERP write.
+- Implemented `POST /v1/skills/{skill_id}/plan-action` as a dry-run planning endpoint that reuses the central risk semantics, previews Formula Guard, returns approval-required proof, and never executes `confirm_sales_order` or writes to ERP.
+- Extended `/demo` with an Approval Gate / Safe Action Plan v0.6 section so the operator can generate a safe plan after compile and inspect.
+- Added tests for valid and invalid order planning, proof flags, controlled unknown-action and missing-skill errors, `/demo` visibility, and health; inspect, readiness, and run history/timeline coverage remain in place.
+- Updated `README.md` with an Approval Gate / Safe Action Plan v0.6 section documenting the dry-run endpoint and the fact that `confirm_sales_order` is only planned, not executed.
+- Ran focused validation with `python -m pytest tests/test_approval_gate_api.py tests/test_demo_dashboard.py tests/test_skill_inspector_api.py tests/test_run_history_api.py tests/test_human_recording_dashboard.py -q`; result: `27 passed`.
+- Ran full verification with `python -m pytest`; result: `159 passed, 9 skipped`. The skipped tests are the browser-dependent paths in this shell because Chromium/browser runtime availability is not active for the plain `python -m pytest` run.
+- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, approval persistence tables, or real ERP write actions.

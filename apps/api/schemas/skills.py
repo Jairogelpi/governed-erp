@@ -179,3 +179,43 @@ class SkillRunTimelineResponse(BaseModel):
     decision: str | None = None
     timeline: list[SkillRunTimelineStepResponse] = Field(default_factory=list)
     proof: SkillRunTimelineProofResponse
+
+
+class SkillApprovalGateRequest(BaseModel):
+    inputs: SkillRunInputsRequest
+    requested_action: str = Field(min_length=1)
+
+
+class SkillApprovalGateStepResponse(BaseModel):
+    id: str
+    type: str
+    description: str
+
+
+class SkillApprovalGatePlanResponse(BaseModel):
+    summary: str
+    steps: list[SkillApprovalGateStepResponse] = Field(default_factory=list)
+
+
+class SkillApprovalGatePreviewResponse(BaseModel):
+    decision: str
+    issues_count: int
+
+
+class SkillApprovalGateProofResponse(BaseModel):
+    critical_action_detected: bool
+    approval_required: bool
+    guard_checked_before_approval: bool
+    real_erp_write_blocked: bool
+    no_real_execution: bool
+
+
+class SkillApprovalGateResponse(BaseModel):
+    skill_id: str
+    requested_action: str
+    approval_required: bool
+    risk_level: str
+    status: str
+    plan: SkillApprovalGatePlanResponse
+    guard_preview: SkillApprovalGatePreviewResponse
+    proof: SkillApprovalGateProofResponse
