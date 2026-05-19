@@ -132,3 +132,6 @@
 - Updated `README.md` with a `Current Demo Story` section that summarizes the implemented, simulated, and not implemented parts of the MVP.
 - Ran `python -m pytest`; result: `162 passed, 9 skipped`.
 - Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, approval persistence tables, or real ERP write actions.
+- Added `docs/specs/34_real_odoo_readonly_preflight_demo.md` to define a narrow `v0.8` candidate: real Odoo read-only adapter plus preflight demo only, with no writes or broader automation expansion.
+- Updated `README.md` with a `Next Phase Candidate` note so the transition from the frozen v0.7 story to the potential v0.8 phase is explicit.
+- Ran `git diff --check`; result: clean.

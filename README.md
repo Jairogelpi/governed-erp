@@ -22,6 +22,16 @@ The next step after this story is consolidation, not more feature growth.
 
 This README is written to explain what exists today, what is simulated for the demo, and what remains intentionally out of scope.
 
+## Next Phase Candidate
+
+The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.
+
+That phase should stay narrow: connect to Odoo, read a real sales order, map it to the canonical model, run Formula Guard, and show an audited result.
+
+It should not confirm orders, write records, or expand into a broader automation platform.
+
+If pursued, it should be treated as a separate phase with its own evidence freeze and acceptance criteria.
+
 ## Local Setup
 
 Create and activate a virtual environment, then install the project in editable mode:
