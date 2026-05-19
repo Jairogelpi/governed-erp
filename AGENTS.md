@@ -135,3 +135,5 @@
 - Added `docs/specs/34_real_odoo_readonly_preflight_demo.md` to define a narrow `v0.8` candidate: real Odoo read-only adapter plus preflight demo only, with no writes or broader automation expansion.
 - Updated `README.md` with a `Next Phase Candidate` note so the transition from the frozen v0.7 story to the potential v0.8 phase is explicit.
 - Ran `git diff --check`; result: clean.
+- Updated `docs/demo/operator_demo_script_v0_7.md` with a compact TFM defense plan that frames the repo as a controlled MVP, separates vision from current implementation, and positions v0.8 as a narrow read-only Odoo preflight phase.
+- Ran `git diff --check` on the edited markdown; result: clean.

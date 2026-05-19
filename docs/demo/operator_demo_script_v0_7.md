@@ -1,5 +1,46 @@
 # Operator Demo Script v0.7
 
+## TFM Defense Plan
+
+This demo should be presented as a controlled MVP, not as the final ERP Agent OS product.
+
+Use this framing:
+
+- Vision: ERP Agent OS is the target architecture shown in the specs.
+- MVP: the repo currently proves a Fake ERP record-to-skill loop with safety layers.
+- Boundary: the repo does not yet do real Odoo writes, universal ERP automation, MCP, or an LLM agent builder.
+- Next phase: v0.8 can be a narrow real Odoo read-only preflight demo.
+
+The core message for the defense is:
+
+"The project already demonstrates a defendable automation substrate with audit and safety evidence. The next step is not more feature growth, but a narrow real Odoo read-only phase."
+
+If the evaluator asks what is real today, answer with the implemented MVP flow:
+
+```text
+record -> readiness -> compile -> inspect -> run -> audit -> safe plan -> simulated decision
+```
+
+If the evaluator asks what is simulated, answer:
+
+- the approval gate for `confirm_sales_order`;
+- the approve/reject simulation;
+- the narrative from plan to decision.
+
+If the evaluator asks what is not yet present, answer:
+
+- real Odoo UI automation;
+- real ERP writes;
+- MCP gateway;
+- business memory;
+- universal ERP coverage;
+- LLM-driven agent builder;
+- marketplace publishing.
+
+Close the defense by saying:
+
+"This is a strong MVP with evidence. The right follow-up is a separate, narrow v0.8 focused on read-only Odoo preflight, not a broader platform expansion."
+
 ## Goal
 
 Show the evaluator a controlled MVP story, not a promise of full ERP automation.
