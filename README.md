@@ -273,6 +273,26 @@ curl http://127.0.0.1:8000/v1/skills/skill_.../inspect
 
 The inspector shows the skill name, version, runtime type, inputs, guards, workflow steps, the originating recording id, and a safety summary. The `/demo` dashboard renders the same Skill Inspector v0.4 section automatically after compilation and again after the proof run.
 
+## Skill Inspector v0.4 Evidence
+
+The frozen Skill Inspector v0.4 evidence response is stored at [docs/demo/skill_inspector_v0_4_success_response.json](docs/demo/skill_inspector_v0_4_success_response.json).
+
+It was generated from a FastAPI `TestClient` flow that creates a controlled recording, posts the five required Fake ERP events, checks readiness, finishes the recording, compiles the skill, inspects the compiled skill, and runs `SO-VALID -> allow` plus `SO-FORMULA-MISMATCH -> block`.
+
+Verify the current evidence baseline with:
+
+```bash
+python -m pytest
+```
+
+Expected result for the Skill Inspector v0.4 evidence freeze environment:
+
+```text
+151 passed, 9 skipped
+```
+
+The evidence artifact also includes negative controlled error responses for a missing skill and a skill with no latest version.
+
 ## Optional Odoo Smoke Read
 
 The smoke script is manual only and is not part of the test suite. Set real credentials in your shell, then run:
@@ -309,6 +329,7 @@ Implemented now:
 - Controlled Human Recording v0.2.1 hardening with compiler diagnostics and `/demo` preview/readiness
 - Teach Mode v0.3 readiness endpoint and `/demo` checklist for the controlled Fake ERP teaching flow
 - Skill Inspector v0.4 read-only inspection for compiled Fake ERP skills
+- Skill Inspector v0.4 evidence freeze and JSON artifact
 - read-only Odoo adapter skeleton
 - Formula Guard policy evaluation for `confirm_sales_order`
 - preflight persistence and audit retrieval

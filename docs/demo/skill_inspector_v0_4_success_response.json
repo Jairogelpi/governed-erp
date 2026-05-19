@@ -1,0 +1,145 @@
+{
+  "source": "fastapi_testclient",
+  "recording_id": "recording_eddda75785514ddd8b5b5abd33865c42",
+  "readiness": {
+    "recording_id": "recording_eddda75785514ddd8b5b5abd33865c42",
+    "status": "recording",
+    "event_count": 5,
+    "readiness": "ready",
+    "steps": [
+      {
+        "id": "sales_orders_navigation",
+        "status": "observed"
+      },
+      {
+        "id": "order_search",
+        "status": "observed"
+      },
+      {
+        "id": "open_order",
+        "status": "observed"
+      },
+      {
+        "id": "formula_tab",
+        "status": "observed"
+      },
+      {
+        "id": "review_formula",
+        "status": "observed"
+      }
+    ],
+    "diagnostics": []
+  },
+  "skill_id": "skill_d929117182db48b1a42fd11608a84726",
+  "version_id": "skill_version_d26c961a8ea040bf9e3299505d042e90",
+  "inspect_response": {
+    "name": "Recorded Fake ERP Formula Review",
+    "runtime_type": "deterministic_browser",
+    "llm_required_for_repeated_runs": false,
+    "inputs": {
+      "order_reference": "string"
+    },
+    "guards": [
+      "formula_guard"
+    ],
+    "workflow_steps": [
+      {
+        "id": "open_orders",
+        "type": "navigate",
+        "target": "/fake-erp/sales/orders",
+        "selector": null,
+        "selector_template": null,
+        "guard": null,
+        "value": null
+      },
+      {
+        "id": "search_order",
+        "type": "fill",
+        "target": null,
+        "selector": "[data-testid='order-search']",
+        "selector_template": null,
+        "guard": null,
+        "value": "{{order_reference}}"
+      },
+      {
+        "id": "open_order",
+        "type": "click",
+        "target": null,
+        "selector": null,
+        "selector_template": "[data-testid='open-order-{{order_reference}}']",
+        "guard": null,
+        "value": null
+      },
+      {
+        "id": "open_formula",
+        "type": "click",
+        "target": null,
+        "selector": "[data-testid='formula-tab']",
+        "selector_template": null,
+        "guard": null,
+        "value": null
+      },
+      {
+        "id": "review_formula",
+        "type": "click",
+        "target": null,
+        "selector": "[data-testid='review-formula']",
+        "selector_template": null,
+        "guard": null,
+        "value": null
+      },
+      {
+        "id": "run_formula_guard",
+        "type": "guard",
+        "target": null,
+        "selector": null,
+        "selector_template": null,
+        "guard": "formula_guard",
+        "value": null
+      }
+    ],
+    "compiled_from_recording_id": "recording_eddda75785514ddd8b5b5abd33865c42",
+    "safety_summary": {
+      "has_guards": true,
+      "guard_count": 1,
+      "has_write_actions": false,
+      "requires_llm_for_replay": false
+    }
+  },
+  "valid_order_reference": "SO-VALID",
+  "valid_decision": "allow",
+  "invalid_order_reference": "SO-FORMULA-MISMATCH",
+  "invalid_decision": "block",
+  "invalid_issues_count": 1,
+  "repeated_execution_token_cost": 0,
+  "proof": {
+    "skill_inspector_available": true,
+    "skill_registry_read_only": true,
+    "workflow_steps_visible": true,
+    "formula_guard_visible": true,
+    "has_write_actions_false": true,
+    "no_llm_required_for_replay": true,
+    "deterministic_replay": true,
+    "erpguard_blocked_invalid_order": true
+  },
+  "negative_evidence": {
+    "missing_skill": {
+      "error": {
+        "code": "skill_not_found",
+        "message": "Skill 'missing-skill' not found.",
+        "details": {
+          "skill_id": "missing-skill"
+        }
+      }
+    },
+    "missing_version": {
+      "error": {
+        "code": "skill_version_not_found",
+        "message": "Skill 'skill_51d82b37293d4524be40d7a4eb27b713' has no registered version.",
+        "details": {
+          "skill_id": "skill_51d82b37293d4524be40d7a4eb27b713"
+        }
+      }
+    }
+  }
+}

@@ -86,4 +86,9 @@
 - Added tests for successful skill inspection, workflow step visibility, `formula_guard` exposure, safety summary flags, controlled 404 responses for missing skill and missing version, and `/demo` visibility; existing compile/run and health coverage remained in place.
 - Updated `README.md` with a Skill Inspector v0.4 section explaining `GET /v1/skills/{skill_id}/inspect` and how it helps review a compiled skill before trusting repeated runs.
 - Verified with focused pytest slices and then the full suite: `python -m pytest` -> `151 passed, 9 skipped`.
+- Added `docs/specs/27_skill_inspector_v0_4_evidence_freeze.md` to freeze the Skill Inspector v0.4 evidence state, including the inspection contract, `/demo` usage, safety summary, negative error evidence, and the next recommended block.
+- Added `docs/demo/skill_inspector_v0_4_success_response.json` from a FastAPI `TestClient` flow that created a recording, checked readiness, compiled a skill, inspected it, ran allow/block proof, and captured controlled missing-skill and missing-version error evidence.
+- Updated `README.md` with a Skill Inspector v0.4 Evidence section linking the JSON artifact and documenting the verification command and expected result.
+- This freeze block made no runtime changes. It only added documentation/evidence artifacts and README/AGENTS notes.
+- Verified with `python -m pytest`; result: `151 passed, 9 skipped`.
 - Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, or real ERP write actions.
