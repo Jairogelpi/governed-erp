@@ -166,6 +166,41 @@ def demo_dashboard() -> str:
     }
     .step-state.observed, .step-state.ready { color: var(--success); }
     .step-state.missing { color: var(--danger); }
+    .analysis-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin: 10px 0 14px;
+    }
+    .analysis-card {
+      border: 1px solid rgba(29, 26, 22, 0.1);
+      border-radius: 16px;
+      background: rgba(39, 93, 99, 0.05);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .analysis-card h4 {
+      margin: 0;
+      font-size: 1.02rem;
+    }
+    .analysis-card .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    .analysis-pill {
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(143, 75, 31, 0.08);
+      border: 1px solid rgba(143, 75, 31, 0.12);
+    }
+    .analysis-card button {
+      justify-self: start;
+      padding: 10px 14px;
+    }
     @media (max-width: 860px) {
       .hero, .grid { grid-template-columns: 1fr; }
       .full { grid-column: auto; }
@@ -265,6 +300,166 @@ selectors captured: none</pre>
         </div>
         <pre id="approvalDecisionSimulation">No approval decision simulated yet.</pre>
       </div>
+      <div class="card full">
+        <h2>Write Capability Readiness &amp; Risk Certification</h2>
+        <p>
+          Sprint 7 — Static analysis of write candidates for approved compiled skills.
+          No real Odoo writes executed. Certifies IF a skill could become a write candidate in a future sprint.
+          ALLOW_REAL_ODOO_WRITES=false. can_execute_real_writes=false. approved_for_real_execution=false always.
+        </p>
+        <div class="toolbar">
+          <label>
+            Skill ID
+            <input id="wrSkillId" placeholder="skill_..." />
+          </label>
+          <button id="wrRunAssessment" type="button">Run write readiness assessment</button>
+          <button id="wrGetSummary" type="button">Get readiness summary</button>
+          <button id="wrGenerateImpact" type="button">Generate impact preview</button>
+          <button id="wrDraftRollback" type="button">Draft rollback plan</button>
+          <button id="wrCertify" type="button">Certify write readiness</button>
+        </div>
+        <p class="tiny" id="wrMessage">Enter an approved compiled skill id to run write readiness analysis. No Odoo writes executed.</p>
+        <pre id="wr-assessment-output">No assessment yet.</pre>
+        <pre id="wr-summary-output">No summary yet.</pre>
+        <pre id="wr-impact-output">No impact preview yet.</pre>
+        <pre id="wr-rollback-output">No rollback plan yet.</pre>
+        <pre id="wr-certification-output">No certification yet.</pre>
+        <p class="tiny">
+          Security invariants: <code>can_execute_real_writes=false</code> /
+          <code>real_erp_writes_enabled=false</code> /
+          <code>approved_for_real_execution=false</code> /
+          <code>ALLOW_REAL_ODOO_WRITES=false</code>
+        </p>
+      </div>
+      <div class="card full">
+        <h2>Controlled Real Read Execution &amp; Live Evidence</h2>
+        <p>
+          Sprint 6 — Real read-only Odoo execution for approved compiled skills.
+          ALLOW_REAL_ODOO_READS=true. ALLOW_REAL_ODOO_WRITES=false.
+          Reads real data from Odoo; any write attempt is blocked with evidence.
+        </p>
+        <div class="toolbar">
+          <label>
+            Skill ID
+            <input id="lrSkillId" placeholder="skill_..." />
+          </label>
+          <button id="lrCheckContext" type="button">Check connection context</button>
+          <button id="lrCheckPolicy" type="button">Check live read policy</button>
+          <button id="lrCreateRequest" type="button">Create live read request</button>
+          <button id="lrRunExecution" type="button">Run live read</button>
+          <button id="lrGetEvidence" type="button">Get live evidence</button>
+        </div>
+        <p class="tiny" id="lrMessage">Enter an approved compiled skill id (from Sprint 4) to execute a controlled real read.</p>
+        <pre id="lrConnectionContext">No connection context yet.</pre>
+        <pre id="lrPolicyOutput">No policy check yet.</pre>
+        <pre id="lrRequestOutput">No live read request yet.</pre>
+        <pre id="lrRunOutput">No live read run yet.</pre>
+        <pre id="lrEvidenceOutput">No live evidence yet.</pre>
+      </div>
+      <div class="card full">
+        <h2>Limited Approved Execution Sandbox</h2>
+        <p>
+          Sprint 5 — Dry-run execution of approved compiled skills. ALLOW_REAL_ODOO_WRITES=false.
+          All attempted Odoo writes are blocked and stored as evidence. No real ERP writes ever happen.
+        </p>
+        <div class="toolbar">
+          <label>
+            Skill ID
+            <input id="sandboxSkillId" placeholder="skill_..." />
+          </label>
+          <button id="checkExecutionPolicy" type="button">Check execution policy</button>
+          <button id="createExecutionRequest" type="button">Create execution request</button>
+          <button id="runExecution" type="button">Run (dry-run sandbox)</button>
+          <button id="getExecutionTimeline" type="button">Get timeline</button>
+          <button id="getBlockedWrites" type="button">List blocked writes</button>
+        </div>
+        <p class="tiny" id="sandboxMessage">Enter an approved compiled skill id (from Sprint 4) to execute in the sandbox.</p>
+        <pre id="executionPolicyOutput">No policy check yet.</pre>
+        <pre id="executionRequestOutput">No execution request yet.</pre>
+        <pre id="executionRunOutput">No execution run yet.</pre>
+        <pre id="executionTimelineOutput">No timeline yet.</pre>
+        <pre id="blockedWritesOutput">No blocked writes yet.</pre>
+      </div>
+      <div class="card full">
+        <h2>Skill Approval &amp; Activation Gates</h2>
+        <p>
+          Sprint 4 — Human approval workflow and activation gate for compiled dry-run skills.
+          No real Odoo writes are enabled at any step. Approval only authorizes governance state.
+        </p>
+        <div class="toolbar">
+          <label>
+            Skill ID
+            <input id="approvalSkillId" placeholder="skill_..." />
+          </label>
+          <label>
+            Requester name
+            <input id="approvalRequesterName" value="Demo Operator" />
+          </label>
+          <label>
+            Approver name
+            <input id="approvalApproverName" value="Demo Approver" />
+          </label>
+          <button id="submitApprovalRequest" type="button">Submit approval request</button>
+          <button id="approveSkill" type="button">Approve (dry-run only)</button>
+          <button id="rejectSkill" type="button">Reject</button>
+          <button id="runActivationGate" type="button">Run activation gate</button>
+          <button id="getGovernanceSummary" type="button">Governance summary</button>
+        </div>
+        <p class="tiny" id="approvalMessage">Enter a compiled skill id or run Sprint 3 compile first.</p>
+        <pre id="approvalRequestOutput">No approval request yet.</pre>
+        <pre id="approvalDecisionOutput">No approval decision yet.</pre>
+        <pre id="activationGateOutput">No activation gate yet.</pre>
+        <pre id="governanceSummaryOutput">No governance summary yet.</pre>
+      </div>
+      <div class="card full">
+        <h2>Safe Skill Review &amp; Compilation</h2>
+        <p>
+          Sprint 3 — Convert a Sprint 2 automation_draft into a safe, versioned skill.
+          The flow reviews guards and schema, validates constraints, compiles to the Skill Registry,
+          and runs a dry-run proof. No Odoo writes are ever executed.
+        </p>
+        <div class="toolbar">
+          <label>
+            Automation Draft ID
+            <input id="compileDraftId" placeholder="automation_draft_..." />
+          </label>
+          <button id="useLatestDraft" type="button">Use latest draft</button>
+          <button id="reviewDraft" type="button">Review draft</button>
+          <button id="validateDraft" type="button">Validate draft</button>
+          <button id="compileDraft" type="button">Compile to skill</button>
+          <button id="runDryRunProof" type="button">Run dry-run proof</button>
+        </div>
+        <p class="tiny" id="compileMessage">Enter a draft id or use the latest draft from Sprint 2.</p>
+        <pre id="compileReview">No review yet.</pre>
+        <pre id="compileValidation">No validation yet.</pre>
+        <pre id="compiledSkill">No compiled skill yet.</pre>
+        <pre id="dryRunProof">No dry-run proof yet.</pre>
+      </div>
+      <div class="card full">
+        <h2>Business Analysis & Opportunity Scanner</h2>
+        <p>
+          Read-only analysis on top of the Sprint 1 Odoo connection. The flow captures a business snapshot,
+          derives signals, ranks opportunities, computes ROI, and creates non-executable drafts.
+        </p>
+        <div class="toolbar">
+          <label>
+            Odoo Connection ID
+            <input id="productConnectionId" placeholder="conn_..." />
+          </label>
+          <label style="min-width: 220px; gap: 8px; align-items: center; grid-auto-flow: column; justify-content: start;">
+            <input id="productIncludeSamples" type="checkbox" checked />
+            Include samples
+          </label>
+          <button id="loadLatestOdooConnection" type="button">Use latest Odoo connection</button>
+          <button id="runBusinessAnalysis" type="button">Run business analysis</button>
+        </div>
+        <p class="tiny" id="productMessage">Read-only mode: no Odoo writes are executed in this sprint.</p>
+        <pre id="productSnapshot">No business snapshot yet.</pre>
+        <pre id="productSignals">No business signals yet.</pre>
+        <div id="recommendationCards" class="analysis-cards"></div>
+        <pre id="productROI">No ROI summary yet.</pre>
+        <pre id="productDrafts">No automation drafts yet.</pre>
+      </div>
     </section>
 
     <section class="grid">
@@ -323,6 +518,16 @@ selectors captured: none</pre>
     const simulateApproveGateButton = document.getElementById("simulateApproveGate");
     const simulateRejectGateButton = document.getElementById("simulateRejectGate");
     const teachModeReadiness = document.getElementById("teachModeReadiness");
+    const productConnectionIdInput = document.getElementById("productConnectionId");
+    const productIncludeSamplesInput = document.getElementById("productIncludeSamples");
+    const loadLatestOdooConnectionButton = document.getElementById("loadLatestOdooConnection");
+    const runBusinessAnalysisButton = document.getElementById("runBusinessAnalysis");
+    const productMessage = document.getElementById("productMessage");
+    const productSnapshot = document.getElementById("productSnapshot");
+    const productSignals = document.getElementById("productSignals");
+    const recommendationCards = document.getElementById("recommendationCards");
+    const productROI = document.getElementById("productROI");
+    const productDrafts = document.getElementById("productDrafts");
 
     const humanState = {
       recordingId: null,
@@ -331,6 +536,11 @@ selectors captured: none</pre>
       fakeErpOpened: false,
       recordingFinished: false,
       proofRun: false,
+    };
+
+    const productState = {
+      analysis: null,
+      drafts: [],
     };
 
     const humanDefaults = {
@@ -349,6 +559,145 @@ selectors captured: none</pre>
 
     const setHumanResults = (value) => {
       humanResults.textContent = value;
+    };
+
+    const escapeHtml = (value) => String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+    const renderProductDrafts = () => {
+      productDrafts.textContent = productState.drafts.length ? jsonText(productState.drafts) : "No automation drafts yet.";
+    };
+
+    const renderRecommendationCards = (cards) => {
+      if (!cards.length) {
+        recommendationCards.innerHTML = "<p class='tiny'>No recommendation cards yet.</p>";
+        return;
+      }
+
+      recommendationCards.innerHTML = cards.map((card) => `
+        <article class="analysis-card">
+          <h4>${escapeHtml(card.title)}</h4>
+          <div class="meta">
+            <span class="analysis-pill">Priority ${escapeHtml(card.priority)}</span>
+            <span class="analysis-pill">ROI ${escapeHtml(card.roi?.score ?? 0)}/100</span>
+            <span class="analysis-pill">${escapeHtml(card.category)}</span>
+          </div>
+          <p>${escapeHtml(card.description)}</p>
+          <p class="tiny">${escapeHtml(card.recommendation)}</p>
+          <p class="tiny">Effort: ${escapeHtml(card.roi?.implementation_effort_hours ?? 0)}h · Monthly value: €${escapeHtml(card.roi?.estimated_monthly_value_eur ?? 0)}</p>
+          <button type="button" data-draft-opportunity-id="${escapeHtml(card.opportunity_id)}">Create non-executable draft</button>
+        </article>
+      `).join("");
+
+      recommendationCards.querySelectorAll("[data-draft-opportunity-id]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const opportunityId = button.getAttribute("data-draft-opportunity-id");
+          if (!opportunityId) {
+            return;
+          }
+
+          button.disabled = true;
+          productMessage.textContent = `Creating dry-run draft for ${opportunityId}...`;
+          try {
+            const response = await fetch(`/v1/product/opportunities/${opportunityId}/draft`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+            });
+            const body = await response.json();
+            if (!response.ok) {
+              productMessage.textContent = `Draft unavailable: ${body?.error?.message || "unknown error"}`;
+              return;
+            }
+
+            productState.drafts = [body, ...productState.drafts.filter((draft) => draft.draft_id !== body.draft_id)];
+            productMessage.textContent = `Draft created: ${body.name}`;
+            renderProductDrafts();
+          } catch (error) {
+            productMessage.textContent = `Draft request failed: ${String(error)}`;
+          } finally {
+            button.disabled = false;
+          }
+        });
+      });
+    };
+
+    const renderProductAnalysis = (result) => {
+      productState.analysis = result;
+      productState.drafts = [];
+      productMessage.textContent = `Analysis completed for ${result.connection_id}.`;
+      productSnapshot.textContent = jsonText({
+        snapshot_id: result.snapshot_id,
+        status: result.snapshot.status,
+        read_only_mode: result.snapshot.read_only_mode,
+        odoo: result.snapshot.odoo,
+        detected: result.snapshot.detected,
+        warnings: result.snapshot.warnings,
+        next_recommended_action: result.snapshot.next_recommended_action,
+      });
+      productSignals.textContent = jsonText(result.signals || []);
+      productROI.textContent = jsonText(result.roi_summary || {});
+      renderRecommendationCards(result.recommendation_cards || []);
+      renderProductDrafts();
+    };
+
+    const loadLatestOdooConnection = async () => {
+      productMessage.textContent = "Loading latest Odoo connection...";
+      try {
+        const response = await fetch("/v1/connections");
+        const body = await response.json();
+        if (!response.ok) {
+          productMessage.textContent = `Could not load connections: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+
+        const latestOdoo = (body || []).find((connection) => connection.erp_type === "odoo");
+        if (!latestOdoo) {
+          productMessage.textContent = "No Odoo connection found yet.";
+          return;
+        }
+
+        productConnectionIdInput.value = latestOdoo.id;
+        productMessage.textContent = `Loaded latest Odoo connection ${latestOdoo.id}.`;
+      } catch (error) {
+        productMessage.textContent = `Could not load latest Odoo connection: ${String(error)}`;
+      }
+    };
+
+    const runBusinessAnalysis = async () => {
+      const connectionId = productConnectionIdInput.value.trim();
+      if (!connectionId) {
+        productMessage.textContent = "Enter or load an Odoo connection id first.";
+        return;
+      }
+
+      runBusinessAnalysisButton.disabled = true;
+      productMessage.textContent = `Running business analysis for ${connectionId}...`;
+      try {
+        const response = await fetch(`/v1/product/connections/${connectionId}/analyze`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            include_samples: productIncludeSamplesInput.checked,
+            sample_limits: { sales_orders: 5, products: 5, custom_fields: 50 },
+            max_opportunities: 5,
+          }),
+        });
+        const body = await response.json();
+        if (!response.ok) {
+          productMessage.textContent = `Business analysis unavailable: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+
+        renderProductAnalysis(body);
+      } catch (error) {
+        productMessage.textContent = `Business analysis request failed: ${String(error)}`;
+      } finally {
+        runBusinessAnalysisButton.disabled = false;
+      }
     };
 
     const eventSummary = (event) => ({
@@ -797,6 +1146,739 @@ selectors captured: none</pre>
         simulateRejectGateButton.disabled = false;
       }
     });
+
+    const approvalSkillIdInput = document.getElementById("approvalSkillId");
+    const approvalRequesterNameInput = document.getElementById("approvalRequesterName");
+    const approvalApproverNameInput = document.getElementById("approvalApproverName");
+    const approvalMessage = document.getElementById("approvalMessage");
+    const approvalRequestOutput = document.getElementById("approvalRequestOutput");
+    const approvalDecisionOutput = document.getElementById("approvalDecisionOutput");
+    const activationGateOutput = document.getElementById("activationGateOutput");
+    const governanceSummaryOutput = document.getElementById("governanceSummaryOutput");
+
+    const approvalState = { skillId: null };
+
+    const getApprovalSkillId = () => approvalSkillIdInput.value.trim() || approvalState.skillId;
+
+    document.getElementById("submitApprovalRequest").addEventListener("click", async () => {
+      const skillId = getApprovalSkillId();
+      if (!skillId) { approvalMessage.textContent = "Enter a skill id first (or compile a draft in Sprint 3)."; return; }
+      approvalState.skillId = skillId;
+      approvalMessage.textContent = `Submitting approval request for ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/approval-request`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            requested_by: { type: "user", id: "demo_operator", display_name: approvalRequesterNameInput.value.trim() || "Demo Operator" },
+            reason: "Requesting governance approval for dry-run skill activation.",
+            context: {},
+          }),
+        });
+        const body = await response.json();
+        if (!response.ok) {
+          approvalRequestOutput.textContent = `Request failed: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+        approvalRequestOutput.textContent = jsonText({
+          request_id: body.request_id,
+          status: body.status,
+          can_execute_real_writes: body.can_execute_real_writes,
+          requested_by: body.requested_by,
+          reason: body.reason,
+        });
+        approvalMessage.textContent = `Approval request submitted: ${body.request_id}`;
+      } catch (error) {
+        approvalRequestOutput.textContent = `Request failed: ${String(error)}`;
+      }
+    });
+
+    document.getElementById("approveSkill").addEventListener("click", async () => {
+      const skillId = getApprovalSkillId();
+      if (!skillId) { approvalMessage.textContent = "Submit an approval request first."; return; }
+      approvalMessage.textContent = `Approving skill ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/approval-decision`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            decided_by: { type: "user", id: "demo_approver", display_name: approvalApproverNameInput.value.trim() || "Demo Approver" },
+            decision: "approve",
+            reason: "Dry-run proof passed. Guards verified. Approved for governance state only.",
+          }),
+        });
+        const body = await response.json();
+        if (!response.ok) {
+          approvalDecisionOutput.textContent = `Decision failed: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+        approvalDecisionOutput.textContent = jsonText({
+          decision_id: body.decision_id,
+          decision: body.decision,
+          can_execute_real_writes: body.can_execute_real_writes,
+          approved_for_real_execution: body.approved_for_real_execution,
+          decided_by: body.decided_by,
+        });
+        approvalMessage.textContent = `Decision recorded: ${body.decision}`;
+      } catch (error) {
+        approvalDecisionOutput.textContent = `Decision failed: ${String(error)}`;
+      }
+    });
+
+    document.getElementById("rejectSkill").addEventListener("click", async () => {
+      const skillId = getApprovalSkillId();
+      if (!skillId) { approvalMessage.textContent = "Submit an approval request first."; return; }
+      approvalMessage.textContent = `Rejecting skill ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/approval-decision`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            decided_by: { type: "user", id: "demo_approver", display_name: approvalApproverNameInput.value.trim() || "Demo Approver" },
+            decision: "reject",
+            reason: "Skill does not meet current governance criteria.",
+          }),
+        });
+        const body = await response.json();
+        if (!response.ok) {
+          approvalDecisionOutput.textContent = `Decision failed: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+        approvalDecisionOutput.textContent = jsonText(body);
+        approvalMessage.textContent = `Decision recorded: ${body.decision}`;
+      } catch (error) {
+        approvalDecisionOutput.textContent = `Decision failed: ${String(error)}`;
+      }
+    });
+
+    document.getElementById("runActivationGate").addEventListener("click", async () => {
+      const skillId = getApprovalSkillId();
+      if (!skillId) { approvalMessage.textContent = "Enter a skill id first."; return; }
+      approvalMessage.textContent = `Running activation gate for ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/activation-gate`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) {
+          activationGateOutput.textContent = `Gate failed: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+        activationGateOutput.textContent = jsonText({
+          gate_id: body.gate_id,
+          gate_status: body.gate_status,
+          can_activate: body.can_activate,
+          can_execute_real_writes: body.can_execute_real_writes,
+          approved_for_real_execution: body.approved_for_real_execution,
+          checks: (body.checks || []).map((c) => ({ id: c.check_id, passed: c.passed, detail: c.detail })),
+        });
+        approvalMessage.textContent = `Activation gate: ${body.gate_status}`;
+      } catch (error) {
+        activationGateOutput.textContent = `Gate failed: ${String(error)}`;
+      }
+    });
+
+    document.getElementById("getGovernanceSummary").addEventListener("click", async () => {
+      const skillId = getApprovalSkillId();
+      if (!skillId) { approvalMessage.textContent = "Enter a skill id first."; return; }
+      approvalMessage.textContent = `Loading governance summary for ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/governance-summary`);
+        const body = await response.json();
+        if (!response.ok) {
+          governanceSummaryOutput.textContent = `Summary failed: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+        governanceSummaryOutput.textContent = jsonText({
+          skill_id: body.skill_id,
+          governance_state: body.governance_state,
+          can_execute_real_writes: body.can_execute_real_writes,
+          approved_for_real_execution: body.approved_for_real_execution,
+          next_required_action: body.next_required_action,
+          latest_decision: body.latest_decision?.decision || null,
+          gate_status: body.latest_gate?.gate_status || null,
+        });
+        approvalMessage.textContent = `Governance state: ${body.governance_state}`;
+      } catch (error) {
+        governanceSummaryOutput.textContent = `Summary failed: ${String(error)}`;
+      }
+    });
+
+    const compileDraftIdInput = document.getElementById("compileDraftId");
+    const compileMessage = document.getElementById("compileMessage");
+    const compileReview = document.getElementById("compileReview");
+    const compileValidation = document.getElementById("compileValidation");
+    const compiledSkill = document.getElementById("compiledSkill");
+    const dryRunProof = document.getElementById("dryRunProof");
+    const useLatestDraftButton = document.getElementById("useLatestDraft");
+    const reviewDraftButton = document.getElementById("reviewDraft");
+    const validateDraftButton = document.getElementById("validateDraft");
+    const compileDraftButton = document.getElementById("compileDraft");
+    const runDryRunProofButton = document.getElementById("runDryRunProof");
+
+    const compileState = { skillId: null };
+
+    useLatestDraftButton.addEventListener("click", async () => {
+      compileMessage.textContent = "Loading latest automation draft...";
+      try {
+        const response = await fetch("/v1/connections");
+        const connections = await response.json();
+        if (!response.ok || !connections.length) {
+          compileMessage.textContent = "No connections found. Run Sprint 2 analysis first.";
+          return;
+        }
+        const latestOdoo = (connections || []).find((c) => c.erp_type === "odoo");
+        if (!latestOdoo) {
+          compileMessage.textContent = "No Odoo connection found.";
+          return;
+        }
+        const analysisResponse = await fetch(`/v1/product/connections/${latestOdoo.id}/analyze`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ include_samples: true, sample_limits: { sales_orders: 3, products: 3, custom_fields: 30 }, max_opportunities: 1 }),
+        });
+        const analysisBody = await analysisResponse.json();
+        if (!analysisResponse.ok || !analysisBody.opportunities?.length) {
+          compileMessage.textContent = "Could not get opportunities to draft.";
+          return;
+        }
+        const firstOpportunityId = analysisBody.opportunities[0].opportunity_id;
+        const draftResponse = await fetch(`/v1/product/opportunities/${firstOpportunityId}/draft`, { method: "POST" });
+        const draftBody = await draftResponse.json();
+        if (!draftResponse.ok) {
+          compileMessage.textContent = `Draft creation failed: ${draftBody?.error?.message || "unknown error"}`;
+          return;
+        }
+        compileDraftIdInput.value = draftBody.draft_id;
+        compileMessage.textContent = `Loaded draft ${draftBody.draft_id} for opportunity '${analysisBody.opportunities[0].title}'.`;
+      } catch (error) {
+        compileMessage.textContent = `Failed to load latest draft: ${String(error)}`;
+      }
+    });
+
+    reviewDraftButton.addEventListener("click", async () => {
+      const draftId = compileDraftIdInput.value.trim();
+      if (!draftId) { compileMessage.textContent = "Enter or load a draft id first."; return; }
+      reviewDraftButton.disabled = true;
+      compileMessage.textContent = `Reviewing draft ${draftId}...`;
+      try {
+        const response = await fetch(`/v1/product/automation-drafts/${draftId}/review`);
+        const body = await response.json();
+        if (!response.ok) {
+          compileReview.textContent = `Review unavailable: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+        compileReview.textContent = jsonText({
+          review_id: body.review_id,
+          status: body.status,
+          guards: (body.guards || []).map((g) => g.name),
+          input_schema: (body.input_schema || []).map((f) => `${f.name}: ${f.type}`),
+          output_schema: (body.output_schema || []).map((f) => `${f.name}: ${f.type}`),
+          test_cases: (body.test_cases || []).map((tc) => tc.case_id),
+        });
+        compileMessage.textContent = `Review ready: ${body.review_id}`;
+      } catch (error) {
+        compileReview.textContent = `Review request failed: ${String(error)}`;
+      } finally {
+        reviewDraftButton.disabled = false;
+      }
+    });
+
+    validateDraftButton.addEventListener("click", async () => {
+      const draftId = compileDraftIdInput.value.trim();
+      if (!draftId) { compileMessage.textContent = "Enter or load a draft id first."; return; }
+      validateDraftButton.disabled = true;
+      compileMessage.textContent = `Validating draft ${draftId}...`;
+      try {
+        const response = await fetch(`/v1/product/automation-drafts/${draftId}/validate`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) {
+          compileValidation.textContent = `Validation unavailable: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+        compileValidation.textContent = jsonText(body);
+        compileMessage.textContent = body.passed ? `Validation passed for ${draftId}.` : `Validation failed: ${body.issues?.length} issue(s).`;
+      } catch (error) {
+        compileValidation.textContent = `Validation request failed: ${String(error)}`;
+      } finally {
+        validateDraftButton.disabled = false;
+      }
+    });
+
+    compileDraftButton.addEventListener("click", async () => {
+      const draftId = compileDraftIdInput.value.trim();
+      if (!draftId) { compileMessage.textContent = "Enter or load a draft id first."; return; }
+      compileDraftButton.disabled = true;
+      compileMessage.textContent = `Compiling draft ${draftId} to skill...`;
+      try {
+        const response = await fetch(`/v1/product/automation-drafts/${draftId}/compile-skill`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) {
+          compiledSkill.textContent = `Compilation failed: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+        compileState.skillId = body.skill_id;
+        compiledSkill.textContent = jsonText({
+          skill_id: body.skill_id,
+          version_id: body.version_id,
+          name: body.name,
+          runtime_mode: body.runtime_mode,
+          write_actions: body.write_actions,
+          requires_approval_before_activation: body.requires_approval_before_activation,
+          guards: body.guards,
+        });
+        compileMessage.textContent = `Skill compiled: ${body.skill_id}`;
+      } catch (error) {
+        compiledSkill.textContent = `Compilation request failed: ${String(error)}`;
+      } finally {
+        compileDraftButton.disabled = false;
+      }
+    });
+
+    runDryRunProofButton.addEventListener("click", async () => {
+      if (!compileState.skillId) { compileMessage.textContent = "Compile the draft to a skill first."; return; }
+      runDryRunProofButton.disabled = true;
+      compileMessage.textContent = `Running dry-run proof for ${compileState.skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${compileState.skillId}/dry-run-proof`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) {
+          dryRunProof.textContent = `Dry-run proof failed: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+        dryRunProof.textContent = jsonText({
+          proof_id: body.proof_id,
+          status: body.status,
+          cases_total: body.cases_total,
+          cases_passed: body.cases_passed,
+          write_actions: body.write_actions,
+          runtime_mode: body.runtime_mode,
+          requires_approval_before_activation: body.requires_approval_before_activation,
+          case_results: (body.case_results || []).map((r) => ({
+            case_id: r.case_id,
+            passed: r.passed,
+            actual_decision: r.actual_decision,
+          })),
+        });
+        compileMessage.textContent = `Dry-run proof ${body.status}: ${body.cases_passed}/${body.cases_total} cases passed.`;
+      } catch (error) {
+        dryRunProof.textContent = `Dry-run proof request failed: ${String(error)}`;
+      } finally {
+        runDryRunProofButton.disabled = false;
+      }
+    });
+
+    // Sprint 7 — Write Capability Readiness & Risk Certification
+    const wrSkillIdInput = document.getElementById("wrSkillId");
+    const wrMessage = document.getElementById("wrMessage");
+    const wrAssessmentOutput = document.getElementById("wr-assessment-output");
+    const wrSummaryOutput = document.getElementById("wr-summary-output");
+    const wrImpactOutput = document.getElementById("wr-impact-output");
+    const wrRollbackOutput = document.getElementById("wr-rollback-output");
+    const wrCertOutput = document.getElementById("wr-certification-output");
+    const wrState = { assessmentId: null };
+
+    const getWrSkillId = () => wrSkillIdInput?.value?.trim() || "";
+
+    document.getElementById("wrRunAssessment").addEventListener("click", async () => {
+      const skillId = getWrSkillId();
+      if (!skillId) { wrMessage.textContent = "Enter a skill id first."; return; }
+      wrMessage.textContent = `Running write readiness assessment for ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/write-readiness-assessment`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) { wrAssessmentOutput.textContent = `Assessment failed: ${body?.error?.message || "unknown"}`; return; }
+        wrState.assessmentId = body.assessment_id;
+        wrAssessmentOutput.textContent = jsonText({
+          assessment_id: body.assessment_id,
+          skill_id: body.skill_id,
+          status: body.status,
+          overall_risk_level: body.overall_risk_level,
+          can_certify_write_readiness: body.can_certify_write_readiness,
+          write_candidates_count: (body.write_candidates || []).length,
+          blocking_issues: body.blocking_issues || [],
+          can_execute_real_writes: body.can_execute_real_writes,
+          real_erp_writes_enabled: body.real_erp_writes_enabled,
+        });
+        wrMessage.textContent = `Assessment completed. Risk level: ${body.overall_risk_level}. Can certify: ${body.can_certify_write_readiness}`;
+      } catch (error) { wrAssessmentOutput.textContent = `Assessment failed: ${String(error)}`; }
+    });
+
+    document.getElementById("wrGetSummary").addEventListener("click", async () => {
+      const skillId = getWrSkillId();
+      if (!skillId) { wrMessage.textContent = "Enter a skill id first."; return; }
+      wrMessage.textContent = `Loading write readiness summary for ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/write-readiness-summary`);
+        const body = await response.json();
+        wrSummaryOutput.textContent = jsonText({
+          skill_id: body.skill_id,
+          has_assessment: body.has_assessment,
+          has_impact_preview: body.has_impact_preview,
+          has_rollback_plan: body.has_rollback_plan,
+          has_certification: body.has_certification,
+          overall_risk_level: body.overall_risk_level,
+          certification_status: body.certification_status,
+          can_execute_real_writes: body.can_execute_real_writes,
+          approved_for_real_execution: body.approved_for_real_execution,
+        });
+        wrMessage.textContent = `Summary loaded. Assessment: ${body.has_assessment}, Cert: ${body.has_certification}`;
+      } catch (error) { wrSummaryOutput.textContent = `Summary failed: ${String(error)}`; }
+    });
+
+    document.getElementById("wrGenerateImpact").addEventListener("click", async () => {
+      if (!wrState.assessmentId) { wrMessage.textContent = "Run assessment first."; return; }
+      wrMessage.textContent = `Generating impact preview for assessment ${wrState.assessmentId}...`;
+      try {
+        const response = await fetch(`/v1/product/write-readiness-assessments/${wrState.assessmentId}/impact-preview`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) { wrImpactOutput.textContent = `Impact failed: ${body?.error?.message || "unknown"}`; return; }
+        wrImpactOutput.textContent = jsonText({
+          impact_id: body.impact_id,
+          assessment_id: body.assessment_id,
+          impact_summary: body.impact_summary,
+          affected_models: body.affected_models,
+          estimated_record_count: body.estimated_record_count,
+          reversible: body.reversible,
+          can_execute_real_writes: body.can_execute_real_writes,
+        });
+        wrMessage.textContent = `Impact preview: ${body.estimated_record_count} estimated records, reversible=${body.reversible}`;
+      } catch (error) { wrImpactOutput.textContent = `Impact failed: ${String(error)}`; }
+    });
+
+    document.getElementById("wrDraftRollback").addEventListener("click", async () => {
+      if (!wrState.assessmentId) { wrMessage.textContent = "Run assessment first."; return; }
+      wrMessage.textContent = `Drafting rollback plan for assessment ${wrState.assessmentId}...`;
+      try {
+        const response = await fetch(`/v1/product/write-readiness-assessments/${wrState.assessmentId}/rollback-plan`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) { wrRollbackOutput.textContent = `Rollback failed: ${body?.error?.message || "unknown"}`; return; }
+        wrRollbackOutput.textContent = jsonText({
+          plan_id: body.plan_id,
+          assessment_id: body.assessment_id,
+          rollback_steps: body.rollback_steps,
+          backup_strategy: body.backup_strategy,
+          estimated_rollback_time_minutes: body.estimated_rollback_time_minutes,
+          can_execute_real_writes: body.can_execute_real_writes,
+        });
+        wrMessage.textContent = `Rollback plan drafted: ${(body.rollback_steps || []).length} steps, ~${body.estimated_rollback_time_minutes}min`;
+      } catch (error) { wrRollbackOutput.textContent = `Rollback failed: ${String(error)}`; }
+    });
+
+    document.getElementById("wrCertify").addEventListener("click", async () => {
+      const skillId = getWrSkillId();
+      if (!skillId) { wrMessage.textContent = "Enter a skill id first."; return; }
+      wrMessage.textContent = `Certifying write readiness for ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/write-readiness-certification`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) { wrCertOutput.textContent = `Certification failed: ${body?.error?.message || "unknown"}`; return; }
+        wrCertOutput.textContent = jsonText({
+          certification_id: body.certification_id,
+          skill_id: body.skill_id,
+          certification_status: body.certification_status,
+          overall_risk_level: body.overall_risk_level,
+          dual_approval_required: body.dual_approval_required,
+          can_certify_real_execution: body.can_certify_real_execution,
+          can_execute_real_writes: body.can_execute_real_writes,
+          approved_for_real_execution: body.approved_for_real_execution,
+        });
+        wrMessage.textContent = `Certification issued: ${body.certification_status} (risk: ${body.overall_risk_level}). Writes: BLOCKED.`;
+      } catch (error) { wrCertOutput.textContent = `Certification failed: ${String(error)}`; }
+    });
+
+    // Sprint 6 — Controlled Real Read Execution & Live Evidence
+    const lrSkillIdInput = document.getElementById("lrSkillId");
+    const lrMessage = document.getElementById("lrMessage");
+    const lrConnectionContext = document.getElementById("lrConnectionContext");
+    const lrPolicyOutput = document.getElementById("lrPolicyOutput");
+    const lrRequestOutput = document.getElementById("lrRequestOutput");
+    const lrRunOutput = document.getElementById("lrRunOutput");
+    const lrEvidenceOutput = document.getElementById("lrEvidenceOutput");
+
+    const getLrSkillId = () => lrSkillIdInput?.value?.trim() || "";
+    const lrState = { requestId: null, runId: null };
+
+    document.getElementById("lrCheckContext").addEventListener("click", async () => {
+      const skillId = getLrSkillId();
+      if (!skillId) { lrMessage.textContent = "Enter a skill id first."; return; }
+      lrMessage.textContent = `Checking connection context for ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/connection-context`);
+        const body = await response.json();
+        lrConnectionContext.textContent = jsonText({
+          connection_id: body.connection_id,
+          erp_type: body.erp_type,
+          connection_status: body.connection_status,
+          url: body.url,
+          database: body.database,
+          username: body.username,
+          has_credentials: body.has_credentials,
+          secrets_redacted: body.secrets_redacted,
+          resolved: body.resolved,
+          missing_reason: body.missing_reason || null,
+        });
+        lrMessage.textContent = body.resolved ? `Connection resolved: ${body.connection_id}` : `Connection missing: ${body.missing_reason || "unknown"}`;
+      } catch (error) {
+        lrConnectionContext.textContent = `Context check failed: ${String(error)}`;
+      }
+    });
+
+    document.getElementById("lrCheckPolicy").addEventListener("click", async () => {
+      const skillId = getLrSkillId();
+      if (!skillId) { lrMessage.textContent = "Enter a skill id first."; return; }
+      lrMessage.textContent = `Checking live read policy for ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/live-read-policy`);
+        const body = await response.json();
+        lrPolicyOutput.textContent = jsonText({
+          passed: body.passed,
+          allow_real_odoo_reads: body.allow_real_odoo_reads,
+          allow_live_read_evidence: body.allow_live_read_evidence,
+          can_execute_real_writes: body.can_execute_real_writes,
+          real_erp_writes_enabled: body.real_erp_writes_enabled,
+          violations: body.violations || [],
+        });
+        lrMessage.textContent = `Live read policy: ${body.passed ? "passed" : "blocked (" + (body.violations || []).length + " violation(s))"}`;
+      } catch (error) {
+        lrPolicyOutput.textContent = `Policy check failed: ${String(error)}`;
+      }
+    });
+
+    document.getElementById("lrCreateRequest").addEventListener("click", async () => {
+      const skillId = getLrSkillId();
+      if (!skillId) { lrMessage.textContent = "Enter a skill id first."; return; }
+      lrMessage.textContent = `Creating live read request for ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/live-read-execution-request`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            requested_by: { type: "user", id: "demo_operator", display_name: "Demo Operator" },
+            inputs: { live_read: true },
+          }),
+        });
+        const body = await response.json();
+        if (!response.ok && response.status !== 200) {
+          lrRequestOutput.textContent = `Request failed: ${body?.error?.message || "unknown error"}`;
+          lrMessage.textContent = "Live read request failed.";
+          return;
+        }
+        lrState.requestId = body.request_id;
+        lrRequestOutput.textContent = jsonText({
+          request_id: body.request_id,
+          connection_id: body.connection_id,
+          status: body.status,
+          can_execute_real_writes: body.can_execute_real_writes,
+          allow_real_odoo_reads: body.allow_real_odoo_reads,
+          idempotency_key: body.idempotency_key,
+          duplicate: body._idempotent_duplicate || false,
+        });
+        lrMessage.textContent = `Live read request: ${body.request_id}`;
+      } catch (error) {
+        lrRequestOutput.textContent = `Request failed: ${String(error)}`;
+      }
+    });
+
+    document.getElementById("lrRunExecution").addEventListener("click", async () => {
+      if (!lrState.requestId) {
+        lrMessage.textContent = "Create a live read request first.";
+        return;
+      }
+      lrMessage.textContent = `Running live read execution for request ${lrState.requestId}...`;
+      try {
+        const response = await fetch(`/v1/product/execution-requests/${lrState.requestId}/run-live-read`, {
+          method: "POST",
+        });
+        const body = await response.json();
+        if (!response.ok) {
+          lrRunOutput.textContent = `Run failed: ${body?.error?.message || "unknown error"}`;
+          lrMessage.textContent = "Live read execution failed.";
+          return;
+        }
+        lrState.runId = body.run_id;
+        lrRunOutput.textContent = jsonText({
+          run_id: body.run_id,
+          status: body.status,
+          connection_id: body.connection_id,
+          can_execute_real_writes: body.can_execute_real_writes,
+          allow_real_odoo_reads: body.allow_real_odoo_reads,
+          real_read_count: body.real_read_count,
+          blocked_write_count: body.blocked_write_count,
+          steps_total: body.plan?.total_steps || 0,
+        });
+        lrMessage.textContent = `Live read completed: ${body.real_read_count} real read(s), ${body.blocked_write_count} write(s) blocked.`;
+      } catch (error) {
+        lrRunOutput.textContent = `Run failed: ${String(error)}`;
+      }
+    });
+
+    document.getElementById("lrGetEvidence").addEventListener("click", async () => {
+      if (!lrState.runId) {
+        lrMessage.textContent = "Run a live read execution first.";
+        return;
+      }
+      lrMessage.textContent = `Loading live evidence for run ${lrState.runId}...`;
+      try {
+        const response = await fetch(`/v1/product/live-read-runs/${lrState.runId}/live-evidence`);
+        const body = await response.json();
+        if (!response.ok) {
+          lrEvidenceOutput.textContent = `Evidence failed: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+        lrEvidenceOutput.textContent = jsonText(body);
+        lrMessage.textContent = `${Array.isArray(body) ? body.length : 0} live evidence record(s) — all reads, no writes.`;
+      } catch (error) {
+        lrEvidenceOutput.textContent = `Evidence failed: ${String(error)}`;
+      }
+    });
+
+    // Sprint 5 — Execution Sandbox
+    const sandboxSkillIdInput = document.getElementById("sandboxSkillId");
+    const sandboxMessage = document.getElementById("sandboxMessage");
+    const executionPolicyOutput = document.getElementById("executionPolicyOutput");
+    const executionRequestOutput = document.getElementById("executionRequestOutput");
+    const executionRunOutput = document.getElementById("executionRunOutput");
+    const executionTimelineOutput = document.getElementById("executionTimelineOutput");
+    const blockedWritesOutput = document.getElementById("blockedWritesOutput");
+
+    const getSandboxSkillId = () => sandboxSkillIdInput?.value?.trim() || "";
+    const sandboxState = { requestId: null, runId: null };
+
+    document.getElementById("checkExecutionPolicy").addEventListener("click", async () => {
+      const skillId = getSandboxSkillId();
+      if (!skillId) { sandboxMessage.textContent = "Enter a skill id first."; return; }
+      sandboxMessage.textContent = `Checking execution policy for ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/execution-policy`);
+        const body = await response.json();
+        executionPolicyOutput.textContent = jsonText({
+          passed: body.passed,
+          can_execute_real_writes: body.can_execute_real_writes,
+          real_erp_writes_enabled: body.real_erp_writes_enabled,
+          violations: body.violations || [],
+        });
+        sandboxMessage.textContent = `Policy check: ${body.passed ? "passed" : "blocked (" + (body.violations || []).length + " violation(s))"}`;
+      } catch (error) {
+        executionPolicyOutput.textContent = `Policy check failed: ${String(error)}`;
+      }
+    });
+
+    document.getElementById("createExecutionRequest").addEventListener("click", async () => {
+      const skillId = getSandboxSkillId();
+      if (!skillId) { sandboxMessage.textContent = "Enter a skill id first."; return; }
+      sandboxMessage.textContent = `Creating execution request for ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/execution-requests`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            requested_by: { type: "user", id: "demo_operator", display_name: "Demo Operator" },
+            inputs: { dry_run: true },
+          }),
+        });
+        const body = await response.json();
+        if (!response.ok) {
+          executionRequestOutput.textContent = `Request failed: ${body?.error?.message || "unknown error"}`;
+          sandboxMessage.textContent = `Execution request failed.`;
+          return;
+        }
+        sandboxState.requestId = body.request_id;
+        executionRequestOutput.textContent = jsonText({
+          request_id: body.request_id,
+          status: body.status,
+          can_execute_real_writes: body.can_execute_real_writes,
+          real_erp_writes_enabled: body.real_erp_writes_enabled,
+          idempotency_key: body.idempotency_key,
+          duplicate: body._idempotent_duplicate || false,
+        });
+        sandboxMessage.textContent = `Execution request created: ${body.request_id}`;
+      } catch (error) {
+        executionRequestOutput.textContent = `Request failed: ${String(error)}`;
+      }
+    });
+
+    document.getElementById("runExecution").addEventListener("click", async () => {
+      const skillId = getSandboxSkillId();
+      if (!skillId || !sandboxState.requestId) {
+        sandboxMessage.textContent = "Create an execution request first.";
+        return;
+      }
+      sandboxMessage.textContent = `Running dry-run execution for request ${sandboxState.requestId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/execution-requests/${sandboxState.requestId}/run`, {
+          method: "POST",
+        });
+        const body = await response.json();
+        if (!response.ok) {
+          executionRunOutput.textContent = `Run failed: ${body?.error?.message || "unknown error"}`;
+          sandboxMessage.textContent = `Execution run failed.`;
+          return;
+        }
+        sandboxState.runId = body.run_id;
+        executionRunOutput.textContent = jsonText({
+          run_id: body.run_id,
+          status: body.status,
+          can_execute_real_writes: body.can_execute_real_writes,
+          real_erp_writes_enabled: body.real_erp_writes_enabled,
+          blocked_write_count: body.blocked_write_count,
+          steps_total: body.plan?.total_steps || 0,
+          blocked_write_candidates: body.plan?.blocked_write_candidates || 0,
+        });
+        sandboxMessage.textContent = `Dry-run completed: ${body.status}. Blocked writes: ${body.blocked_write_count}.`;
+      } catch (error) {
+        executionRunOutput.textContent = `Run failed: ${String(error)}`;
+      }
+    });
+
+    document.getElementById("getExecutionTimeline").addEventListener("click", async () => {
+      const skillId = getSandboxSkillId();
+      if (!skillId || !sandboxState.runId) {
+        sandboxMessage.textContent = "Run execution first.";
+        return;
+      }
+      sandboxMessage.textContent = `Loading timeline for run ${sandboxState.runId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/execution-runs/${sandboxState.runId}/timeline`);
+        const body = await response.json();
+        if (!response.ok) {
+          executionTimelineOutput.textContent = `Timeline failed: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+        executionTimelineOutput.textContent = jsonText({
+          run_id: body.run_id,
+          total_steps: body.total_steps,
+          can_execute_real_writes: body.can_execute_real_writes,
+          real_erp_writes_enabled: body.real_erp_writes_enabled,
+          steps: (body.steps || []).map((s) => ({ step_id: s.step_id, type: s.step_type, status: s.status })),
+        });
+        sandboxMessage.textContent = `Timeline: ${body.total_steps} step(s).`;
+      } catch (error) {
+        executionTimelineOutput.textContent = `Timeline failed: ${String(error)}`;
+      }
+    });
+
+    document.getElementById("getBlockedWrites").addEventListener("click", async () => {
+      const skillId = getSandboxSkillId();
+      if (!skillId || !sandboxState.runId) {
+        sandboxMessage.textContent = "Run execution first.";
+        return;
+      }
+      sandboxMessage.textContent = `Loading blocked write evidence for run ${sandboxState.runId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/execution-runs/${sandboxState.runId}/blocked-writes`);
+        const body = await response.json();
+        if (!response.ok) {
+          blockedWritesOutput.textContent = `Blocked writes failed: ${body?.error?.message || "unknown error"}`;
+          return;
+        }
+        blockedWritesOutput.textContent = jsonText(body);
+        sandboxMessage.textContent = `${Array.isArray(body) ? body.length : 0} blocked write(s) evidenced.`;
+      } catch (error) {
+        blockedWritesOutput.textContent = `Blocked writes failed: ${String(error)}`;
+      }
+    });
+
+    loadLatestOdooConnectionButton.addEventListener("click", loadLatestOdooConnection);
+    runBusinessAnalysisButton.addEventListener("click", runBusinessAnalysis);
 
     runButton.addEventListener("click", async () => {
       runButton.disabled = true;

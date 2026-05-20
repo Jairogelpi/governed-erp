@@ -8,15 +8,37 @@ from erpguard.canonical.enums import ERPType, InvariantSeverity, InvariantStatus
 from erpguard.core.results import PreflightResult
 from erpguard.db.models import (
     AuditEvent,
+    AutomationDraft,
+    AutomationDraftReview,
+    BlockedWriteEvidenceRecord,
     Connection,
+    BusinessSignal,
+    BusinessSnapshot,
+    ExecutionRequest,
+    ExecutionRun,
+    ExecutionRunStep,
+    IdempotencyKey,
     InvariantResult,
+    LiveReadEvidence,
+    LiveReadExecutionRequest,
+    LiveReadRun,
     PreflightCase,
     RecordingEvent,
     RecordingSession,
+    Opportunity,
+    OpportunityScan,
     Skill,
+    SkillActivationGateEvaluation,
+    SkillApprovalDecision,
+    SkillApprovalRequest,
+    SkillDryRunProof,
     SkillRun,
     SkillRunStep,
     SkillVersion,
+    WriteImpactPreview,
+    WriteReadinessAssessment,
+    WriteReadinessCertification,
+    WriteRollbackPlan,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -386,3 +408,905 @@ def finish_recording_session(session: Session, recording_session_id: str, status
 
 def _to_json(value) -> str:
     return json.dumps(value, default=str)
+
+
+def create_business_snapshot(session: Session, connection_id: str, erp_type: str, snapshot_json: str, status: str = "ok", read_only_mode: bool = True) -> BusinessSnapshot:
+    snapshot = BusinessSnapshot(
+        id=f"business_snapshot_{uuid4().hex}",
+        connection_id=connection_id,
+        erp_type=erp_type,
+        status=status,
+        read_only_mode=read_only_mode,
+        snapshot_json=snapshot_json,
+    )
+    session.add(snapshot)
+    session.commit()
+    session.refresh(snapshot)
+    return snapshot
+
+
+def get_business_snapshot(session: Session, snapshot_id: str) -> BusinessSnapshot | None:
+    return session.get(BusinessSnapshot, snapshot_id)
+
+
+def create_business_signal(
+    session: Session,
+    business_snapshot_id: str,
+    signal_code: str,
+    title: str,
+    severity: str,
+    message: str,
+    evidence_json: str,
+    score: int = 0,
+) -> BusinessSignal:
+    signal = BusinessSignal(
+        id=f"business_signal_{uuid4().hex}",
+        business_snapshot_id=business_snapshot_id,
+        signal_code=signal_code,
+        title=title,
+        severity=severity,
+        message=message,
+        evidence_json=evidence_json,
+        score=score,
+    )
+    session.add(signal)
+    session.commit()
+    session.refresh(signal)
+    return signal
+
+
+def list_business_signals(session: Session, business_snapshot_id: str) -> list[BusinessSignal]:
+    return list(
+        session.query(BusinessSignal)
+        .filter(BusinessSignal.business_snapshot_id == business_snapshot_id)
+        .order_by(BusinessSignal.created_at.asc())
+        .all()
+    )
+
+
+def create_opportunity_scan(
+    session: Session,
+    business_snapshot_id: str,
+    connection_id: str,
+    status: str,
+    summary_json: str,
+) -> OpportunityScan:
+    scan = OpportunityScan(
+        id=f"opportunity_scan_{uuid4().hex}",
+        business_snapshot_id=business_snapshot_id,
+        connection_id=connection_id,
+        status=status,
+        summary_json=summary_json,
+    )
+    session.add(scan)
+    session.commit()
+    session.refresh(scan)
+    return scan
+
+
+def get_opportunity_scan(session: Session, scan_id: str) -> OpportunityScan | None:
+    return session.get(OpportunityScan, scan_id)
+
+
+def create_opportunity(
+    session: Session,
+    opportunity_scan_id: str,
+    connection_id: str,
+    code: str,
+    title: str,
+    description: str,
+    recommendation: str,
+    category: str,
+    priority: int,
+    signal_codes_json: str,
+    roi_json: str,
+    evidence_json: str,
+    status: str,
+) -> Opportunity:
+    opportunity = Opportunity(
+        id=f"opportunity_{uuid4().hex}",
+        opportunity_scan_id=opportunity_scan_id,
+        connection_id=connection_id,
+        code=code,
+        title=title,
+        description=description,
+        recommendation=recommendation,
+        category=category,
+        priority=priority,
+        signal_codes_json=signal_codes_json,
+        roi_json=roi_json,
+        evidence_json=evidence_json,
+        status=status,
+    )
+    session.add(opportunity)
+    session.commit()
+    session.refresh(opportunity)
+    return opportunity
+
+
+def get_opportunity(session: Session, opportunity_id: str) -> Opportunity | None:
+    return session.get(Opportunity, opportunity_id)
+
+
+def list_opportunities(session: Session, opportunity_scan_id: str) -> list[Opportunity]:
+    return list(
+        session.query(Opportunity)
+        .filter(Opportunity.opportunity_scan_id == opportunity_scan_id)
+        .order_by(Opportunity.priority.asc(), Opportunity.created_at.asc())
+        .all()
+    )
+
+
+def create_automation_draft(
+    session: Session,
+    opportunity_id: str,
+    scan_id: str,
+    snapshot_id: str,
+    connection_id: str,
+    name: str,
+    description: str,
+    runtime_mode: str,
+    write_actions: bool,
+    draft_json: str,
+    status: str,
+) -> AutomationDraft:
+    draft = AutomationDraft(
+        id=f"automation_draft_{uuid4().hex}",
+        opportunity_id=opportunity_id,
+        scan_id=scan_id,
+        snapshot_id=snapshot_id,
+        connection_id=connection_id,
+        name=name,
+        description=description,
+        status=status,
+        runtime_mode=runtime_mode,
+        write_actions=write_actions,
+        draft_json=draft_json,
+    )
+    session.add(draft)
+    session.commit()
+    session.refresh(draft)
+    return draft
+
+
+def get_automation_draft(session: Session, draft_id: str) -> AutomationDraft | None:
+    return session.get(AutomationDraft, draft_id)
+
+
+def list_automation_drafts(session: Session, opportunity_id: str) -> list[AutomationDraft]:
+    return list(
+        session.query(AutomationDraft)
+        .filter(AutomationDraft.opportunity_id == opportunity_id)
+        .order_by(AutomationDraft.created_at.desc())
+        .all()
+    )
+
+
+def create_automation_draft_review(
+    session: Session,
+    draft_id: str,
+    opportunity_id: str,
+    connection_id: str,
+    guards_json: str,
+    input_schema_json: str,
+    output_schema_json: str,
+    test_cases_json: str,
+    status: str = "ready_to_compile",
+) -> AutomationDraftReview:
+    review = AutomationDraftReview(
+        id=f"draft_review_{uuid4().hex}",
+        draft_id=draft_id,
+        opportunity_id=opportunity_id,
+        connection_id=connection_id,
+        guards_json=guards_json,
+        input_schema_json=input_schema_json,
+        output_schema_json=output_schema_json,
+        test_cases_json=test_cases_json,
+        status=status,
+    )
+    session.add(review)
+    session.commit()
+    session.refresh(review)
+    return review
+
+
+def get_automation_draft_review(session: Session, review_id: str) -> AutomationDraftReview | None:
+    return session.get(AutomationDraftReview, review_id)
+
+
+def mark_review_compiled(session: Session, review_id: str, skill_id: str, skill_version_id: str) -> AutomationDraftReview | None:
+    review = session.get(AutomationDraftReview, review_id)
+    if review is None:
+        return None
+    review.status = "compiled"
+    review.skill_id = skill_id
+    review.skill_version_id = skill_version_id
+    session.commit()
+    session.refresh(review)
+    return review
+
+
+def list_draft_reviews(session: Session, draft_id: str) -> list[AutomationDraftReview]:
+    return list(
+        session.query(AutomationDraftReview)
+        .filter(AutomationDraftReview.draft_id == draft_id)
+        .order_by(AutomationDraftReview.created_at.desc())
+        .all()
+    )
+
+
+def create_skill_dry_run_proof(
+    session: Session,
+    skill_id: str,
+    skill_version_id: str,
+    draft_id: str,
+    review_id: str,
+    status: str,
+    cases_total: int,
+    cases_passed: int,
+    proof_json: str,
+) -> SkillDryRunProof:
+    proof = SkillDryRunProof(
+        id=f"dry_run_proof_{uuid4().hex}",
+        skill_id=skill_id,
+        skill_version_id=skill_version_id,
+        draft_id=draft_id,
+        review_id=review_id,
+        status=status,
+        cases_total=cases_total,
+        cases_passed=cases_passed,
+        proof_json=proof_json,
+    )
+    session.add(proof)
+    session.commit()
+    session.refresh(proof)
+    return proof
+
+
+def get_skill_dry_run_proof(session: Session, proof_id: str) -> SkillDryRunProof | None:
+    return session.get(SkillDryRunProof, proof_id)
+
+
+def get_latest_dry_run_proof_for_skill(session: Session, skill_id: str) -> SkillDryRunProof | None:
+    return (
+        session.query(SkillDryRunProof)
+        .filter(SkillDryRunProof.skill_id == skill_id)
+        .order_by(SkillDryRunProof.created_at.desc())
+        .first()
+    )
+
+
+def create_skill_approval_request(
+    session: Session,
+    skill_id: str,
+    skill_version_id: str,
+    requested_by_json: str,
+    reason: str,
+    context_json: str,
+    status: str = "pending",
+) -> SkillApprovalRequest:
+    req = SkillApprovalRequest(
+        id=f"approval_request_{uuid4().hex}",
+        skill_id=skill_id,
+        skill_version_id=skill_version_id,
+        requested_by_json=requested_by_json,
+        reason=reason,
+        status=status,
+        can_execute_real_writes=False,
+        context_json=context_json,
+    )
+    session.add(req)
+    session.commit()
+    session.refresh(req)
+    return req
+
+
+def get_approval_request(session: Session, request_id: str) -> SkillApprovalRequest | None:
+    return session.get(SkillApprovalRequest, request_id)
+
+
+def get_latest_approval_request_for_skill(session: Session, skill_id: str) -> SkillApprovalRequest | None:
+    return (
+        session.query(SkillApprovalRequest)
+        .filter(SkillApprovalRequest.skill_id == skill_id)
+        .order_by(SkillApprovalRequest.created_at.desc())
+        .first()
+    )
+
+
+def list_approval_requests_for_skill(session: Session, skill_id: str) -> list[SkillApprovalRequest]:
+    return list(
+        session.query(SkillApprovalRequest)
+        .filter(SkillApprovalRequest.skill_id == skill_id)
+        .order_by(SkillApprovalRequest.created_at.desc())
+        .all()
+    )
+
+
+def update_approval_request_status(session: Session, request_id: str, status: str) -> SkillApprovalRequest | None:
+    req = session.get(SkillApprovalRequest, request_id)
+    if req is None:
+        return None
+    req.status = status
+    session.commit()
+    session.refresh(req)
+    return req
+
+
+def create_skill_approval_decision(
+    session: Session,
+    approval_request_id: str,
+    skill_id: str,
+    decided_by_json: str,
+    decision: str,
+    reason: str,
+    evidence_json: str,
+) -> SkillApprovalDecision:
+    dec = SkillApprovalDecision(
+        id=f"approval_decision_{uuid4().hex}",
+        approval_request_id=approval_request_id,
+        skill_id=skill_id,
+        decided_by_json=decided_by_json,
+        decision=decision,
+        reason=reason,
+        can_execute_real_writes=False,
+        approved_for_real_execution=False,
+        evidence_json=evidence_json,
+    )
+    session.add(dec)
+    session.commit()
+    session.refresh(dec)
+    return dec
+
+
+def list_approval_decisions_for_request(session: Session, approval_request_id: str) -> list[SkillApprovalDecision]:
+    return list(
+        session.query(SkillApprovalDecision)
+        .filter(SkillApprovalDecision.approval_request_id == approval_request_id)
+        .order_by(SkillApprovalDecision.created_at.desc())
+        .all()
+    )
+
+
+def list_approval_decisions_for_skill(session: Session, skill_id: str) -> list[SkillApprovalDecision]:
+    return list(
+        session.query(SkillApprovalDecision)
+        .filter(SkillApprovalDecision.skill_id == skill_id)
+        .order_by(SkillApprovalDecision.created_at.desc())
+        .all()
+    )
+
+
+def create_activation_gate_evaluation(
+    session: Session,
+    skill_id: str,
+    gate_status: str,
+    can_activate: bool,
+    checks_json: str,
+    approval_request_id: str | None = None,
+) -> SkillActivationGateEvaluation:
+    ev = SkillActivationGateEvaluation(
+        id=f"gate_eval_{uuid4().hex}",
+        skill_id=skill_id,
+        approval_request_id=approval_request_id,
+        gate_status=gate_status,
+        can_activate=can_activate,
+        can_execute_real_writes=False,
+        approved_for_real_execution=False,
+        checks_json=checks_json,
+    )
+    session.add(ev)
+    session.commit()
+    session.refresh(ev)
+    return ev
+
+
+def get_latest_gate_evaluation(session: Session, skill_id: str) -> SkillActivationGateEvaluation | None:
+    return (
+        session.query(SkillActivationGateEvaluation)
+        .filter(SkillActivationGateEvaluation.skill_id == skill_id)
+        .order_by(SkillActivationGateEvaluation.created_at.desc())
+        .first()
+    )
+
+
+def list_gate_evaluations_for_skill(session: Session, skill_id: str) -> list[SkillActivationGateEvaluation]:
+    return list(
+        session.query(SkillActivationGateEvaluation)
+        .filter(SkillActivationGateEvaluation.skill_id == skill_id)
+        .order_by(SkillActivationGateEvaluation.created_at.desc())
+        .all()
+    )
+
+
+def create_execution_request(
+    session: Session,
+    skill_id: str,
+    skill_version_id: str,
+    requested_by_json: str,
+    inputs_json: str,
+    idempotency_key: str,
+    approval_request_id: str | None = None,
+    status: str = "pending",
+) -> ExecutionRequest:
+    req = ExecutionRequest(
+        id=f"execution_request_{uuid4().hex}",
+        skill_id=skill_id,
+        skill_version_id=skill_version_id,
+        approval_request_id=approval_request_id,
+        requested_by_json=requested_by_json,
+        inputs_json=inputs_json,
+        status=status,
+        can_execute_real_writes=False,
+        real_erp_writes_enabled=False,
+        idempotency_key=idempotency_key,
+    )
+    session.add(req)
+    session.commit()
+    session.refresh(req)
+    return req
+
+
+def get_execution_request(session: Session, request_id: str) -> ExecutionRequest | None:
+    return session.get(ExecutionRequest, request_id)
+
+
+def update_execution_request_status(session: Session, request_id: str, status: str) -> ExecutionRequest | None:
+    req = session.get(ExecutionRequest, request_id)
+    if req is None:
+        return None
+    req.status = status
+    session.commit()
+    session.refresh(req)
+    return req
+
+
+def list_execution_requests_for_skill(session: Session, skill_id: str) -> list[ExecutionRequest]:
+    return list(
+        session.query(ExecutionRequest)
+        .filter(ExecutionRequest.skill_id == skill_id)
+        .order_by(ExecutionRequest.created_at.desc())
+        .all()
+    )
+
+
+def create_execution_run(
+    session: Session,
+    execution_request_id: str,
+    skill_id: str,
+    status: str,
+    plan_json: str,
+    result_json: str,
+    blocked_write_count: int = 0,
+    finished_at=None,
+) -> ExecutionRun:
+    run = ExecutionRun(
+        id=f"execution_run_{uuid4().hex}",
+        execution_request_id=execution_request_id,
+        skill_id=skill_id,
+        status=status,
+        plan_json=plan_json,
+        result_json=result_json,
+        can_execute_real_writes=False,
+        real_erp_writes_enabled=False,
+        blocked_write_count=blocked_write_count,
+        finished_at=finished_at,
+    )
+    session.add(run)
+    session.commit()
+    session.refresh(run)
+    return run
+
+
+def get_execution_run(session: Session, run_id: str) -> ExecutionRun | None:
+    return session.get(ExecutionRun, run_id)
+
+
+def list_execution_runs_for_request(session: Session, execution_request_id: str) -> list[ExecutionRun]:
+    return list(
+        session.query(ExecutionRun)
+        .filter(ExecutionRun.execution_request_id == execution_request_id)
+        .order_by(ExecutionRun.created_at.desc())
+        .all()
+    )
+
+
+def list_execution_runs_for_skill(session: Session, skill_id: str) -> list[ExecutionRun]:
+    return list(
+        session.query(ExecutionRun)
+        .filter(ExecutionRun.skill_id == skill_id)
+        .order_by(ExecutionRun.created_at.desc())
+        .all()
+    )
+
+
+def create_execution_run_step(
+    session: Session,
+    execution_run_id: str,
+    step_index: int,
+    step_id: str,
+    step_type: str,
+    status: str,
+    input_json: str,
+    output_json: str,
+) -> ExecutionRunStep:
+    step = ExecutionRunStep(
+        id=f"exec_step_{uuid4().hex}",
+        execution_run_id=execution_run_id,
+        step_index=step_index,
+        step_id=step_id,
+        step_type=step_type,
+        status=status,
+        input_json=input_json,
+        output_json=output_json,
+    )
+    session.add(step)
+    session.commit()
+    session.refresh(step)
+    return step
+
+
+def list_execution_run_steps(session: Session, execution_run_id: str) -> list[ExecutionRunStep]:
+    return list(
+        session.query(ExecutionRunStep)
+        .filter(ExecutionRunStep.execution_run_id == execution_run_id)
+        .order_by(ExecutionRunStep.step_index.asc())
+        .all()
+    )
+
+
+def get_or_create_idempotency_key(
+    session: Session,
+    key: str,
+    skill_id: str,
+    execution_request_id: str,
+) -> tuple[IdempotencyKey, bool]:
+    existing = session.query(IdempotencyKey).filter(IdempotencyKey.key == key).first()
+    if existing:
+        return existing, True
+    new_key = IdempotencyKey(
+        id=f"idempotency_{uuid4().hex}",
+        key=key,
+        skill_id=skill_id,
+        execution_request_id=execution_request_id,
+    )
+    session.add(new_key)
+    session.commit()
+    session.refresh(new_key)
+    return new_key, False
+
+
+def create_blocked_write_evidence(
+    session: Session,
+    execution_run_id: str,
+    execution_request_id: str,
+    skill_id: str,
+    attempted_model: str,
+    attempted_method: str,
+    attempted_args_json: str,
+    blocked_reason: str,
+) -> BlockedWriteEvidenceRecord:
+    ev = BlockedWriteEvidenceRecord(
+        id=f"blocked_write_{uuid4().hex}",
+        execution_run_id=execution_run_id,
+        execution_request_id=execution_request_id,
+        skill_id=skill_id,
+        attempted_model=attempted_model,
+        attempted_method=attempted_method,
+        attempted_args_json=attempted_args_json,
+        blocked_reason=blocked_reason,
+    )
+    session.add(ev)
+    session.commit()
+    session.refresh(ev)
+    return ev
+
+
+def list_blocked_write_evidence_for_run(session: Session, execution_run_id: str) -> list[BlockedWriteEvidenceRecord]:
+    return list(
+        session.query(BlockedWriteEvidenceRecord)
+        .filter(BlockedWriteEvidenceRecord.execution_run_id == execution_run_id)
+        .order_by(BlockedWriteEvidenceRecord.created_at.asc())
+        .all()
+    )
+
+
+# Sprint 6 — Live Read Execution
+
+def create_live_read_execution_request(
+    session: Session,
+    skill_id: str,
+    skill_version_id: str,
+    requested_by_json: str,
+    inputs_json: str,
+    idempotency_key: str,
+    connection_id: str | None = None,
+    approval_request_id: str | None = None,
+    status: str = "pending",
+) -> LiveReadExecutionRequest:
+    req = LiveReadExecutionRequest(
+        id=f"lr_exec_req_{uuid4().hex}",
+        skill_id=skill_id,
+        skill_version_id=skill_version_id,
+        connection_id=connection_id,
+        approval_request_id=approval_request_id,
+        requested_by_json=requested_by_json,
+        inputs_json=inputs_json,
+        status=status,
+        can_execute_real_writes=False,
+        real_erp_writes_enabled=False,
+        allow_real_odoo_reads=True,
+        idempotency_key=idempotency_key,
+    )
+    session.add(req)
+    session.commit()
+    session.refresh(req)
+    return req
+
+
+def get_live_read_execution_request(session: Session, request_id: str) -> LiveReadExecutionRequest | None:
+    return session.get(LiveReadExecutionRequest, request_id)
+
+
+def update_live_read_execution_request_status(session: Session, request_id: str, status: str) -> LiveReadExecutionRequest | None:
+    req = session.get(LiveReadExecutionRequest, request_id)
+    if req is None:
+        return None
+    req.status = status
+    session.commit()
+    session.refresh(req)
+    return req
+
+
+def list_live_read_execution_requests_for_skill(session: Session, skill_id: str) -> list[LiveReadExecutionRequest]:
+    return list(
+        session.query(LiveReadExecutionRequest)
+        .filter(LiveReadExecutionRequest.skill_id == skill_id)
+        .order_by(LiveReadExecutionRequest.created_at.desc())
+        .all()
+    )
+
+
+def create_live_read_run(
+    session: Session,
+    execution_request_id: str,
+    skill_id: str,
+    connection_id: str | None,
+    status: str,
+    plan_json: str,
+    result_json: str,
+    real_read_count: int = 0,
+    blocked_write_count: int = 0,
+    finished_at=None,
+) -> LiveReadRun:
+    run = LiveReadRun(
+        id=f"lr_run_{uuid4().hex}",
+        execution_request_id=execution_request_id,
+        skill_id=skill_id,
+        connection_id=connection_id,
+        status=status,
+        plan_json=plan_json,
+        result_json=result_json,
+        can_execute_real_writes=False,
+        real_erp_writes_enabled=False,
+        allow_real_odoo_reads=True,
+        real_read_count=real_read_count,
+        blocked_write_count=blocked_write_count,
+        finished_at=finished_at,
+    )
+    session.add(run)
+    session.commit()
+    session.refresh(run)
+    return run
+
+
+def get_live_read_run(session: Session, run_id: str) -> LiveReadRun | None:
+    return session.get(LiveReadRun, run_id)
+
+
+def list_live_read_runs_for_request(session: Session, execution_request_id: str) -> list[LiveReadRun]:
+    return list(
+        session.query(LiveReadRun)
+        .filter(LiveReadRun.execution_request_id == execution_request_id)
+        .order_by(LiveReadRun.created_at.desc())
+        .all()
+    )
+
+
+def create_live_read_evidence(
+    session: Session,
+    live_read_run_id: str,
+    execution_request_id: str,
+    skill_id: str,
+    step_id: str,
+    odoo_model: str,
+    odoo_method: str,
+    query_summary_json: str,
+    records_fetched: int,
+    result_summary_json: str,
+) -> LiveReadEvidence:
+    ev = LiveReadEvidence(
+        id=f"lr_evidence_{uuid4().hex}",
+        live_read_run_id=live_read_run_id,
+        execution_request_id=execution_request_id,
+        skill_id=skill_id,
+        step_id=step_id,
+        odoo_model=odoo_model,
+        odoo_method=odoo_method,
+        query_summary_json=query_summary_json,
+        records_fetched=records_fetched,
+        result_summary_json=result_summary_json,
+        read_only=True,
+    )
+    session.add(ev)
+    session.commit()
+    session.refresh(ev)
+    return ev
+
+
+def list_live_read_evidence_for_run(session: Session, live_read_run_id: str) -> list[LiveReadEvidence]:
+    return list(
+        session.query(LiveReadEvidence)
+        .filter(LiveReadEvidence.live_read_run_id == live_read_run_id)
+        .order_by(LiveReadEvidence.created_at.asc())
+        .all()
+    )
+
+
+# Sprint 7 — Write Readiness
+
+def create_write_readiness_assessment(
+    session: Session,
+    skill_id: str,
+    skill_version_id: str,
+    status: str,
+    write_candidates_json: str,
+    risk_matrix_json: str,
+    overall_risk_level: str,
+    can_certify_write_readiness: bool,
+    blocking_issues_json: str,
+    permission_preview_json: str,
+) -> WriteReadinessAssessment:
+    row = WriteReadinessAssessment(
+        id=f"write_assessment_{uuid4().hex}",
+        skill_id=skill_id,
+        skill_version_id=skill_version_id,
+        status=status,
+        write_candidates_json=write_candidates_json,
+        risk_matrix_json=risk_matrix_json,
+        overall_risk_level=overall_risk_level,
+        can_certify_write_readiness=can_certify_write_readiness,
+        blocking_issues_json=blocking_issues_json,
+        permission_preview_json=permission_preview_json,
+        can_execute_real_writes=False,
+        real_erp_writes_enabled=False,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_write_readiness_assessment(session: Session, assessment_id: str) -> WriteReadinessAssessment | None:
+    return session.get(WriteReadinessAssessment, assessment_id)
+
+
+def get_latest_write_readiness_assessment_for_skill(session: Session, skill_id: str) -> WriteReadinessAssessment | None:
+    return (
+        session.query(WriteReadinessAssessment)
+        .filter(WriteReadinessAssessment.skill_id == skill_id)
+        .order_by(WriteReadinessAssessment.created_at.desc())
+        .first()
+    )
+
+
+def create_write_impact_preview(
+    session: Session,
+    assessment_id: str,
+    skill_id: str,
+    impact_summary: str,
+    affected_models_json: str,
+    estimated_record_count: int,
+    reversible: bool,
+    rollback_strategy: str,
+) -> WriteImpactPreview:
+    row = WriteImpactPreview(
+        id=f"write_impact_{uuid4().hex}",
+        assessment_id=assessment_id,
+        skill_id=skill_id,
+        impact_summary=impact_summary,
+        affected_models_json=affected_models_json,
+        estimated_record_count=estimated_record_count,
+        reversible=reversible,
+        rollback_strategy=rollback_strategy,
+        can_execute_real_writes=False,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_latest_write_impact_preview_for_skill(session: Session, skill_id: str) -> WriteImpactPreview | None:
+    return (
+        session.query(WriteImpactPreview)
+        .filter(WriteImpactPreview.skill_id == skill_id)
+        .order_by(WriteImpactPreview.created_at.desc())
+        .first()
+    )
+
+
+def create_write_rollback_plan(
+    session: Session,
+    assessment_id: str,
+    skill_id: str,
+    rollback_steps_json: str,
+    backup_strategy: str,
+    estimated_rollback_time_minutes: int,
+) -> WriteRollbackPlan:
+    row = WriteRollbackPlan(
+        id=f"write_rollback_{uuid4().hex}",
+        assessment_id=assessment_id,
+        skill_id=skill_id,
+        rollback_steps_json=rollback_steps_json,
+        backup_strategy=backup_strategy,
+        estimated_rollback_time_minutes=estimated_rollback_time_minutes,
+        can_execute_real_writes=False,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_latest_write_rollback_plan_for_skill(session: Session, skill_id: str) -> WriteRollbackPlan | None:
+    return (
+        session.query(WriteRollbackPlan)
+        .filter(WriteRollbackPlan.skill_id == skill_id)
+        .order_by(WriteRollbackPlan.created_at.desc())
+        .first()
+    )
+
+
+def create_write_readiness_certification(
+    session: Session,
+    skill_id: str,
+    assessment_id: str,
+    certification_status: str,
+    overall_risk_level: str,
+    evidence_json: str,
+    impact_preview_id: str | None = None,
+    rollback_plan_id: str | None = None,
+) -> WriteReadinessCertification:
+    row = WriteReadinessCertification(
+        id=f"write_cert_{uuid4().hex}",
+        skill_id=skill_id,
+        assessment_id=assessment_id,
+        impact_preview_id=impact_preview_id,
+        rollback_plan_id=rollback_plan_id,
+        certification_status=certification_status,
+        overall_risk_level=overall_risk_level,
+        dual_approval_required=True,
+        can_certify_real_execution=False,
+        can_execute_real_writes=False,
+        real_erp_writes_enabled=False,
+        approved_for_real_execution=False,
+        evidence_json=evidence_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_write_readiness_certification(session: Session, certification_id: str) -> WriteReadinessCertification | None:
+    return session.get(WriteReadinessCertification, certification_id)
+
+
+def get_latest_write_readiness_certification_for_skill(session: Session, skill_id: str) -> WriteReadinessCertification | None:
+    return (
+        session.query(WriteReadinessCertification)
+        .filter(WriteReadinessCertification.skill_id == skill_id)
+        .order_by(WriteReadinessCertification.created_at.desc())
+        .first()
+    )
