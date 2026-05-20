@@ -143,3 +143,6 @@
 - Added tests for the read-only client, diagnosis service, and Odoo diagnosis API; focused validation passed with `33 passed`.
 - Ran `git diff --check`; result: clean.
 - Ran `python -m pytest`; result: `195 passed, 9 skipped`.
+- Validated the sprint against real Odoo 19.0-20260513 over XML-RPC; authentication returned uid=2 and the diagnosis surfaced missing configured capacity-field and formula-model warnings instead of raising writes or breaking the flow.
+- Updated the diagnosis service so product samples do not request an unavailable configured capacity field, allowing the real Odoo diagnosis to degrade cleanly with warnings.
+- Re-ran the focused Sprint 1 test slice after the live fix; result: `33 passed`.

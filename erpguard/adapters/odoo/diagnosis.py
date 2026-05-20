@@ -68,7 +68,10 @@ class OdooDiagnosisService:
 
         sales_samples = self._get_sales_order_samples(sample_limits["sales_orders"]) if include_samples else []
         product_samples = (
-            self._get_product_samples(sample_limits["products"], capacity_detection.get("field_name"))
+            self._get_product_samples(
+                sample_limits["products"],
+                capacity_detection.get("field_name") if capacity_detection.get("found", False) else None,
+            )
             if include_samples
             else []
         )
