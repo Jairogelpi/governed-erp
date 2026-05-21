@@ -145,3 +145,6 @@
 - Ran `python -m pytest`; result: `195 passed, 9 skipped`.
 - Resolved merge conflicts from `git pull` by preserving the accumulated v0.4-v0.8 implementation/documentation side for `AGENTS.md`, `README.md`, `apps/api/routes/demo_dashboard.py`, `apps/api/routes/skills.py`, and `docs/specs/26_skill_inspector_v0_4.md`; no feature behavior was intentionally changed beyond conflict resolution.
 - Restored the human-facing `workflow steps` wording in the `/demo` Skill Inspector copy after conflict resolution so existing dashboard coverage still matches the page text.
+- Validated the sprint against real Odoo 19.0-20260513 over XML-RPC; authentication returned uid=2 and the diagnosis surfaced missing configured capacity-field and formula-model warnings instead of raising writes or breaking the flow.
+- Updated the diagnosis service so product samples do not request an unavailable configured capacity field, allowing the real Odoo diagnosis to degrade cleanly with warnings.
+- Re-ran the focused Sprint 1 test slice after the live fix; result: `33 passed`.

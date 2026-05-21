@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from erpguard.adapters.odoo.config import OdooConfig
 from erpguard.adapters.odoo.client import OdooClient
 from erpguard.core.errors import ReadOnlyViolationError
 
@@ -45,3 +46,7 @@ class OdooReadOnlyClient:
 
     def search_count(self, model: str, domain: list) -> int:
         return int(self.execute_kw(model, "search_count", [domain], {}))
+
+
+def build_readonly_client(config: OdooConfig) -> OdooReadOnlyClient:
+    return OdooReadOnlyClient(OdooClient(config))
