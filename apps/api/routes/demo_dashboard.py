@@ -301,6 +301,33 @@ selectors captured: none</pre>
         <pre id="approvalDecisionSimulation">No approval decision simulated yet.</pre>
       </div>
       <div class="card full">
+        <h2>Release Candidate v0.12.0-rc1 — Operator Demo Pack</h2>
+        <p>
+          Sprint 12 — Packaging checkpoint. Seed demo data, check release readiness, run operator smoke test,
+          and inspect safety boundaries. No new ERP capabilities. All write flags off by default.
+          ALLOW_GENERIC_REAL_ODOO_WRITES=false. ALLOW_R3_R4_REAL_WRITES=false always.
+        </p>
+        <div class="toolbar">
+          <button id="rcHealth" type="button">Release health</button>
+          <button id="rcReadiness" type="button">Readiness report</button>
+          <button id="rcDemoSeed" type="button">Seed demo data</button>
+          <button id="rcSmoke" type="button">Run operator smoke test</button>
+          <button id="rcSafetyBoundaries" type="button">Safety boundaries</button>
+        </div>
+        <p class="tiny" id="rcMessage">Check release health and readiness before seeding demo data or running the smoke test.</p>
+        <pre id="rc-health-output">No health check yet.</pre>
+        <pre id="rc-readiness-output">No readiness report yet.</pre>
+        <pre id="rc-seed-output">No demo seed yet.</pre>
+        <pre id="rc-smoke-output">No smoke test yet.</pre>
+        <pre id="rc-safety-output">No safety boundaries yet.</pre>
+        <p class="tiny">
+          Sprint chain: 13 sprints (1 → 12) implemented and passing.
+          Safety: <code>can_execute_real_writes=false</code> /
+          <code>ALLOW_GENERIC_REAL_ODOO_WRITES=false</code> /
+          <code>ALLOW_R3_R4_REAL_WRITES=false</code>
+        </p>
+      </div>
+      <div class="card full">
         <h2>R2 Pilot Evidence Review, Rollback Rehearsal &amp; Production Readiness</h2>
         <p>
           Sprint 11 — Make the R2 pilot operationally defensible. Review evidence (pre/post snapshot delta),
@@ -1624,6 +1651,103 @@ selectors captured: none</pre>
       } finally {
         runDryRunProofButton.disabled = false;
       }
+    });
+
+    // Sprint 12 — Release Candidate v0.12.0-rc1 — Operator Demo Pack
+    const rcMessage = document.getElementById("rcMessage");
+    const rcHealthOutput = document.getElementById("rc-health-output");
+    const rcReadinessOutput = document.getElementById("rc-readiness-output");
+    const rcSeedOutput = document.getElementById("rc-seed-output");
+    const rcSmokeOutput = document.getElementById("rc-smoke-output");
+    const rcSafetyOutput = document.getElementById("rc-safety-output");
+
+    document.getElementById("rcHealth").addEventListener("click", async () => {
+      rcMessage.textContent = "Checking release health...";
+      try {
+        const response = await fetch("/v1/release/health");
+        const body = await response.json();
+        rcHealthOutput.textContent = jsonText({
+          status: body.status,
+          version: body.version,
+          db_accessible: body.db_accessible,
+          safety_boundaries_locked: body.safety_boundaries_locked,
+          safety_boundaries: body.safety_boundaries,
+        });
+        rcMessage.textContent = `Release health: ${body.status} — v${body.version} — DB: ${body.db_accessible} — Safety locked: ${body.safety_boundaries_locked}`;
+      } catch (error) { rcHealthOutput.textContent = `Health check failed: ${String(error)}`; }
+    });
+
+    document.getElementById("rcReadiness").addEventListener("click", async () => {
+      rcMessage.textContent = "Loading readiness report...";
+      try {
+        const response = await fetch("/v1/release/readiness-report");
+        const body = await response.json();
+        rcReadinessOutput.textContent = jsonText({
+          release_version: body.release_version,
+          status: body.status,
+          readiness_score: body.readiness_score,
+          checks_passed: body.checks_passed,
+          checks_total: body.checks_total,
+          checks: (body.checks || []).map(c => ({ name: c.name, passed: c.passed })),
+          sprint_chain: (body.sprint_chain || []).length + " sprints",
+          entity_counts: body.entity_counts || {},
+        });
+        rcMessage.textContent = `Readiness: ${body.status} — ${body.readiness_score}% — ${body.checks_passed}/${body.checks_total} checks passed`;
+      } catch (error) { rcReadinessOutput.textContent = `Readiness failed: ${String(error)}`; }
+    });
+
+    document.getElementById("rcDemoSeed").addEventListener("click", async () => {
+      rcMessage.textContent = "Seeding demo data...";
+      try {
+        const response = await fetch("/v1/release/demo-seed", { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) { rcSeedOutput.textContent = `Seed failed: ${body?.error?.message || "unknown"}`; return; }
+        rcSeedOutput.textContent = jsonText({
+          seeded: body.seeded,
+          tenant_id: body.tenant_id,
+          tenant_name: body.tenant_name,
+          skill_id: body.skill_id,
+          operator_session_id: body.operator_session_id,
+          operator_session_step: body.operator_session_step,
+          next_steps: body.next_steps || [],
+        });
+        rcMessage.textContent = `Demo seeded: tenant=${body.tenant_id} skill=${body.skill_id} session=${body.operator_session_id}`;
+      } catch (error) { rcSeedOutput.textContent = `Seed failed: ${String(error)}`; }
+    });
+
+    document.getElementById("rcSmoke").addEventListener("click", async () => {
+      rcMessage.textContent = "Running operator smoke test...";
+      try {
+        const response = await fetch("/v1/release/operator-smoke", { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) { rcSmokeOutput.textContent = `Smoke failed: ${body?.error?.message || "unknown"}`; return; }
+        rcSmokeOutput.textContent = jsonText({
+          smoke_status: body.smoke_status,
+          checks_passed: body.checks_passed,
+          checks_total: body.checks_total,
+          checks: (body.checks || []).map(c => ({ name: c.name, passed: c.passed, detail: c.detail })),
+          safety_invariants: body.safety_invariants,
+        });
+        rcMessage.textContent = `Smoke test: ${body.smoke_status} — ${body.checks_passed}/${body.checks_total} checks`;
+      } catch (error) { rcSmokeOutput.textContent = `Smoke failed: ${String(error)}`; }
+    });
+
+    document.getElementById("rcSafetyBoundaries").addEventListener("click", async () => {
+      rcMessage.textContent = "Loading safety boundaries...";
+      try {
+        const response = await fetch("/v1/release/safety-boundaries");
+        const body = await response.json();
+        rcSafetyOutput.textContent = jsonText({
+          safety_boundaries: body.safety_boundaries,
+          allowed_r1_models: body.allowed_r1_models,
+          allowed_r2_models: body.allowed_r2_models,
+          allowed_r2_fields: body.allowed_r2_fields,
+          allowed_environments: body.allowed_environments,
+          blocked_operations: body.blocked_operations,
+          notes: body.notes,
+        });
+        rcMessage.textContent = `Safety boundaries loaded. R1: ${(body.allowed_r1_models || []).join(", ")}. R2: ${(body.allowed_r2_models || []).join(", ")}.`;
+      } catch (error) { rcSafetyOutput.textContent = `Safety boundaries failed: ${String(error)}`; }
     });
 
     // Sprint 11 — R2 Evidence Review, Rollback Rehearsal & Production Readiness
