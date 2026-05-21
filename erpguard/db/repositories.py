@@ -14,6 +14,8 @@ from erpguard.db.models import (
     AutomationDraftReview,
     BlockedWriteEvidenceRecord,
     Connection,
+    ConnectorAuthProfile,
+    ConnectorCredentialAuditEvent,
     BusinessSignal,
     BusinessSnapshot,
     ExecutionRequest,
@@ -663,6 +665,88 @@ def list_agent_builder_events(session: Session, session_id: str) -> list[AgentBu
         session.query(AgentBuilderEvent)
         .filter(AgentBuilderEvent.session_id == session_id)
         .order_by(AgentBuilderEvent.created_at.asc())
+        .all()
+    )
+
+
+def create_connector_auth_profile(
+    session: Session,
+    *,
+    connector_id: str,
+    display_name: str,
+    auth_type: str,
+    requested_scopes_json: str,
+    credential_ref: str,
+    secret_fingerprint: str,
+    created_by_actor_json: str,
+    oauth_readiness_json: str,
+    status: str = "active",
+) -> ConnectorAuthProfile:
+    row = ConnectorAuthProfile(
+        id=f"auth_profile_{uuid4().hex[:16]}",
+        connector_id=connector_id,
+        display_name=display_name,
+        auth_type=auth_type,
+        status=status,
+        requested_scopes_json=requested_scopes_json,
+        credential_ref=credential_ref,
+        secret_fingerprint=secret_fingerprint,
+        created_by_actor_json=created_by_actor_json,
+        oauth_readiness_json=oauth_readiness_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_connector_auth_profile(session: Session, profile_id: str) -> ConnectorAuthProfile | None:
+    return session.get(ConnectorAuthProfile, profile_id)
+
+
+def list_connector_auth_profiles(session: Session) -> list[ConnectorAuthProfile]:
+    return list(session.query(ConnectorAuthProfile).order_by(ConnectorAuthProfile.created_at.desc()).all())
+
+
+def update_connector_auth_profile(session: Session, profile_id: str, **updates) -> ConnectorAuthProfile | None:
+    row = session.get(ConnectorAuthProfile, profile_id)
+    if row is None:
+        return None
+    for key, value in updates.items():
+        setattr(row, key, value)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def create_connector_credential_audit_event(
+    session: Session,
+    *,
+    profile_id: str,
+    event_type: str,
+    status: str,
+    actor_json: str,
+    details_json: str,
+) -> ConnectorCredentialAuditEvent:
+    row = ConnectorCredentialAuditEvent(
+        id=f"credential_audit_{uuid4().hex[:16]}",
+        profile_id=profile_id,
+        event_type=event_type,
+        status=status,
+        actor_json=actor_json,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_connector_credential_audit_events(session: Session, profile_id: str) -> list[ConnectorCredentialAuditEvent]:
+    return list(
+        session.query(ConnectorCredentialAuditEvent)
+        .filter(ConnectorCredentialAuditEvent.profile_id == profile_id)
+        .order_by(ConnectorCredentialAuditEvent.created_at.asc())
         .all()
     )
 

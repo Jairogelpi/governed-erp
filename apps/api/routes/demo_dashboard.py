@@ -658,6 +658,34 @@ selectors captured: none</pre>
         <pre id="marketplaceInstallOutput">No marketplace draft installed yet.</pre>
       </div>
       <div class="card full">
+        <h2>Connector Credential Vault</h2>
+        <p>
+          Sprint 17 — Prepare connector authorization without enabling providers.
+          No real OAuth flow. No external connector API calls. Secrets are redacted before any response or audit view.
+        </p>
+        <div class="toolbar">
+          <label>
+            Connector ID
+            <input id="connectorAuthConnectorId" value="gmail" />
+          </label>
+          <label>
+            Scope
+            <input id="connectorAuthScope" value="gmail.readonly" />
+          </label>
+          <button id="loadConnectorScopes" type="button">Load scopes</button>
+          <button id="createConnectorAuthProfile" type="button">Create auth profile</button>
+          <button id="testConnectorAuthProfile" type="button">Simulate test</button>
+          <button id="rotateConnectorAuthProfile" type="button">Rotate</button>
+          <button id="revokeConnectorAuthProfile" type="button">Revoke</button>
+          <button id="loadConnectorAuthAudit" type="button">Audit</button>
+        </div>
+        <p class="tiny">Credential Vault, Connector Auth Profile, OAuth Readiness Placeholder, Scope Registry, Secret Redaction, Connection Test Simulation, Revoke / Rotate, Audit Trail.</p>
+        <pre id="connectorScopesOutput">No connector scopes loaded yet.</pre>
+        <pre id="connectorAuthProfileOutput">No connector auth profile created yet.</pre>
+        <pre id="connectorAuthTestOutput">No simulated connection test yet.</pre>
+        <pre id="connectorAuthAuditOutput">No connector credential audit loaded yet.</pre>
+      </div>
+      <div class="card full">
         <h2>Safe Skill Review &amp; Compilation</h2>
         <p>
           Sprint 3 — Convert a Sprint 2 automation_draft into a safe, versioned skill.
@@ -787,6 +815,12 @@ selectors captured: none</pre>
     const agentBuilderStepLibraryOutput = document.getElementById("agentBuilderStepLibraryOutput");
     const agentBuilderPreviewOutput = document.getElementById("agentBuilderPreviewOutput");
     const agentBuilderDraftOutput = document.getElementById("agentBuilderDraftOutput");
+    const connectorAuthConnectorIdInput = document.getElementById("connectorAuthConnectorId");
+    const connectorAuthScopeInput = document.getElementById("connectorAuthScope");
+    const connectorScopesOutput = document.getElementById("connectorScopesOutput");
+    const connectorAuthProfileOutput = document.getElementById("connectorAuthProfileOutput");
+    const connectorAuthTestOutput = document.getElementById("connectorAuthTestOutput");
+    const connectorAuthAuditOutput = document.getElementById("connectorAuthAuditOutput");
 
     const humanState = {
       recordingId: null,
@@ -804,6 +838,10 @@ selectors captured: none</pre>
 
     const agentBuilderState = {
       sessionId: null,
+    };
+
+    const connectorAuthState = {
+      profileId: null,
     };
 
     const humanDefaults = {
@@ -1018,6 +1056,88 @@ selectors captured: none</pre>
       if (body.automation_draft_id) {
         compileDraftIdInput.value = body.automation_draft_id;
       }
+    };
+
+    const loadConnectorScopes = async () => {
+      const response = await fetch("/v1/connectors/scopes");
+      const body = await response.json();
+      connectorScopesOutput.textContent = response.ok ? jsonText(body) : `Scopes failed: ${body?.error?.message || "unknown error"}`;
+    };
+
+    const connectorAuthPayload = (secretValue) => ({
+      connector_id: connectorAuthConnectorIdInput.value.trim() || "gmail",
+      display_name: "Demo connector auth profile",
+      auth_type: "oauth_placeholder",
+      requested_scopes: [connectorAuthScopeInput.value.trim() || "gmail.readonly"],
+      credential: { access_token: secretValue },
+      created_by: defaults.actor,
+    });
+
+    const createConnectorAuthProfile = async () => {
+      const response = await fetch("/v1/connectors/auth-profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(connectorAuthPayload("demo_secret_redacted")),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        connectorAuthProfileOutput.textContent = `Auth profile failed: ${body?.error?.message || "unknown error"}`;
+        return;
+      }
+      connectorAuthState.profileId = body.profile_id;
+      connectorAuthProfileOutput.textContent = jsonText(body);
+    };
+
+    const testConnectorAuthProfile = async () => {
+      if (!connectorAuthState.profileId) {
+        connectorAuthTestOutput.textContent = "Create a connector auth profile first.";
+        return;
+      }
+      const response = await fetch(`/v1/connectors/auth-profiles/${connectorAuthState.profileId}/test`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actor: defaults.actor }),
+      });
+      const body = await response.json();
+      connectorAuthTestOutput.textContent = response.ok ? jsonText(body) : `Test failed: ${body?.error?.message || "unknown error"}`;
+    };
+
+    const rotateConnectorAuthProfile = async () => {
+      if (!connectorAuthState.profileId) {
+        connectorAuthProfileOutput.textContent = "Create a connector auth profile first.";
+        return;
+      }
+      const response = await fetch(`/v1/connectors/auth-profiles/${connectorAuthState.profileId}/rotate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential: { access_token: "rotated_secret_redacted" }, actor: defaults.actor }),
+      });
+      const body = await response.json();
+      connectorAuthProfileOutput.textContent = response.ok ? jsonText(body) : `Rotate failed: ${body?.error?.message || "unknown error"}`;
+    };
+
+    const revokeConnectorAuthProfile = async () => {
+      if (!connectorAuthState.profileId) {
+        connectorAuthProfileOutput.textContent = "Create a connector auth profile first.";
+        return;
+      }
+      const response = await fetch(`/v1/connectors/auth-profiles/${connectorAuthState.profileId}/revoke`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actor: defaults.actor }),
+      });
+      const body = await response.json();
+      connectorAuthProfileOutput.textContent = response.ok ? jsonText(body) : `Revoke failed: ${body?.error?.message || "unknown error"}`;
+    };
+
+    const loadConnectorAuthAudit = async () => {
+      if (!connectorAuthState.profileId) {
+        connectorAuthAuditOutput.textContent = "Create a connector auth profile first.";
+        return;
+      }
+      const response = await fetch(`/v1/connectors/auth-profiles/${connectorAuthState.profileId}/audit`);
+      const body = await response.json();
+      connectorAuthAuditOutput.textContent = response.ok ? jsonText(body) : `Audit failed: ${body?.error?.message || "unknown error"}`;
     };
 
     const renderProductAnalysis = (result) => {
@@ -3049,6 +3169,12 @@ selectors captured: none</pre>
     document.getElementById("configureAgentBuilder").addEventListener("click", configureAgentBuilder);
     document.getElementById("previewAgentBuilder").addEventListener("click", previewAgentBuilder);
     document.getElementById("saveAgentBuilderDraft").addEventListener("click", saveAgentBuilderDraft);
+    document.getElementById("loadConnectorScopes").addEventListener("click", loadConnectorScopes);
+    document.getElementById("createConnectorAuthProfile").addEventListener("click", createConnectorAuthProfile);
+    document.getElementById("testConnectorAuthProfile").addEventListener("click", testConnectorAuthProfile);
+    document.getElementById("rotateConnectorAuthProfile").addEventListener("click", rotateConnectorAuthProfile);
+    document.getElementById("revokeConnectorAuthProfile").addEventListener("click", revokeConnectorAuthProfile);
+    document.getElementById("loadConnectorAuthAudit").addEventListener("click", loadConnectorAuthAudit);
 
     runButton.addEventListener("click", async () => {
       runButton.disabled = true;

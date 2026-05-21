@@ -154,6 +154,25 @@ requires_approval=true
 
 The builder blocks forbidden step types such as shell commands, raw Odoo execution, direct HTTP calls, browser automation, and high-risk business actions. Saving creates an `AutomationDraft`; the existing review, compile, approval, and activation flow remains mandatory.
 
+## Connector Credential Vault & OAuth Readiness
+
+Sprint 17 prepares secure connector authorization metadata before any real external connector execution is enabled.
+
+Connector auth endpoints:
+
+- `POST /v1/connectors/auth-profiles`
+- `GET /v1/connectors/auth-profiles`
+- `GET /v1/connectors/auth-profiles/{profile_id}`
+- `POST /v1/connectors/auth-profiles/{profile_id}/test`
+- `POST /v1/connectors/auth-profiles/{profile_id}/rotate`
+- `POST /v1/connectors/auth-profiles/{profile_id}/revoke`
+- `GET /v1/connectors/auth-profiles/{profile_id}/audit`
+- `GET /v1/connectors/scopes`
+
+The vault stores only a credential reference and fingerprint in the application database. API responses, simulated test results, and audit events expose redacted metadata only.
+
+Sprint 17 intentionally does not add real OAuth, Gmail/Calendar/Drive/WhatsApp API calls, MCP execution, or new ERP write capability. Connection tests are simulated and report `provider_api_called=false`.
+
 ## Current Demo Story
 
 Implemented: record once in the Fake ERP demo, validate readiness, compile a reusable skill, inspect the compiled package, run it deterministically, and audit the resulting runs and steps.

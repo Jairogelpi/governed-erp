@@ -679,6 +679,35 @@ class AgentBuilderEvent(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
 
 
+class ConnectorAuthProfile(Base):
+    __tablename__ = "connector_auth_profiles"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    connector_id: Mapped[str] = mapped_column(Text, nullable=False)
+    display_name: Mapped[str] = mapped_column(Text, nullable=False)
+    auth_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    requested_scopes_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    secret_fingerprint: Mapped[str] = mapped_column(Text, nullable=False)
+    created_by_actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    oauth_readiness_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class ConnectorCredentialAuditEvent(Base):
+    __tablename__ = "connector_credential_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    profile_id: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
 class R2WritePilotRequest(Base):
     __tablename__ = "r2_write_pilot_requests"
 

@@ -18,6 +18,7 @@ from apps.api.routes.r2_readiness import router as r2_readiness_router
 from apps.api.routes.release import router as release_router
 from apps.api.routes.marketplace import router as marketplace_router
 from apps.api.routes.agent_builder import router as agent_builder_router
+from apps.api.routes.connector_auth import router as connector_auth_router
 from apps.api.routes.skill_compilation import router as skill_compilation_router
 from apps.api.routes.recordings import router as recordings_router
 from apps.api.routes.preflight import router as preflight_router
@@ -48,6 +49,7 @@ app.include_router(r2_readiness_router)
 app.include_router(release_router)
 app.include_router(marketplace_router)
 app.include_router(agent_builder_router)
+app.include_router(connector_auth_router)
 app.include_router(audit_router)
 app.include_router(skills_router)
 app.include_router(fake_erp_router)
