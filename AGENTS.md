@@ -148,3 +148,15 @@
 - Validated the sprint against real Odoo 19.0-20260513 over XML-RPC; authentication returned uid=2 and the diagnosis surfaced missing configured capacity-field and formula-model warnings instead of raising writes or breaking the flow.
 - Updated the diagnosis service so product samples do not request an unavailable configured capacity field, allowing the real Odoo diagnosis to degrade cleanly with warnings.
 - Re-ran the focused Sprint 1 test slice after the live fix; result: `33 passed`.
+- Started Sprint 13 clean-install release hardening from GitHub issue #11. Added tests first for release endpoint availability, safety boundaries, release docs, `.env.example`, and startup/check scripts; initial focused run failed only on the expected missing Sprint 13 artifacts and release DB default.
+- Added `docs/release/05_clean_install_vps_validation.md` with the clean VPS flow, required commands, release endpoint checks, demo UI result, smoke test result, safety validation, remaining manual steps, and final status `validated_with_fixes`.
+- Added `docs/release/06_release_fix_log.md` documenting each Sprint 13 hardening fix with problem, root cause, file changed, fix applied, and validation command.
+- Updated `.env.example` with the release candidate SQLite DB path and explicit false defaults for real-write flags; no secrets or private Odoo values were added.
+- Added `scripts/check_release_install.py`, `scripts/start_release_candidate.sh`, and `scripts/start_release_candidate.ps1` for clean-install checking and one-command release startup without adding ERP capabilities.
+- Updated `docs/release/01_install_and_run.md` and `README.md` with clean venv setup, `pip install -e ".[dev]"`, DB init, release startup scripts, endpoint validation, `/demo`, and safety defaults.
+- Fixed the Sprint 13 install guide to include the portable `scripts/start_release_candidate.ps1` path expected by the release docs contract.
+- Verified Sprint 13 focused contracts with `python -m pytest tests/test_release_clean_install_contract.py tests/test_release_docs_contract.py -q`; result: `8 passed`.
+- Verified editable install with `python -m pip install -e ".[dev]"`; result: success. Pip emitted a non-blocking local warning about an unrelated invalid `~penai` distribution.
+- Ran full verification with `python -m pytest`; result: `595 passed, 2 warnings`.
+- Started `uvicorn apps.api.main:app --host 0.0.0.0 --port 8000` locally and validated `GET /v1/release/health`, `GET /v1/release/readiness-report`, `POST /v1/release/demo-seed`, `POST /v1/release/operator-smoke`, `GET /v1/release/safety-boundaries`, and `GET /demo`; all returned `200`.
+- Ran `python scripts/check_release_install.py --base-url http://127.0.0.1:8000`; result: `passed (14/14)`.

@@ -2,6 +2,51 @@
 
 ERPGuard is a semantic safety layer for ERP operations. This repository is currently in Phase 1: the Odoo Preflight Core backend foundation.
 
+## Release Candidate v0.12.0-rc1
+
+ERPGuard v0.12.0-rc1 is packaged as an operator release candidate.
+
+Release validation endpoints:
+
+- `GET /v1/release/health`
+- `GET /v1/release/readiness-report`
+- `POST /v1/release/demo-seed`
+- `POST /v1/release/operator-smoke`
+- `GET /v1/release/safety-boundaries`
+
+Clean install helpers:
+
+- [docs/release/01_install_and_run.md](docs/release/01_install_and_run.md)
+- [docs/release/05_clean_install_vps_validation.md](docs/release/05_clean_install_vps_validation.md)
+- [docs/release/06_release_fix_log.md](docs/release/06_release_fix_log.md)
+- `.env.example`
+- `scripts/check_release_install.py`
+- `scripts/start_release_candidate.sh`
+- `scripts/start_release_candidate.ps1`
+
+Quick clean-install shape:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+cp .env.example .env
+bash scripts/start_release_candidate.sh
+```
+
+Then validate from another shell:
+
+```bash
+python scripts/check_release_install.py --base-url http://127.0.0.1:8000
+```
+
+Safety defaults remain locked:
+
+```text
+ALLOW_GENERIC_REAL_ODOO_WRITES=false
+ALLOW_R3_R4_REAL_WRITES=false
+```
+
 ## Current Demo Story
 
 Implemented: record once in the Fake ERP demo, validate readiness, compile a reusable skill, inspect the compiled package, run it deterministically, and audit the resulting runs and steps.
