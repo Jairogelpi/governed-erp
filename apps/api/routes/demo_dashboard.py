@@ -301,6 +301,37 @@ selectors captured: none</pre>
         <pre id="approvalDecisionSimulation">No approval decision simulated yet.</pre>
       </div>
       <div class="card full">
+        <h2>ERP Agent OS — End-to-End Operator Flow</h2>
+        <p>
+          Sprint 10A — Guided operator flow. Move through the full ERP Agent OS path without manually copying IDs.
+          Each step advances automatically: tenant creation, connection selection, business analysis, skill compilation,
+          approval, activation, live read, and write readiness. No new ERP writes. ALLOW_GENERIC_REAL_ODOO_WRITES=false.
+        </p>
+        <div class="toolbar">
+          <button id="ofCreateSession" type="button">Create operator session</button>
+          <label>
+            Connection ID
+            <input id="ofConnectionId" placeholder="conn_..." />
+          </label>
+          <button id="ofSelectConnection" type="button">Select connection</button>
+          <button id="ofRunNext" type="button">Run next step</button>
+          <button id="ofRunSafeReadonly" type="button">Run full safe read-only path</button>
+          <button id="ofTimeline" type="button">View timeline</button>
+          <button id="ofSummary" type="button">View summary</button>
+        </div>
+        <p class="tiny" id="ofMessage">Create a session first, then optionally select an Odoo connection and run the flow.</p>
+        <pre id="of-session-output">No operator session yet.</pre>
+        <pre id="of-run-output">No step run yet.</pre>
+        <pre id="of-timeline-output">No timeline yet.</pre>
+        <pre id="of-summary-output">No summary yet.</pre>
+        <p class="tiny">
+          Safety: <code>can_execute_real_writes=false</code> /
+          <code>ALLOW_GENERIC_REAL_ODOO_WRITES=false</code> /
+          <code>ALLOW_R3_R4_REAL_WRITES=false</code> /
+          <code>approved_for_real_execution=false</code>
+        </p>
+      </div>
+      <div class="card full">
         <h2>Production Safety &amp; Tenant Controls</h2>
         <p>
           Sprint 9 — Platform hardening before any new write risk. Tenant lifecycle, per-tenant kill switches,
@@ -1530,6 +1561,130 @@ selectors captured: none</pre>
       } finally {
         runDryRunProofButton.disabled = false;
       }
+    });
+
+    // Sprint 10A — End-to-End Operator Flow
+    const ofMessage = document.getElementById("ofMessage");
+    const ofSessionOutput = document.getElementById("of-session-output");
+    const ofRunOutput = document.getElementById("of-run-output");
+    const ofTimelineOutput = document.getElementById("of-timeline-output");
+    const ofSummaryOutput = document.getElementById("of-summary-output");
+    const ofConnectionIdInput = document.getElementById("ofConnectionId");
+    const ofState = { sessionId: null };
+
+    const renderOfSession = (body) => {
+      ofSessionOutput.textContent = jsonText({
+        session_id: body.session_id,
+        current_step: body.current_step,
+        status: body.status,
+        tenant_id: body.tenant_id,
+        connection_id: body.connection_id,
+        known_ids: body.known_ids || {},
+      });
+    };
+
+    document.getElementById("ofCreateSession").addEventListener("click", async () => {
+      ofMessage.textContent = "Creating operator session...";
+      try {
+        const response = await fetch("/v1/product/operator-sessions", { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) { ofSessionOutput.textContent = `Create failed: ${body?.error?.message || "unknown"}`; return; }
+        ofState.sessionId = body.session_id;
+        renderOfSession(body);
+        ofMessage.textContent = `Session created: ${body.session_id} — current step: ${body.current_step}`;
+      } catch (error) { ofSessionOutput.textContent = `Create failed: ${String(error)}`; }
+    });
+
+    document.getElementById("ofSelectConnection").addEventListener("click", async () => {
+      if (!ofState.sessionId) { ofMessage.textContent = "Create a session first."; return; }
+      const connectionId = ofConnectionIdInput?.value?.trim();
+      if (!connectionId) { ofMessage.textContent = "Enter a connection ID first."; return; }
+      ofMessage.textContent = `Selecting connection ${connectionId}...`;
+      try {
+        const response = await fetch(`/v1/product/operator-sessions/${ofState.sessionId}/select-connection`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ connection_id: connectionId }),
+        });
+        const body = await response.json();
+        if (!response.ok) { ofSessionOutput.textContent = `Select failed: ${body?.error?.message || "unknown"}`; return; }
+        renderOfSession(body);
+        ofMessage.textContent = `Connection selected: ${connectionId} — step: ${body.current_step}`;
+      } catch (error) { ofSessionOutput.textContent = `Select failed: ${String(error)}`; }
+    });
+
+    document.getElementById("ofRunNext").addEventListener("click", async () => {
+      if (!ofState.sessionId) { ofMessage.textContent = "Create a session first."; return; }
+      ofMessage.textContent = `Running next step for ${ofState.sessionId}...`;
+      try {
+        const response = await fetch(`/v1/product/operator-sessions/${ofState.sessionId}/run-next`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) { ofRunOutput.textContent = `Run next failed: ${body?.error?.message || "unknown"}`; return; }
+        renderOfSession(body);
+        ofRunOutput.textContent = jsonText({
+          step_status: body.step_status,
+          message: body.message,
+          current_step: body.current_step,
+          known_ids: body.known_ids || {},
+        });
+        ofMessage.textContent = `Step: ${body.step_status} — ${body.message || "ok"} — now at: ${body.current_step}`;
+      } catch (error) { ofRunOutput.textContent = `Run next failed: ${String(error)}`; }
+    });
+
+    document.getElementById("ofRunSafeReadonly").addEventListener("click", async () => {
+      if (!ofState.sessionId) { ofMessage.textContent = "Create a session first."; return; }
+      ofMessage.textContent = `Running full safe read-only path for ${ofState.sessionId}...`;
+      try {
+        const response = await fetch(`/v1/product/operator-sessions/${ofState.sessionId}/run-safe-readonly-path`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) { ofRunOutput.textContent = `Run path failed: ${body?.error?.message || "unknown"}`; return; }
+        renderOfSession(body);
+        ofRunOutput.textContent = jsonText({
+          steps_executed: body.steps_executed || [],
+          errors: body.errors || [],
+          current_step: body.current_step,
+          known_ids: body.known_ids || {},
+        });
+        const count = (body.steps_executed || []).length;
+        ofMessage.textContent = `Safe path: ${count} step(s) executed — now at: ${body.current_step}`;
+      } catch (error) { ofRunOutput.textContent = `Run path failed: ${String(error)}`; }
+    });
+
+    document.getElementById("ofTimeline").addEventListener("click", async () => {
+      if (!ofState.sessionId) { ofMessage.textContent = "Create a session first."; return; }
+      ofMessage.textContent = `Loading timeline for ${ofState.sessionId}...`;
+      try {
+        const response = await fetch(`/v1/product/operator-sessions/${ofState.sessionId}/timeline`);
+        const body = await response.json();
+        if (!response.ok) { ofTimelineOutput.textContent = `Timeline failed: ${body?.error?.message || "unknown"}`; return; }
+        ofTimelineOutput.textContent = jsonText({
+          current_step: body.current_step,
+          steps_completed: body.steps_completed || [],
+          steps_errored: body.steps_errored || [],
+          events: (body.events || []).map(ev => ({ step: ev.step, status: ev.status, message: ev.detail?.message || ev.detail?.error || "" })),
+        });
+        ofMessage.textContent = `Timeline: ${(body.steps_completed || []).length} completed, ${(body.steps_errored || []).length} errored.`;
+      } catch (error) { ofTimelineOutput.textContent = `Timeline failed: ${String(error)}`; }
+    });
+
+    document.getElementById("ofSummary").addEventListener("click", async () => {
+      if (!ofState.sessionId) { ofMessage.textContent = "Create a session first."; return; }
+      ofMessage.textContent = `Loading summary for ${ofState.sessionId}...`;
+      try {
+        const response = await fetch(`/v1/product/operator-sessions/${ofState.sessionId}/summary`);
+        const body = await response.json();
+        if (!response.ok) { ofSummaryOutput.textContent = `Summary failed: ${body?.error?.message || "unknown"}`; return; }
+        ofSummaryOutput.textContent = jsonText({
+          status: body.status,
+          current_step: body.current_step,
+          progress_pct: body.progress_pct,
+          steps_completed: body.steps_completed,
+          steps_total: body.steps_total,
+          known_ids: body.known_ids || {},
+          safety_invariants: body.safety_invariants || {},
+        });
+        ofMessage.textContent = `Summary: ${body.progress_pct}% complete — ${body.steps_completed}/${body.steps_total} steps — ${body.current_step}`;
+      } catch (error) { ofSummaryOutput.textContent = `Summary failed: ${String(error)}`; }
     });
 
     // Sprint 9 — Production Safety & Tenant Controls

@@ -22,6 +22,8 @@ from erpguard.db.models import (
     LiveReadEvidence,
     LiveReadExecutionRequest,
     LiveReadRun,
+    OperatorSession,
+    OperatorSessionEvent,
     PreflightCase,
     RecordingEvent,
     RecordingSession,
@@ -1628,4 +1630,91 @@ def count_write_pilot_runs_recent(session: Session, hours: int = 24) -> int:
         session.query(WritePilotRun)
         .filter(WritePilotRun.created_at >= cutoff)
         .count()
+    )
+
+
+# Sprint 10A — Operator Flow repositories
+
+def create_operator_session(
+    session: Session,
+    *,
+    tenant_id: str | None = None,
+    connection_id: str | None = None,
+    current_step: str = "awaiting_tenant",
+    status: str = "active",
+    known_ids_json: str = "{}",
+) -> OperatorSession:
+    row = OperatorSession(
+        id=f"opsession_{uuid4().hex[:12]}",
+        tenant_id=tenant_id,
+        connection_id=connection_id,
+        current_step=current_step,
+        status=status,
+        known_ids_json=known_ids_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_operator_session(session: Session, session_id: str) -> OperatorSession | None:
+    return session.get(OperatorSession, session_id)
+
+
+def update_operator_session(
+    session: Session,
+    session_id: str,
+    *,
+    tenant_id: str | None = None,
+    connection_id: str | None = None,
+    current_step: str | None = None,
+    status: str | None = None,
+    known_ids_json: str | None = None,
+) -> OperatorSession | None:
+    row = session.get(OperatorSession, session_id)
+    if row is None:
+        return None
+    if tenant_id is not None:
+        row.tenant_id = tenant_id
+    if connection_id is not None:
+        row.connection_id = connection_id
+    if current_step is not None:
+        row.current_step = current_step
+    if status is not None:
+        row.status = status
+    if known_ids_json is not None:
+        row.known_ids_json = known_ids_json
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def create_operator_session_event(
+    session: Session,
+    *,
+    session_id: str,
+    step: str,
+    status: str,
+    detail_json: str = "{}",
+) -> OperatorSessionEvent:
+    row = OperatorSessionEvent(
+        id=f"opev_{uuid4().hex[:12]}",
+        session_id=session_id,
+        step=step,
+        status=status,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_operator_session_events(session: Session, session_id: str) -> list[OperatorSessionEvent]:
+    return (
+        session.query(OperatorSessionEvent)
+        .filter(OperatorSessionEvent.session_id == session_id)
+        .order_by(OperatorSessionEvent.created_at.asc())
+        .all()
     )
