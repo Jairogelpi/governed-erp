@@ -20,6 +20,10 @@ def canonical_object_for_action(canonical_action: CanonicalAction) -> str:
     return CANONICAL_ACTIONS[canonical_action].canonical_object
 
 
+def is_approval_required_action(canonical_action: CanonicalAction) -> bool:
+    return approval_required_for_risk(default_risk_level(canonical_action))
+
+
 def max_risk_level(*levels: RiskLevel) -> RiskLevel:
     return max(levels, key=lambda level: _RISK_RANK[level])
 

@@ -22,6 +22,10 @@ class AdapterAuthenticationError(ERPGuardError):
     """Raised when an adapter cannot authenticate with its ERP."""
 
 
+class ReadOnlyViolationError(ERPGuardError):
+    """Raised when read-only Odoo access attempts a forbidden method."""
+
+
 class PolicyNotFoundError(ERPGuardError):
     """Raised when a requested policy is not registered."""
 

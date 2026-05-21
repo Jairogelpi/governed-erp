@@ -36,6 +36,15 @@ class OdooClient:
     def read(self, model: str, ids: list[int], fields: list[str]) -> list[dict]:
         return self._execute_kw(model, "read", [ids], {"fields": fields})
 
+    def fields_get(self, model: str, attributes: list[str] | None = None) -> dict:
+        kwargs: dict[str, Any] = {}
+        if attributes is not None:
+            kwargs["attributes"] = attributes
+        return self._execute_kw(model, "fields_get", [], kwargs)
+
+    def search_count(self, model: str, domain: list) -> int:
+        return int(self._execute_kw(model, "search_count", [domain], {}))
+
     def _execute_kw(self, model: str, method: str, args: list, kwargs: dict) -> Any:
         uid = self._uid if self._uid is not None else self.authenticate()
         return self._models.execute_kw(

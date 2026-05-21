@@ -2,6 +2,55 @@
 
 ERPGuard is a semantic safety layer for ERP operations. This repository is currently in Phase 1: the Odoo Preflight Core backend foundation.
 
+## Current Demo Story
+
+Implemented: record once in the Fake ERP demo, validate readiness, compile a reusable skill, inspect the compiled package, run it deterministically, and audit the resulting runs and steps.
+
+Simulated: an approval gate that plans the critical `confirm_sales_order` action, and an approval decision simulation that records approve/reject evidence without executing ERP writes.
+
+Not implemented: real Odoo UI automation, real ERP writes, a full approval workflow, browser-extension capture, MCP, or an LLM-driven builder.
+
+The flow is intentionally small and defensible: record -> readiness -> compile -> inspect -> run -> audit -> safe plan -> simulated decision.
+
+The core product evidence lives in the runtime features and frozen JSON artifacts, while the last two stages are simulation layers that demonstrate safety boundaries.
+
+No real Odoo calls are made in this repository yet.
+
+The MVP stops at a controlled demo and audit trail.
+
+The next step after this story is consolidation, not more feature growth.
+
+This README is written to explain what exists today, what is simulated for the demo, and what remains intentionally out of scope.
+
+## Next Phase Candidate
+
+The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.
+
+That phase should stay narrow: connect to Odoo, read a real sales order, map it to the canonical model, run Formula Guard, and show an audited result.
+
+It should not confirm orders, write records, or expand into a broader automation platform.
+
+If pursued, it should be treated as a separate phase with its own evidence freeze and acceptance criteria.
+
+## Sprint 1 - Real Odoo Connection & Diagnosis
+
+This sprint adds the first real Odoo-facing capability: a read-only connection test and diagnosis flow.
+
+The API-first entry points are:
+
+- `POST /v1/odoo/connections`
+- `POST /v1/odoo/connections/{connection_id}/test`
+- `POST /v1/odoo/connections/{connection_id}/diagnose`
+- `GET /v1/odoo/connections/{connection_id}/sales-orders/{order_reference}/raw-summary`
+
+The flow validates credentials, reads the Odoo version and uid, inspects modules/models/fields, detects custom fields, reads limited samples, and returns a read-only diagnosis.
+
+Read-only mode is enforced in code: no Odoo write methods are allowed in this sprint.
+
+Secrets are redacted in API responses.
+
+This sprint is the first practical bridge from the controlled Fake ERP MVP toward the real Odoo preflight phase.
+
 ## Local Setup
 
 Create and activate a virtual environment, then install the project in editable mode:
@@ -265,25 +314,168 @@ Expected result for the Teach Mode v0.3 evidence freeze environment:
 
 ## Skill Inspector v0.4
 
-Skill Inspector v0.4 lets you review the compiled skill before trusting or reusing it.
-
-Inspect a generated skill:
+After compiling a skill, inspect the latest version before trusting repeated runs:
 
 ```bash
 curl http://127.0.0.1:8000/v1/skills/skill_.../inspect
 ```
 
-The response shows the latest Skill Registry version, runtime type, inputs, guards, workflow steps, source recording id, and a safety summary.
+The inspector shows the skill name, version, runtime type, inputs, guards, workflow steps, the originating recording id, and a safety summary. The `/demo` dashboard renders the same Skill Inspector v0.4 section automatically after compilation and again after the proof run.
 
-The `/demo` dashboard also calls this endpoint after compiling a human recording and displays:
+## Skill Inspector v0.4 Evidence
 
-- inputs
-- guards
-- workflow steps
-- whether replay requires an LLM
-- safety summary
+The frozen Skill Inspector v0.4 evidence response is stored at [docs/demo/skill_inspector_v0_4_success_response.json](docs/demo/skill_inspector_v0_4_success_response.json).
 
-This remains a controlled Fake ERP demo path. It does not add real Odoo UI automation, marketplace behavior, free recording, or ERP write actions.
+It was generated from a FastAPI `TestClient` flow that creates a controlled recording, posts the five required Fake ERP events, checks readiness, finishes the recording, compiles the skill, inspects the compiled skill, and runs `SO-VALID -> allow` plus `SO-FORMULA-MISMATCH -> block`.
+
+Verify the current evidence baseline with:
+
+```bash
+python -m pytest
+```
+
+Expected result for the Skill Inspector v0.4 evidence freeze environment:
+
+```text
+151 passed, 9 skipped
+```
+
+The evidence artifact also includes negative controlled error responses for a missing skill and a skill with no latest version.
+
+## Run History / Audit Timeline v0.5
+
+After a compiled skill has been run, inspect the execution history and audit timeline:
+
+```bash
+curl http://127.0.0.1:8000/v1/skills/skill_.../runs
+curl http://127.0.0.1:8000/v1/skills/skill_.../runs/skill_run_.../timeline
+```
+
+The run list shows each execution with its decision, timestamps, input, summary output, and token savings. The timeline shows the ordered `load_skill`, `load_order`, `formula_guard`, and `produce_result` steps so you can audit what happened in a replay.
+
+## Run History / Audit Timeline v0.5 Evidence
+
+The v0.5 evidence freeze captures the live FastAPI `TestClient` proof for the run history and audit timeline layer.
+
+Artifact:
+
+- [docs/demo/run_history_audit_timeline_v0_5_success_response.json](docs/demo/run_history_audit_timeline_v0_5_success_response.json)
+
+It records:
+
+- recording readiness in the ready state;
+- skill compilation and inspection;
+- a valid run that returns `allow`;
+- an invalid run that returns `block`;
+- `GET /v1/skills/{skill_id}/runs` returning both runs;
+- `GET /v1/skills/{skill_id}/runs/{skill_run_id}/timeline` returning the ordered guard timeline;
+- controlled `skill_not_found` and `skill_run_not_found` error responses.
+
+Verification command:
+
+```bash
+python -m pytest
+```
+
+Observed result:
+
+```text
+155 passed, 9 skipped
+```
+
+## Approval Gate / Safe Action Plan v0.6
+
+The approval gate adds a dry-run planning endpoint for the critical `confirm_sales_order` action:
+
+```http
+POST /v1/skills/{skill_id}/plan-action
+```
+
+Request example:
+
+```json
+{
+  "inputs": {
+    "order_reference": "SO-VALID"
+  },
+  "requested_action": "confirm_sales_order"
+}
+```
+
+The endpoint does not execute `confirm_sales_order`, does not write to ERP, and does not create a full approval system yet. It only returns a safe plan, the Formula Guard preview, the R3 approval requirement, and proof that execution stopped before any real write.
+
+The `/demo` page includes an Approval Gate / Safe Action Plan v0.6 panel after compile and inspect, so the operator can preview the critical action before trusting it.
+
+## Approval Gate / Safe Action Plan v0.6 Evidence
+
+The v0.6 evidence freeze captures the live FastAPI `TestClient` proof for the approval gate dry-run layer.
+
+Artifact:
+
+- [docs/demo/approval_gate_safe_action_plan_v0_6_success_response.json](docs/demo/approval_gate_safe_action_plan_v0_6_success_response.json)
+
+It records:
+
+- dry-run approval planning for `confirm_sales_order`;
+- `approval_required = true` and `risk_level = R3`;
+- Formula Guard preview for `SO-VALID` returning `allow`;
+- Formula Guard preview for `SO-FORMULA-MISMATCH` returning `block`;
+- no `SkillRun` rows created by the planning endpoint;
+- controlled `unsupported_action` and `skill_not_found` errors.
+
+Verification command:
+
+```bash
+python -m pytest
+```
+
+Observed result:
+
+```text
+159 passed, 9 skipped
+```
+
+## Approval Decision Simulation v0.7
+
+The approval decision simulation endpoint lets you simulate a human approve/reject choice for the critical `confirm_sales_order` path without executing a real ERP write:
+
+```http
+POST /v1/skills/{skill_id}/simulate-approval-decision
+```
+
+Request example:
+
+```json
+{
+  "inputs": {
+    "order_reference": "SO-VALID"
+  },
+  "requested_action": "confirm_sales_order",
+  "decision": "approve",
+  "approver": {
+    "type": "user",
+    "id": "demo_approver",
+    "display_name": "Demo Approver"
+  },
+  "reason": "Formula preview is clean."
+}
+```
+
+The endpoint reuses the same critical-action identity, risk level, and Formula Guard preview as v0.6, but it still does not execute `confirm_sales_order`, does not create a real approval workflow, and does not write to ERP.
+
+The `/demo` page includes an Approval Decision Simulation v0.7 panel with simulate-approve and simulate-reject buttons after the safe plan section.
+
+Verification command:
+
+```bash
+python -m pytest
+```
+
+Observed result:
+
+```text
+162 passed, 9 skipped
+```
 
 ## Optional Odoo Smoke Read
 
@@ -320,7 +512,8 @@ Implemented now:
 - Controlled Human Recording v0.2 for the Fake ERP formula review flow
 - Controlled Human Recording v0.2.1 hardening with compiler diagnostics and `/demo` preview/readiness
 - Teach Mode v0.3 readiness endpoint and `/demo` checklist for the controlled Fake ERP teaching flow
-- Skill Inspector v0.4 endpoint and `/demo` inspection panel for generated deterministic skills
+- Skill Inspector v0.4 read-only inspection for compiled Fake ERP skills
+- Skill Inspector v0.4 evidence freeze and JSON artifact
 - read-only Odoo adapter skeleton
 - Formula Guard policy evaluation for `confirm_sales_order`
 - preflight persistence and audit retrieval

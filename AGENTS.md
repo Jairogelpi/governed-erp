@@ -80,10 +80,68 @@
 - This Teach Mode v0.3 evidence-freeze block made no runtime changes. It only added documentation/evidence artifacts and README/AGENTS notes.
 - Ran full verification with `python -m pytest`; result: `148 passed, 9 skipped, 2 warnings`. The skipped tests are the browser-dependent paths in this shell because Chromium/browser runtime availability is not active for the plain `python -m pytest` run.
 - Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, or real ERP write actions.
-- Pushed local `master` to `origin/main` so commit `7345114` and Teach Mode v0.3 evidence are visible on GitHub.
-- Added `docs/specs/26_skill_inspector_v0_4.md` to define Skill Inspector v0.4: purpose, problem solved versus Teach Mode v0.3, inspection contract, visible fields, Skill Registry relationship, compiled package relationship, tests, no-goals, and acceptance criteria.
-- Implemented `GET /v1/skills/{skill_id}/inspect` using the existing Skill Registry and latest `SkillVersion`; no new table was added. The endpoint parses `skill_package_json`, returns inputs, guards, workflow steps, source recording id, runtime metadata, and a safety summary with guard and write-action indicators.
-- Updated `/demo` with a minimal vanilla HTML/JS `Skill Inspector v0.4` panel that calls the inspect endpoint after compile and renders inputs, guards, workflow steps, no-LLM replay status, and safety summary.
-- Added tests for valid skill inspection, workflow step inspection, `formula_guard`, safety summary write/LLM flags, controlled missing-skill errors, `/demo` inspector presence, health, and existing compile/run behavior. Focused verification: `python -m pytest tests/test_human_recording_dashboard.py -q` -> `17 passed`; `python -m pytest tests/test_recording_compile_skill_api.py -q` -> `3 passed`.
-- Ran full verification with `python -m pytest`; result: `151 passed, 9 skipped, 2 warnings`. The skipped tests are the browser-dependent paths in this shell because Chromium/browser runtime availability is not active for the plain `python -m pytest` run.
-- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, new ERP adapters, marketplace behavior, frontend framework, or real ERP write actions.
+- Added `docs/specs/26_skill_inspector_v0_4.md` to define Skill Inspector v0.4: read-only inspection of the latest compiled skill version, visible fields, registry/package relationship, test expectations, no-goals, and acceptance criteria.
+- Implemented `GET /v1/skills/{skill_id}/inspect` by reusing the existing Skill Registry and parsing the latest `SkillVersion.skill_package_json`; the endpoint now returns skill identity, runtime type, inputs, guards, workflow steps, `compiled_from_recording_id`, and a safety summary.
+- Extended `/demo` with a vanilla HTML/JS `Skill Inspector v0.4` section that refreshes after compile and again after the proof run so the user can inspect the compiled skill before and after execution.
+- Added tests for successful skill inspection, workflow step visibility, `formula_guard` exposure, safety summary flags, controlled 404 responses for missing skill and missing version, and `/demo` visibility; existing compile/run and health coverage remained in place.
+- Updated `README.md` with a Skill Inspector v0.4 section explaining `GET /v1/skills/{skill_id}/inspect` and how it helps review a compiled skill before trusting repeated runs.
+- Verified with focused pytest slices and then the full suite: `python -m pytest` -> `151 passed, 9 skipped`.
+- Added `docs/specs/27_skill_inspector_v0_4_evidence_freeze.md` to freeze the Skill Inspector v0.4 evidence state, including the inspection contract, `/demo` usage, safety summary, negative error evidence, and the next recommended block.
+- Added `docs/demo/skill_inspector_v0_4_success_response.json` from a FastAPI `TestClient` flow that created a recording, checked readiness, compiled a skill, inspected it, ran allow/block proof, and captured controlled missing-skill and missing-version error evidence.
+- Updated `README.md` with a Skill Inspector v0.4 Evidence section linking the JSON artifact and documenting the verification command and expected result.
+- This freeze block made no runtime changes. It only added documentation/evidence artifacts and README/AGENTS notes.
+- Verified with `python -m pytest`; result: `151 passed, 9 skipped`.
+- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, or real ERP write actions.
+- Added `docs/specs/28_run_history_audit_timeline_v0_5.md` to define Run History / Audit Timeline v0.5: execution history purpose, run/timeline contracts, `SkillRun`/`SkillRunStep` relationship, demo usage, tests, no-goals, and acceptance criteria.
+- Implemented `GET /v1/skills/{skill_id}/runs` and `GET /v1/skills/{skill_id}/runs/{skill_run_id}/timeline` as read-only projections over existing `SkillRun` and `SkillRunStep` records, plus minimal repository helpers for listing runs and loading the exact skill version.
+- Extended `/demo` with a `Run History / Audit Timeline v0.5` section that refreshes after running the compiled skill and shows the latest runs plus a timeline preview.
+- Added tests for run list ordering and decision coverage, timeline ordering and proof flags, controlled missing-skill and missing-run errors, `/demo` visibility, and health.
+- Updated `README.md` with a Run History / Audit Timeline v0.5 section documenting the new endpoints and what they audit.
+- This block made runtime changes: it added read-only run history and audit timeline endpoints plus the `/demo` audit panel.
+- Verified with focused pytest slices and then the full suite: `python -m pytest` -> `155 passed, 9 skipped`.
+- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, or real ERP write actions.
+- Added `docs/specs/29_run_history_audit_timeline_v0_5_evidence_freeze.md` to freeze the Run History / Audit Timeline v0.5 evidence state. The freeze is documentation and evidence only; it does not change runtime behavior.
+- Added `docs/demo/run_history_audit_timeline_v0_5_success_response.json` from a live FastAPI `TestClient` flow that created a recording, reached readiness `ready`, compiled the skill, inspected it, ran `SO-VALID -> allow`, ran `SO-FORMULA-MISMATCH -> block`, listed run history, and loaded the timeline for the invalid run.
+- Updated `README.md` with a Run History / Audit Timeline v0.5 Evidence section linking the new JSON artifact and documenting the verification command and observed result.
+- Ran `python -m pytest`; result: `155 passed, 9 skipped`. The skipped tests are the browser-dependent paths in this shell because Chromium/browser runtime availability is not active for the plain `python -m pytest` run.
+- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, new run-history tables, or real ERP write actions.
+- Added `docs/specs/30_approval_gate_safe_action_plan_v0_6.md` to define Approval Gate / Safe Action Plan v0.6 as a dry-run critical-action planning block for `confirm_sales_order` with Formula Guard preview and human approval semantics. The scope explicitly stops before any real ERP write.
+- Implemented `POST /v1/skills/{skill_id}/plan-action` as a dry-run planning endpoint that reuses the central risk semantics, previews Formula Guard, returns approval-required proof, and never executes `confirm_sales_order` or writes to ERP.
+- Extended `/demo` with an Approval Gate / Safe Action Plan v0.6 section so the operator can generate a safe plan after compile and inspect.
+- Added tests for valid and invalid order planning, proof flags, controlled unknown-action and missing-skill errors, `/demo` visibility, and health; inspect, readiness, and run history/timeline coverage remain in place.
+- Updated `README.md` with an Approval Gate / Safe Action Plan v0.6 section documenting the dry-run endpoint and the fact that `confirm_sales_order` is only planned, not executed.
+- Ran focused validation with `python -m pytest tests/test_approval_gate_api.py tests/test_demo_dashboard.py tests/test_skill_inspector_api.py tests/test_run_history_api.py tests/test_human_recording_dashboard.py -q`; result: `27 passed`.
+- Ran full verification with `python -m pytest`; result: `159 passed, 9 skipped`. The skipped tests are the browser-dependent paths in this shell because Chromium/browser runtime availability is not active for the plain `python -m pytest` run.
+- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, approval persistence tables, or real ERP write actions.
+- Added `docs/specs/31_approval_gate_safe_action_plan_v0_6_evidence_freeze.md` to freeze the Approval Gate / Safe Action Plan v0.6 evidence state. The freeze is documentation and evidence only; it does not change runtime behavior.
+- Added `docs/demo/approval_gate_safe_action_plan_v0_6_success_response.json` from a live FastAPI `TestClient` flow that created a recording, compiled the skill, planned `confirm_sales_order` for `SO-VALID` -> `allow` and `SO-FORMULA-MISMATCH` -> `block`, confirmed no skill runs were created, and captured controlled `unsupported_action` and `skill_not_found` errors.
+- Updated `README.md` with an Approval Gate / Safe Action Plan v0.6 Evidence section linking the new JSON artifact and documenting the verification command and observed result.
+- Ran `python -m pytest`; result: `159 passed, 9 skipped`. The skipped tests are the browser-dependent paths in this shell because Chromium/browser runtime availability is not active for the plain `python -m pytest` run.
+- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, new approval persistence tables, or real ERP write actions.
+- Added `docs/specs/32_approval_decision_simulation_v0_7.md` to define Approval Decision Simulation v0.7 as a stateless approve/reject evidence step over the safe plan. The scope explicitly stops before any real ERP write or real approval workflow.
+- Implemented `POST /v1/skills/{skill_id}/simulate-approval-decision` as a stateless approval simulation endpoint that reuses the v0.6 Formula Guard preview, reports approve/reject evidence, and never executes `confirm_sales_order` or writes to ERP.
+- Extended `/demo` with an Approval Decision Simulation v0.7 section so the operator can simulate approve and reject after generating a safe plan.
+- Added tests for approve/reject semantics, blocked-by-guard semantics, controlled unsupported-decision and unsupported-action errors, missing-skill handling, no SkillRun creation, `/demo` visibility, and health; plan-action coverage remains in place.
+- Updated `README.md` with an Approval Decision Simulation v0.7 section documenting the dry-run endpoint and the fact that `confirm_sales_order` still does not execute.
+- Ran focused validation with `python -m pytest tests/test_approval_decision_simulation_api.py tests/test_approval_gate_api.py tests/test_demo_dashboard.py -q`; result: `9 passed`.
+- Ran full verification with `python -m pytest`; result: `162 passed, 9 skipped`. The skipped tests are the browser-dependent paths in this shell because Chromium/browser runtime availability is not active for the plain `python -m pytest` run.
+- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, approval persistence tables, or real ERP write actions.
+- Added `docs/specs/33_mvp_scope_consolidation_and_demo_story.md` to freeze the current MVP story and separate core automation from simulated safety layers. No runtime behavior changed.
+- Added `docs/demo/operator_demo_script_v0_7.md` as a guided evaluator script for explaining the demo without overpromising real Odoo automation.
+- Added `docs/demo/mvp_boundaries_v0_7.md` to list what exists, what is simulated, what does not exist, the technical risks, and the freeze recommendation before any real Odoo phase.
+- Updated `README.md` with a `Current Demo Story` section that summarizes the implemented, simulated, and not implemented parts of the MVP.
+- Ran `python -m pytest`; result: `162 passed, 9 skipped`.
+- Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, marketplace behavior, frontend framework, approval persistence tables, or real ERP write actions.
+- Added `docs/specs/34_real_odoo_readonly_preflight_demo.md` to define a narrow `v0.8` candidate: real Odoo read-only adapter plus preflight demo only, with no writes or broader automation expansion.
+- Updated `README.md` with a `Next Phase Candidate` note so the transition from the frozen v0.7 story to the potential v0.8 phase is explicit.
+- Ran `git diff --check`; result: clean.
+- Updated `docs/demo/operator_demo_script_v0_7.md` with a compact TFM defense plan that frames the repo as a controlled MVP, separates vision from current implementation, and positions v0.8 as a narrow read-only Odoo preflight phase.
+- Ran `git diff --check` on the edited markdown; result: clean.
+- Added `docs/product/03_sprint_1_odoo_connection_diagnosis.md` to define the first real Odoo sprint: read-only connection, diagnosis, sample reads, and strict no-write constraints.
+- Implemented `erpguard/adapters/odoo/readonly_client.py`, `erpguard/adapters/odoo/diagnosis.py`, `erpguard/adapters/odoo/field_discovery.py`, `apps/api/schemas/odoo.py`, and `apps/api/routes/odoo.py` for the API-first Odoo diagnosis flow.
+- Registered the Odoo router in `apps/api/main.py` and updated the Odoo mapper to honor the configured capacity field.
+- Added tests for the read-only client, diagnosis service, and Odoo diagnosis API; focused validation passed with `33 passed`.
+- Ran `git diff --check`; result: clean.
+- Ran `python -m pytest`; result: `195 passed, 9 skipped`.
+- Resolved merge conflicts from `git pull` by preserving the accumulated v0.4-v0.8 implementation/documentation side for `AGENTS.md`, `README.md`, `apps/api/routes/demo_dashboard.py`, `apps/api/routes/skills.py`, and `docs/specs/26_skill_inspector_v0_4.md`; no feature behavior was intentionally changed beyond conflict resolution.
+- Restored the human-facing `workflow steps` wording in the `/demo` Skill Inspector copy after conflict resolution so existing dashboard coverage still matches the page text.

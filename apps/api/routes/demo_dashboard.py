@@ -243,14 +243,27 @@ def demo_dashboard() -> str:
         <pre id="humanPreview">compiler readiness: not_ready
 ordered events: none
 selectors captured: none</pre>
-        <h3>Skill Inspector v0.4</h3>
-        <p class="tiny">Review the compiled skill package before trusting or reusing it.</p>
-        <pre id="skillInspector">No skill inspected yet.
-inputs: none
-guards: none
-workflow steps: none
-safety summary: none</pre>
         <pre id="humanResults">No compiled skill yet.</pre>
+        <h3>Skill Inspector v0.4</h3>
+        <p class="tiny">Inspect inputs, guards, workflow steps, and safety summary before trusting repeated runs.</p>
+        <pre id="skillInspector">No inspected skill yet.</pre>
+        <h3>Run History / Audit Timeline v0.5</h3>
+        <p class="tiny">Shows the latest executions of the compiled skill and a step-by-step audit timeline.</p>
+        <pre id="runHistory">No run history yet.</pre>
+        <pre id="runTimeline">No audit timeline yet.</pre>
+        <h3>Approval Gate / Safe Action Plan v0.6</h3>
+        <p class="tiny">Preview the critical confirm_sales_order action and verify the approval gate before any real ERP write.</p>
+        <div class="toolbar">
+          <button id="planApprovalGate" type="button">Generate safe action plan</button>
+        </div>
+        <pre id="approvalGatePlan">No approval plan yet.</pre>
+        <h3>Approval Decision Simulation v0.7</h3>
+        <p class="tiny">Simulate approve or reject against the safe plan without executing confirm_sales_order.</p>
+        <div class="toolbar">
+          <button id="simulateApproveGate" type="button">Simulate approve for SO-VALID</button>
+          <button id="simulateRejectGate" type="button">Simulate reject for SO-FORMULA-MISMATCH</button>
+        </div>
+        <pre id="approvalDecisionSimulation">No approval decision simulated yet.</pre>
       </div>
     </section>
 
@@ -301,8 +314,15 @@ safety summary: none</pre>
     const humanStatus = document.getElementById("humanStatus");
     const humanPreview = document.getElementById("humanPreview");
     const humanResults = document.getElementById("humanResults");
-    const teachModeReadiness = document.getElementById("teachModeReadiness");
     const skillInspector = document.getElementById("skillInspector");
+    const runHistory = document.getElementById("runHistory");
+    const runTimeline = document.getElementById("runTimeline");
+    const approvalGatePlan = document.getElementById("approvalGatePlan");
+    const planApprovalGateButton = document.getElementById("planApprovalGate");
+    const approvalDecisionSimulation = document.getElementById("approvalDecisionSimulation");
+    const simulateApproveGateButton = document.getElementById("simulateApproveGate");
+    const simulateRejectGateButton = document.getElementById("simulateRejectGate");
+    const teachModeReadiness = document.getElementById("teachModeReadiness");
 
     const humanState = {
       recordingId: null,
@@ -329,10 +349,6 @@ safety summary: none</pre>
 
     const setHumanResults = (value) => {
       humanResults.textContent = value;
-    };
-
-    const setSkillInspector = (value) => {
-      skillInspector.textContent = value;
     };
 
     const eventSummary = (event) => ({
@@ -369,6 +385,126 @@ safety summary: none</pre>
         "selectors captured": selectors,
         "compiler readiness": compilerReadiness(events),
       });
+    };
+
+    const renderSkillInspector = (inspection) => {
+      skillInspector.textContent = jsonText({
+        skill_id: inspection.skill_id,
+        name: inspection.name,
+        version_id: inspection.version_id,
+        runtime_type: inspection.runtime_type,
+        llm_required_for_repeated_runs: inspection.llm_required_for_repeated_runs,
+        inputs: inspection.inputs,
+        guards: inspection.guards,
+        workflow_steps: inspection.workflow_steps,
+        compiled_from_recording_id: inspection.compiled_from_recording_id,
+        safety_summary: inspection.safety_summary,
+      });
+    };
+
+    const renderRunHistory = (history, timelinePreview) => {
+      runHistory.textContent = jsonText(history);
+      runTimeline.textContent = timelinePreview ? jsonText(timelinePreview) : "No audit timeline yet.";
+    };
+
+    const refreshRunHistory = async () => {
+      if (!humanState.skillId) {
+        runHistory.textContent = "No run history yet.";
+        runTimeline.textContent = "No audit timeline yet.";
+        return null;
+      }
+
+      const response = await fetch(`/v1/skills/${humanState.skillId}/runs`);
+      const body = await response.json();
+      if (!response.ok) {
+        runHistory.textContent = `Run history unavailable: ${body?.error?.message || "unknown error"}`;
+        runTimeline.textContent = "No audit timeline yet.";
+        return null;
+      }
+
+      const latestRun = body.runs?.[0];
+      if (!latestRun) {
+        renderRunHistory(body, null);
+        return body;
+      }
+
+      const timelineResponse = await fetch(`/v1/skills/${humanState.skillId}/runs/${latestRun.skill_run_id}/timeline`);
+      const timelineBody = await timelineResponse.json();
+      if (!timelineResponse.ok) {
+        renderRunHistory(body, { error: timelineBody?.error?.message || "unknown error" });
+        return body;
+      }
+
+      renderRunHistory(body, timelineBody);
+      return body;
+    };
+
+    const refreshSkillInspector = async () => {
+      if (!humanState.skillId) {
+        skillInspector.textContent = "No inspected skill yet.";
+        return null;
+      }
+
+      const response = await fetch(`/v1/skills/${humanState.skillId}/inspect`);
+      const body = await response.json();
+      if (!response.ok) {
+        skillInspector.textContent = `Inspector unavailable: ${body?.error?.message || "unknown error"}`;
+        return null;
+      }
+
+      renderSkillInspector(body);
+      return body;
+    };
+
+    const refreshApprovalGatePlan = async () => {
+      if (!humanState.skillId) {
+        approvalGatePlan.textContent = "No approval plan yet.";
+        return null;
+      }
+
+      const response = await fetch(`/v1/skills/${humanState.skillId}/plan-action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inputs: { order_reference: "SO-VALID" },
+          requested_action: "confirm_sales_order",
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        approvalGatePlan.textContent = `Approval plan unavailable: ${body?.error?.message || "unknown error"}`;
+        return null;
+      }
+
+      approvalGatePlan.textContent = jsonText(body);
+      return body;
+    };
+
+    const refreshApprovalDecisionSimulation = async (orderReference, decision) => {
+      if (!humanState.skillId) {
+        approvalDecisionSimulation.textContent = "No approval decision simulated yet.";
+        return null;
+      }
+
+      const response = await fetch(`/v1/skills/${humanState.skillId}/simulate-approval-decision`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inputs: { order_reference: orderReference },
+          requested_action: "confirm_sales_order",
+          decision,
+          approver: { type: "user", id: "demo_approver", display_name: "Demo Approver" },
+          reason: decision === "approve" ? "Formula preview is clean." : "Formula Guard blocks this order.",
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        approvalDecisionSimulation.textContent = `Approval decision unavailable: ${body?.error?.message || "unknown error"}`;
+        return null;
+      }
+
+      approvalDecisionSimulation.textContent = jsonText(body);
+      return body;
     };
 
     const setTeachStepState = (stepId, state) => {
@@ -428,32 +564,6 @@ safety summary: none</pre>
       await refreshTeachModeReadiness();
     };
 
-    const inspectCompiledSkill = async () => {
-      if (!humanState.skillId) {
-        setSkillInspector("No skill inspected yet.");
-        return;
-      }
-
-      const response = await fetch(`/v1/skills/${humanState.skillId}/inspect`);
-      const body = await response.json();
-      if (!response.ok) {
-        setSkillInspector(`Skill inspection failed: ${body?.error?.message || "unknown error"}`);
-        return;
-      }
-
-      setSkillInspector(jsonText({
-        skill_id: body.skill_id,
-        name: body.name,
-        version_id: body.version_id,
-        runtime_type: body.runtime_type,
-        inputs: body.inputs,
-        guards: body.guards,
-        "workflow steps": body.workflow_steps,
-        no_llm_required: !body.safety_summary?.requires_llm_for_replay,
-        "safety summary": body.safety_summary,
-      }));
-    };
-
     const openFakeErpWithRecording = () => {
       if (!humanState.recordingId) {
         setHumanStatus("Start a human recording first.");
@@ -495,7 +605,6 @@ safety summary: none</pre>
         humanState.fakeErpOpened = false;
         humanState.recordingFinished = false;
         humanState.proofRun = false;
-        setSkillInspector("No skill inspected yet.");
         setHumanStatus(jsonText({
           recording_id: body.recording_id,
           name: body.name,
@@ -577,7 +686,9 @@ safety summary: none</pre>
           name: body.name,
           llm_required_for_repeated_runs: body.llm_required_for_repeated_runs,
         }));
-        await inspectCompiledSkill();
+        await refreshSkillInspector();
+        approvalGatePlan.textContent = "No approval plan yet.";
+        approvalDecisionSimulation.textContent = "No approval decision simulated yet.";
       } catch (error) {
         setHumanStatus(`Failed to compile recording: ${String(error)}`);
       } finally {
@@ -627,10 +738,63 @@ safety summary: none</pre>
         }));
         humanState.proofRun = true;
         setTeachStepState("run_allow_block_proof", "observed");
+        await refreshSkillInspector();
+        await refreshRunHistory();
       } catch (error) {
         setHumanResults(`Failed to run compiled skill: ${String(error)}`);
       } finally {
         runHumanRecordingButton.disabled = false;
+      }
+    });
+
+    planApprovalGateButton.addEventListener("click", async () => {
+      if (!humanState.skillId) {
+        approvalGatePlan.textContent = "Compile the human recording first.";
+        return;
+      }
+
+      planApprovalGateButton.disabled = true;
+      approvalGatePlan.textContent = "Generating safe action plan...";
+      try {
+        await refreshApprovalGatePlan();
+      } catch (error) {
+        approvalGatePlan.textContent = `Failed to generate approval plan: ${String(error)}`;
+      } finally {
+        planApprovalGateButton.disabled = false;
+      }
+    });
+
+    simulateApproveGateButton.addEventListener("click", async () => {
+      if (!humanState.skillId) {
+        approvalDecisionSimulation.textContent = "Compile the human recording first.";
+        return;
+      }
+
+      simulateApproveGateButton.disabled = true;
+      approvalDecisionSimulation.textContent = "Simulating approval decision...";
+      try {
+        await refreshApprovalDecisionSimulation("SO-VALID", "approve");
+      } catch (error) {
+        approvalDecisionSimulation.textContent = `Failed to simulate approval decision: ${String(error)}`;
+      } finally {
+        simulateApproveGateButton.disabled = false;
+      }
+    });
+
+    simulateRejectGateButton.addEventListener("click", async () => {
+      if (!humanState.skillId) {
+        approvalDecisionSimulation.textContent = "Compile the human recording first.";
+        return;
+      }
+
+      simulateRejectGateButton.disabled = true;
+      approvalDecisionSimulation.textContent = "Simulating rejection decision...";
+      try {
+        await refreshApprovalDecisionSimulation("SO-FORMULA-MISMATCH", "reject");
+      } catch (error) {
+        approvalDecisionSimulation.textContent = `Failed to simulate approval decision: ${String(error)}`;
+      } finally {
+        simulateRejectGateButton.disabled = false;
       }
     });
 

@@ -125,4 +125,10 @@ class OdooAdapter(ERPAdapter):
             [["sale_order_line_id", "in", line_ids]],
             ["id", "sale_order_line_id", "fragrance_id", "component_name", "ml_per_unit", "ml_total"],
         )
-        return map_odoo_sale_order_to_canonical(order, lines, products, formulas)
+        return map_odoo_sale_order_to_canonical(
+            order,
+            lines,
+            products,
+            formulas,
+            capacity_field=self.config.capacity_field,
+        )

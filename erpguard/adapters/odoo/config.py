@@ -8,3 +8,4 @@ class OdooConfig(BaseModel):
     api_key: str = Field(repr=False)
     formula_model: str = "x.sale.formula.line"
     capacity_field: str = "x_capacity_ml"
+    field_mappings: dict[str, str] = Field(default_factory=dict)

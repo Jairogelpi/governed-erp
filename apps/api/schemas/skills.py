@@ -48,6 +48,36 @@ class SkillDetailResponse(SkillSummaryResponse):
     version_created_at: str | None = None
 
 
+class SkillInspectWorkflowStepResponse(BaseModel):
+    id: str
+    type: str
+    target: str | None = None
+    selector: str | None = None
+    selector_template: str | None = None
+    guard: str | None = None
+    value: str | None = None
+
+
+class SkillInspectSafetySummaryResponse(BaseModel):
+    has_guards: bool
+    guard_count: int
+    has_write_actions: bool
+    requires_llm_for_replay: bool
+
+
+class SkillInspectResponse(BaseModel):
+    skill_id: str
+    name: str
+    version_id: str
+    runtime_type: str
+    llm_required_for_repeated_runs: bool
+    inputs: dict[str, Any] = Field(default_factory=dict)
+    guards: list[str] = Field(default_factory=list)
+    workflow_steps: list[SkillInspectWorkflowStepResponse] = Field(default_factory=list)
+    compiled_from_recording_id: str | None = None
+    safety_summary: SkillInspectSafetySummaryResponse
+
+
 class SkillRunInputsRequest(BaseModel):
     order_reference: str = Field(min_length=1)
 
@@ -107,3 +137,134 @@ class SkillUIRunResponse(SkillRunResponse):
     selectors_used: list[str] = Field(default_factory=list)
     steps: list[SkillRunStepResponse] = Field(default_factory=list)
     no_llm_used: bool = True
+
+
+class SkillRunSummaryResponse(BaseModel):
+    skill_run_id: str
+    skill_version_id: str
+    status: str
+    decision: str | None = None
+    created_at: str
+    finished_at: str | None = None
+    input: dict[str, Any] | None = None
+    output_summary: dict[str, Any] = Field(default_factory=dict)
+    estimated_tokens_saved: int | None = None
+
+
+class SkillRunListResponse(BaseModel):
+    skill_id: str
+    runs: list[SkillRunSummaryResponse] = Field(default_factory=list)
+
+
+class SkillRunTimelineStepResponse(BaseModel):
+    step_id: str
+    step_type: str
+    status: str
+    input: dict[str, Any] | None = None
+    output: dict[str, Any] | None = None
+    error: str | None = None
+
+
+class SkillRunTimelineProofResponse(BaseModel):
+    has_guard_step: bool
+    has_result_step: bool
+    decision_is_auditable: bool
+    llm_replay_not_required: bool
+
+
+class SkillRunTimelineResponse(BaseModel):
+    skill_id: str
+    skill_run_id: str
+    status: str
+    decision: str | None = None
+    timeline: list[SkillRunTimelineStepResponse] = Field(default_factory=list)
+    proof: SkillRunTimelineProofResponse
+
+
+class SkillApprovalGateRequest(BaseModel):
+    inputs: SkillRunInputsRequest
+    requested_action: str = Field(min_length=1)
+
+
+class SkillApprovalGateStepResponse(BaseModel):
+    id: str
+    type: str
+    description: str
+
+
+class SkillApprovalGatePlanResponse(BaseModel):
+    summary: str
+    steps: list[SkillApprovalGateStepResponse] = Field(default_factory=list)
+
+
+class SkillApprovalGatePreviewResponse(BaseModel):
+    decision: str
+    issues_count: int
+
+
+class SkillApprovalGateProofResponse(BaseModel):
+    critical_action_detected: bool
+    approval_required: bool
+    guard_checked_before_approval: bool
+    real_erp_write_blocked: bool
+    no_real_execution: bool
+
+
+class SkillApprovalGateResponse(BaseModel):
+    skill_id: str
+    requested_action: str
+    approval_required: bool
+    risk_level: str
+    status: str
+    plan: SkillApprovalGatePlanResponse
+    guard_preview: SkillApprovalGatePreviewResponse
+    proof: SkillApprovalGateProofResponse
+
+
+class SkillApprovalDecisionApproverResponse(BaseModel):
+    type: str
+    id: str
+    display_name: str
+
+
+class SkillApprovalDecisionApproverRequest(BaseModel):
+    type: str
+    id: str
+    display_name: str
+
+
+class SkillApprovalDecisionSimulationRequest(BaseModel):
+    inputs: SkillRunInputsRequest
+    requested_action: str = Field(min_length=1)
+    decision: str = Field(min_length=1)
+    approver: SkillApprovalDecisionApproverRequest
+    reason: str = Field(min_length=1)
+
+
+class SkillApprovalDecisionSimulatedExecutionResponse(BaseModel):
+    would_execute: bool
+    did_execute: bool
+    blocked_reason: str
+
+
+class SkillApprovalDecisionSimulationProofResponse(BaseModel):
+    approval_decision_recorded: bool
+    approval_required: bool
+    guard_checked_before_decision: bool
+    real_erp_write_blocked: bool
+    no_real_execution: bool
+    human_decision_simulated: bool
+
+
+class SkillApprovalDecisionSimulationResponse(BaseModel):
+    skill_id: str
+    requested_action: str
+    approval_decision: str
+    approval_required: bool
+    risk_level: str
+    guard_preview: SkillApprovalGatePreviewResponse
+    approver: SkillApprovalDecisionApproverResponse
+    reason: str
+    status: str
+    simulated_execution: SkillApprovalDecisionSimulatedExecutionResponse
+    proof: SkillApprovalDecisionSimulationProofResponse

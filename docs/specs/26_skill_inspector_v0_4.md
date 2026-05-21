@@ -3,33 +3,25 @@
 **Status:** Implementation spec for Skill Inspector MVP
 **Date:** May 19, 2026
 **Baseline commits:** `10deeee`, `7345114`
-**Relationship to Teach Mode v0.3:** Adds an audit view for the generated skill after a process has been taught and compiled.
+**Relationship to Teach Mode v0.3:** Adds an inspection surface for the compiled skill created by the controlled Fake ERP teaching flow, without expanding automation scope.
 
 ## Purpose
 
-Skill Inspector v0.4 lets an operator inspect the compiled skill before trusting, reusing, or running it.
+Skill Inspector v0.4 lets the user inspect the generated skill package before trusting it for repeated use, and inspect it again after execution if desired.
 
-Teach Mode v0.3 explains whether the recorded process is complete. Skill Inspector explains what the system created from that process: inputs, guards, deterministic workflow steps, source recording, runtime, and safety summary.
+It exposes the compiled skill as a readable safety artifact: the skill name, version, runtime type, inputs, guards, workflow steps, recording provenance, and a short safety summary.
 
 ## Problem Solved Compared To Teach Mode v0.3
 
-Teach Mode answers:
+Teach Mode v0.3 explains whether the recording is ready to compile.
 
-```text
-Did the user teach the required process steps?
-```
+Skill Inspector v0.4 explains what was actually compiled.
 
-Skill Inspector answers:
-
-```text
-What reusable skill was created from those steps, and is it safe to replay deterministically?
-```
-
-This helps the user audit the generated skill package without opening the database or reading raw API responses.
+That matters because readiness proves the recording is complete, but it does not show the user the final reusable skill package they are about to run. Inspector closes that gap by making the compiled workflow visible and by surfacing the safety properties of the generated skill.
 
 ## Inspection Contract
 
-The API exposes:
+The server exposes:
 
 ```http
 GET /v1/skills/{skill_id}/inspect
@@ -64,83 +56,81 @@ The response shape is:
 }
 ```
 
-If the skill does not exist, return the existing controlled `skill_not_found` error. If the skill exists but has no version, return `skill_version_not_found`.
+The response is derived from the latest `SkillVersion` and its stored `skill_package_json`.
 
 ## Visible Fields
 
-The inspector must expose:
+The inspector must surface:
 
-- skill id;
-- skill name;
-- latest version id;
-- runtime type;
-- LLM replay requirement;
-- declared inputs;
-- guards;
-- workflow steps;
-- source recording id;
-- safety summary.
+- `skill_id`
+- skill `name`
+- latest `version_id`
+- `runtime_type`
+- `llm_required_for_repeated_runs`
+- `inputs`
+- `guards`
+- `workflow_steps`
+- `compiled_from_recording_id`
+- `safety_summary`
 
-## Relationship With Skill Registry
+`workflow_steps` should expose the deterministic workflow compiled from the recording, including the guard step.
 
-Skill Inspector must reuse the existing Skill Registry.
+## Relationship To Skill Registry
 
-It must not create new tables or duplicate skill storage. It reads the existing `Skill` row, resolves the latest `SkillVersion`, parses `skill_package_json`, and projects that data into an inspection response.
+Skill Inspector reuses the existing Skill Registry.
 
-## Relationship With Compiled Skill Package
+It must not create a new persistence table or a new skill model.
 
-The inspector is a read-only view over the compiled skill package.
+It reads the skill row and then the latest `SkillVersion`. If the skill or version is missing, the endpoint returns a controlled error response.
 
-For the current Fake ERP formula review skill, the package contains:
+## Relationship To Compiled Skill Package
 
-- `inputs`;
-- `guards`;
-- `workflow`;
-- `compiled_from_recording_id`;
-- `llm_required_for_repeated_runs`.
+The inspector is a read-only projection of the compiled skill package.
 
-The inspector renames `workflow` to `workflow_steps` for clarity and derives `safety_summary` from the package and latest version metadata.
+The compiler still owns package creation. Inspector only parses `skill_package_json` and reformats it for inspection.
+
+The current compiled package is the Fake ERP formula review workflow with `inputs`, `guards`, `workflow`, `llm_required_for_repeated_runs`, and `compiled_from_recording_id`.
 
 ## Expected Tests
 
 Tests must prove:
 
 - inspecting a valid skill returns `200`;
-- the response includes `workflow_steps`;
-- the response includes `formula_guard`;
-- `safety_summary.has_write_actions = false`;
-- `safety_summary.requires_llm_for_replay = false`;
+- the inspection payload includes `workflow_steps`;
+- the inspection payload includes `formula_guard`;
+- `safety_summary.has_write_actions` is `false`;
+- `safety_summary.requires_llm_for_replay` is `false`;
 - inspecting a missing skill returns a controlled error;
 - `/demo` contains `Skill Inspector v0.4`;
-- health still works;
-- existing compile/run behavior still passes.
+- `GET /health` still works;
+- existing compile and run behavior remains intact;
+- the full demo flow endpoint still works.
 
 ## No-Goals
 
-This block must not add:
+Skill Inspector v0.4 must not add:
 
 - real Odoo UI automation;
 - MCP;
-- LLM interpretation or repair;
+- LLM-based inspection or repair;
 - browser extension capture;
-- unrestricted/free recording;
+- unrestricted recording of arbitrary websites;
+- a new skill database table;
 - marketplace behavior;
-- frontend framework;
+- a frontend framework;
 - real ERP write actions;
-- new database tables;
-- architecture redesign;
-- changes to `POST /v1/demo/full-record-to-skill-flow`;
-- changes to `GET /v1/recordings/{recording_id}/readiness`;
-- breaking changes to compile-skill.
+- architecture redesign.
+
+The scope remains the controlled Fake ERP skill created by the current recording-to-skill pipeline.
 
 ## Acceptance Criteria
 
 Skill Inspector v0.4 is accepted when:
 
-- `GET /v1/skills/{skill_id}/inspect` returns the contracted inspection response;
-- the endpoint reads existing Skill Registry data and latest `SkillVersion`;
-- `/demo` renders the inspector after compiling a human recording;
-- existing compile and run paths keep working;
+- `GET /v1/skills/{skill_id}/inspect` returns the contracted shape from the latest skill version;
+- the endpoint is implemented as a read-only view over the existing Skill Registry;
+- `/demo` shows a Skill Inspector v0.4 section after compilation;
+- the inspector renders inputs, guards, workflow steps, no-LMM-required, and the safety summary;
 - README and AGENTS are updated;
 - `python -m pytest` passes, with browser-dependent skips documented if present;
-- no LLM, MCP, browser extension, real Odoo UI, free recorder, marketplace, frontend framework, new persistence model, or real ERP write action is introduced.
+- no LLM, MCP, browser extension, real Odoo UI, free recorder, marketplace, frontend framework, or real ERP write action is introduced.

@@ -1,0 +1,256 @@
+{
+  "source": "fastapi_testclient",
+  "recording_id": "recording_aa6d2a68e7154237adf2c7aeabf9c390",
+  "readiness": {
+    "recording_id": "recording_aa6d2a68e7154237adf2c7aeabf9c390",
+    "status": "recording",
+    "event_count": 5,
+    "readiness": "ready",
+    "steps": [
+      {
+        "id": "sales_orders_navigation",
+        "status": "observed"
+      },
+      {
+        "id": "order_search",
+        "status": "observed"
+      },
+      {
+        "id": "open_order",
+        "status": "observed"
+      },
+      {
+        "id": "formula_tab",
+        "status": "observed"
+      },
+      {
+        "id": "review_formula",
+        "status": "observed"
+      }
+    ],
+    "diagnostics": []
+  },
+  "skill_id": "skill_69d766214ab1402ca82476764c91af77",
+  "version_id": "skill_version_73f80e93f84a4a7ca1bdbfd8f64044c4",
+  "inspect_summary": {
+    "runtime_type": "deterministic_browser",
+    "guards": [
+      "formula_guard"
+    ],
+    "workflow_step_count": 6,
+    "safety_summary": {
+      "has_guards": true,
+      "guard_count": 1,
+      "has_write_actions": false,
+      "requires_llm_for_replay": false
+    }
+  },
+  "valid_run": {
+    "skill_run_id": "skill_run_fff6982c709846c3a394aa1a07a06321",
+    "order_reference": "SO-VALID",
+    "decision": "allow"
+  },
+  "invalid_run": {
+    "skill_run_id": "skill_run_69073de5ad5f4dd1916d67a77d3ea4bd",
+    "order_reference": "SO-FORMULA-MISMATCH",
+    "decision": "block",
+    "issues_count": 1
+  },
+  "run_history_response": {
+    "skill_id": "skill_69d766214ab1402ca82476764c91af77",
+    "runs": [
+      {
+        "skill_run_id": "skill_run_69073de5ad5f4dd1916d67a77d3ea4bd",
+        "skill_version_id": "skill_version_73f80e93f84a4a7ca1bdbfd8f64044c4",
+        "status": "success",
+        "decision": "block",
+        "created_at": "2026-05-19T07:02:05.978216",
+        "finished_at": "2026-05-19T07:02:06.078691",
+        "input": {
+          "inputs": {
+            "order_reference": "SO-FORMULA-MISMATCH"
+          }
+        },
+        "output_summary": {
+          "order_reference": "SO-FORMULA-MISMATCH",
+          "issues_count": 1,
+          "policy_id": "formula_guard"
+        },
+        "estimated_tokens_saved": 2000
+      },
+      {
+        "skill_run_id": "skill_run_fff6982c709846c3a394aa1a07a06321",
+        "skill_version_id": "skill_version_73f80e93f84a4a7ca1bdbfd8f64044c4",
+        "status": "success",
+        "decision": "allow",
+        "created_at": "2026-05-19T07:02:05.798750",
+        "finished_at": "2026-05-19T07:02:05.897864",
+        "input": {
+          "inputs": {
+            "order_reference": "SO-VALID"
+          }
+        },
+        "output_summary": {
+          "order_reference": "SO-VALID",
+          "issues_count": 0,
+          "policy_id": "formula_guard"
+        },
+        "estimated_tokens_saved": 2000
+      }
+    ]
+  },
+  "timeline_response": {
+    "skill_id": "skill_69d766214ab1402ca82476764c91af77",
+    "skill_run_id": "skill_run_69073de5ad5f4dd1916d67a77d3ea4bd",
+    "status": "success",
+    "decision": "block",
+    "timeline": [
+      {
+        "step_id": "load_skill",
+        "step_type": "load",
+        "status": "passed",
+        "input": {
+          "skill_id": "skill_69d766214ab1402ca82476764c91af77",
+          "version_id": "skill_version_73f80e93f84a4a7ca1bdbfd8f64044c4"
+        },
+        "output": {
+          "runtime_type": "deterministic_browser"
+        },
+        "error": null
+      },
+      {
+        "step_id": "load_order",
+        "step_type": "load",
+        "status": "passed",
+        "input": {
+          "order_reference": "SO-FORMULA-MISMATCH"
+        },
+        "output": {
+          "order_id": "so_formula_mismatch",
+          "reference": "SO-FORMULA-MISMATCH"
+        },
+        "error": null
+      },
+      {
+        "step_id": "formula_guard",
+        "step_type": "guard",
+        "status": "blocked",
+        "input": {
+          "policy_id": "formula_guard",
+          "policy_version": "0.1.0"
+        },
+        "output": {
+          "decision": "block",
+          "risk_level": "R3",
+          "summary": "Sales order is blocked by Formula Guard with 1 issue(s).",
+          "issues": [
+            {
+              "code": "formula_ml_per_unit_mismatch",
+              "message": "Formula ml per unit does not match product capacity.",
+              "line_id": "line_formula_mismatch",
+              "product_name": "Mikado 100 ML",
+              "expected_ml": "100",
+              "actual_ml": "80",
+              "evidence": {
+                "line_id": "line_formula_mismatch",
+                "product_id": "product_mikado_100",
+                "product_name": "Mikado 100 ML",
+                "quantity": "1",
+                "capacity_ml": "100",
+                "expected_ml": "100",
+                "actual_ml": "80"
+              }
+            }
+          ],
+          "warnings": [],
+          "evidence": {
+            "formula_summary": {
+              "required_ml_per_unit": null,
+              "actual_ml_per_unit": null,
+              "expected_total_ml": null,
+              "actual_total_ml": null,
+              "is_valid": false,
+              "checked_lines_count": 1,
+              "skipped_lines_count": 0,
+              "error_count": 1,
+              "errors": [
+                {
+                  "code": "formula_ml_per_unit_mismatch",
+                  "line_id": "line_formula_mismatch",
+                  "product_name": "Mikado 100 ML",
+                  "expected_ml": "100",
+                  "actual_ml": "80",
+                  "message": "Formula ml per unit does not match product capacity.",
+                  "evidence": {
+                    "line_id": "line_formula_mismatch",
+                    "product_id": "product_mikado_100",
+                    "product_name": "Mikado 100 ML",
+                    "quantity": "1",
+                    "capacity_ml": "100",
+                    "expected_ml": "100",
+                    "actual_ml": "80"
+                  }
+                }
+              ],
+              "warnings": [],
+              "message": null,
+              "evidence": {}
+            }
+          },
+          "policy_id": "formula_guard",
+          "policy_version": "0.1.0"
+        },
+        "error": null
+      },
+      {
+        "step_id": "produce_result",
+        "step_type": "result",
+        "status": "passed",
+        "input": null,
+        "output": {
+          "decision": "block",
+          "issues_count": 1
+        },
+        "error": null
+      }
+    ],
+    "proof": {
+      "has_guard_step": true,
+      "has_result_step": true,
+      "decision_is_auditable": true,
+      "llm_replay_not_required": true
+    }
+  },
+  "repeated_execution_token_cost": 0,
+  "proof": {
+    "run_history_available": true,
+    "timeline_available": true,
+    "has_guard_step": true,
+    "has_result_step": true,
+    "decision_is_auditable": true,
+    "llm_replay_not_required": true,
+    "deterministic_replay": true,
+    "erpguard_blocked_invalid_order": true
+  },
+  "negative_evidence": {
+    "missing_skill_runs": {
+      "error": {
+        "code": "skill_not_found",
+        "message": "Skill 'missing-skill' not found.",
+        "details": {
+          "skill_id": "missing-skill"
+        }
+      }
+    },
+    "missing_run_timeline": {
+      "error": {
+        "code": "skill_run_not_found",
+        "message": "Skill run 'missing-run' not found for skill 'skill_69d766214ab1402ca82476764c91af77'.",
+        "details": {
+          "skill_id": "skill_69d766214ab1402ca82476764c91af77",
+          "skill_run_id": "missing-run"
+        }
+      }
+    }
+  }
+}

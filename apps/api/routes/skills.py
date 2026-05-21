@@ -6,13 +6,31 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from apps.api.schemas.skills import (
+    SkillApprovalDecisionSimulationRequest,
+    SkillApprovalDecisionSimulationResponse,
+    SkillApprovalDecisionSimulatedExecutionResponse,
+    SkillApprovalDecisionSimulationProofResponse,
+    SkillApprovalDecisionApproverResponse,
+    SkillApprovalGatePlanResponse,
+    SkillApprovalGatePreviewResponse,
+    SkillApprovalGateProofResponse,
+    SkillApprovalGateRequest,
+    SkillApprovalGateResponse,
+    SkillApprovalGateStepResponse,
     SkillCreateRequest,
     SkillCreateResponse,
     SkillDetailResponse,
+    SkillInspectResponse,
+    SkillInspectSafetySummaryResponse,
+    SkillRunListResponse,
     SkillRunDetailResponse,
     SkillRunRequest,
+    SkillRunSummaryResponse,
     SkillRunResponse,
     SkillRunStepResponse,
+    SkillRunTimelineProofResponse,
+    SkillRunTimelineResponse,
+    SkillRunTimelineStepResponse,
     SkillUIRunRequest,
     SkillUIRunResponse,
     SkillSummaryResponse,
@@ -20,6 +38,7 @@ from apps.api.schemas.skills import (
 from erpguard.adapters.fake import FakeERPAdapter
 from erpguard.canonical.enums import CanonicalAction
 from erpguard.core.errors import ObjectNotFoundError
+from erpguard.core.risk_engine import approval_required_for_risk, canonical_object_for_action, default_risk_level
 from erpguard.demo.full_flow import run_deterministic_skill_for_order_reference
 from erpguard.db.repositories import (
     create_skill,
@@ -29,9 +48,11 @@ from erpguard.db.repositories import (
     finish_skill_run,
     get_latest_skill_version,
     get_skill,
+    get_skill_version,
     get_skill_run,
     list_skills,
     list_skill_run_steps,
+    list_skill_runs,
 )
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.policies.engine import PolicyEngine
@@ -137,7 +158,7 @@ def get_skill_endpoint(skill_id: str):
         session.close()
 
 
-@router.get("/skills/{skill_id}/inspect")
+@router.get("/skills/{skill_id}/inspect", response_model=SkillInspectResponse)
 def inspect_skill_endpoint(skill_id: str):
     init_db()
     session = SessionLocal()
@@ -155,8 +176,8 @@ def inspect_skill_endpoint(skill_id: str):
                 },
             )
 
-        latest_version = get_latest_skill_version(session, skill.id)
-        if latest_version is None:
+        skill_version = get_latest_skill_version(session, skill.id)
+        if skill_version is None:
             return JSONResponse(
                 status_code=404,
                 content={
@@ -168,25 +189,302 @@ def inspect_skill_endpoint(skill_id: str):
                 },
             )
 
-        skill_package = json.loads(latest_version.skill_package_json)
-        guards = skill_package.get("guards", [])
-        workflow_steps = skill_package.get("workflow", [])
+        try:
+            skill_package = json.loads(skill_version.skill_package_json)
+        except json.JSONDecodeError:
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "error": {
+                        "code": "skill_package_invalid",
+                        "message": f"Skill '{skill_id}' has an invalid compiled package.",
+                        "details": {"skill_id": skill_id, "version_id": skill_version.id},
+                    }
+                },
+            )
+
+        workflow_steps = _skill_inspection_workflow_steps(skill_package)
+        guards = _skill_inspection_guards(skill_package, workflow_steps)
+        safety_summary = SkillInspectSafetySummaryResponse(
+            has_guards=bool(guards),
+            guard_count=len(guards),
+            has_write_actions=_skill_inspection_has_write_actions(workflow_steps),
+            requires_llm_for_replay=skill_version.llm_required_for_repeated_runs,
+        )
         return {
             "skill_id": skill.id,
             "name": skill.name,
-            "version_id": latest_version.id,
-            "runtime_type": latest_version.runtime_type,
-            "llm_required_for_repeated_runs": latest_version.llm_required_for_repeated_runs,
-            "inputs": skill_package.get("inputs", {}),
+            "version_id": skill_version.id,
+            "runtime_type": skill_version.runtime_type,
+            "llm_required_for_repeated_runs": skill_version.llm_required_for_repeated_runs,
+            "inputs": skill_package.get("inputs") if isinstance(skill_package.get("inputs"), dict) else {},
             "guards": guards,
             "workflow_steps": workflow_steps,
             "compiled_from_recording_id": skill_package.get("compiled_from_recording_id"),
-            "safety_summary": {
-                "has_guards": bool(guards),
-                "guard_count": len(guards),
-                "has_write_actions": _has_write_actions(workflow_steps),
-                "requires_llm_for_replay": bool(latest_version.llm_required_for_repeated_runs),
-            },
+            "safety_summary": safety_summary.model_dump(mode="json"),
+        }
+    finally:
+        session.close()
+
+
+@router.post("/skills/{skill_id}/plan-action", response_model=SkillApprovalGateResponse)
+def plan_skill_action_endpoint(skill_id: str, request: SkillApprovalGateRequest):
+    init_db()
+    session = SessionLocal()
+    try:
+        skill = get_skill(session, skill_id)
+        if skill is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_not_found",
+                        "message": f"Skill '{skill_id}' not found.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        skill_version = get_latest_skill_version(session, skill.id)
+        if skill_version is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_version_not_found",
+                        "message": f"Skill '{skill_id}' has no registered version.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        try:
+            canonical_action = CanonicalAction(request.requested_action)
+        except ValueError:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "unsupported_action",
+                        "message": f"Requested action '{request.requested_action}' is not supported for safe planning.",
+                        "details": {
+                            "skill_id": skill_id,
+                            "requested_action": request.requested_action,
+                            "supported_actions": [CanonicalAction.CONFIRM_SALES_ORDER.value],
+                        },
+                    }
+                },
+            )
+
+        if canonical_action is not CanonicalAction.CONFIRM_SALES_ORDER:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "unsupported_action",
+                        "message": f"Requested action '{request.requested_action}' is not supported for safe planning.",
+                        "details": {
+                            "skill_id": skill_id,
+                            "requested_action": request.requested_action,
+                            "supported_actions": [CanonicalAction.CONFIRM_SALES_ORDER.value],
+                        },
+                    }
+                },
+            )
+
+        risk_level = default_risk_level(canonical_action)
+        approval_required = approval_required_for_risk(risk_level)
+        guard_preview = _preview_formula_guard(request.inputs.order_reference)
+        plan = SkillApprovalGatePlanResponse(
+            summary=(
+                f"Plan critical action {canonical_action.value} on {canonical_object_for_action(canonical_action)} "
+                f"with Formula Guard preview and human approval before execution."
+            ),
+            steps=[
+                SkillApprovalGateStepResponse(
+                    id="load_skill",
+                    type="load",
+                    description="Load the compiled skill package and critical-action context.",
+                ),
+                SkillApprovalGateStepResponse(
+                    id="load_order",
+                    type="load",
+                    description=f"Load the sales order identified by order_reference={request.inputs.order_reference}.",
+                ),
+                SkillApprovalGateStepResponse(
+                    id="run_formula_guard",
+                    type="guard",
+                    description="Preview ERPGuard Formula Guard before any approval is requested.",
+                ),
+                SkillApprovalGateStepResponse(
+                    id="request_human_approval",
+                    type="approval",
+                    description="Request human approval for the critical sales-order confirmation.",
+                ),
+                SkillApprovalGateStepResponse(
+                    id="blocked_before_real_execution",
+                    type="safety_stop",
+                    description="Stop before any real ERP write or confirm_sales_order execution.",
+                ),
+            ],
+        )
+        proof = SkillApprovalGateProofResponse(
+            critical_action_detected=True,
+            approval_required=approval_required,
+            guard_checked_before_approval=True,
+            real_erp_write_blocked=True,
+            no_real_execution=True,
+        )
+        return {
+            "skill_id": skill.id,
+            "requested_action": canonical_action.value,
+            "approval_required": approval_required,
+            "risk_level": risk_level.value,
+            "status": "approval_required" if approval_required else "ready_for_execution",
+            "plan": plan.model_dump(mode="json"),
+            "guard_preview": SkillApprovalGatePreviewResponse(
+                decision=guard_preview["decision"],
+                issues_count=guard_preview["issues_count"],
+            ).model_dump(mode="json"),
+            "proof": proof.model_dump(mode="json"),
+        }
+    finally:
+        session.close()
+
+
+@router.post("/skills/{skill_id}/simulate-approval-decision", response_model=SkillApprovalDecisionSimulationResponse)
+def simulate_skill_approval_decision_endpoint(skill_id: str, request: SkillApprovalDecisionSimulationRequest):
+    init_db()
+    session = SessionLocal()
+    try:
+        skill = get_skill(session, skill_id)
+        if skill is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_not_found",
+                        "message": f"Skill '{skill_id}' not found.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        skill_version = get_latest_skill_version(session, skill.id)
+        if skill_version is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_version_not_found",
+                        "message": f"Skill '{skill_id}' has no registered version.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        try:
+            canonical_action = CanonicalAction(request.requested_action)
+        except ValueError:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "unsupported_action",
+                        "message": f"Requested action '{request.requested_action}' is not supported for approval simulation.",
+                        "details": {
+                            "skill_id": skill_id,
+                            "requested_action": request.requested_action,
+                            "supported_actions": [CanonicalAction.CONFIRM_SALES_ORDER.value],
+                        },
+                    }
+                },
+            )
+
+        if canonical_action is not CanonicalAction.CONFIRM_SALES_ORDER:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "unsupported_action",
+                        "message": f"Requested action '{request.requested_action}' is not supported for approval simulation.",
+                        "details": {
+                            "skill_id": skill_id,
+                            "requested_action": request.requested_action,
+                            "supported_actions": [CanonicalAction.CONFIRM_SALES_ORDER.value],
+                        },
+                    }
+                },
+            )
+
+        if request.decision not in {"approve", "reject"}:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "unsupported_decision",
+                        "message": f"Decision '{request.decision}' is not supported for approval simulation.",
+                        "details": {
+                            "skill_id": skill_id,
+                            "decision": request.decision,
+                            "supported_decisions": ["approve", "reject"],
+                        },
+                    }
+                },
+            )
+
+        risk_level = default_risk_level(canonical_action)
+        approval_required = approval_required_for_risk(risk_level)
+        guard_preview = _preview_formula_guard(request.inputs.order_reference)
+        approver = SkillApprovalDecisionApproverResponse(**request.approver.model_dump())
+        if request.decision == "reject":
+            approval_decision = "rejected"
+            status = "rejected_before_execution"
+            simulated_execution = SkillApprovalDecisionSimulatedExecutionResponse(
+                would_execute=False,
+                did_execute=False,
+                blocked_reason="rejected_by_human",
+            )
+        elif guard_preview["decision"] == "block":
+            approval_decision = "approved"
+            status = "blocked_before_execution"
+            simulated_execution = SkillApprovalDecisionSimulatedExecutionResponse(
+                would_execute=False,
+                did_execute=False,
+                blocked_reason="guard_blocked",
+            )
+        else:
+            approval_decision = "approved"
+            status = "approved_but_not_executed"
+            simulated_execution = SkillApprovalDecisionSimulatedExecutionResponse(
+                would_execute=True,
+                did_execute=False,
+                blocked_reason="real_erp_write_blocked_by_mvp_scope",
+            )
+
+        proof = SkillApprovalDecisionSimulationProofResponse(
+            approval_decision_recorded=True,
+            approval_required=approval_required,
+            guard_checked_before_decision=True,
+            real_erp_write_blocked=True,
+            no_real_execution=True,
+            human_decision_simulated=True,
+        )
+        return {
+            "skill_id": skill.id,
+            "requested_action": canonical_action.value,
+            "approval_decision": approval_decision,
+            "approval_required": approval_required,
+            "risk_level": risk_level.value,
+            "guard_preview": SkillApprovalGatePreviewResponse(
+                decision=guard_preview["decision"],
+                issues_count=guard_preview["issues_count"],
+            ).model_dump(mode="json"),
+            "approver": approver.model_dump(mode="json"),
+            "reason": request.reason,
+            "status": status,
+            "simulated_execution": simulated_execution.model_dump(mode="json"),
+            "proof": proof.model_dump(mode="json"),
         }
     finally:
         session.close()
@@ -294,6 +592,180 @@ def get_skill_run_endpoint(skill_id: str, skill_run_id: str):
         }
     finally:
         session.close()
+
+
+@router.get("/skills/{skill_id}/runs", response_model=SkillRunListResponse)
+def list_skill_runs_endpoint(skill_id: str):
+    init_db()
+    session = SessionLocal()
+    try:
+        skill = get_skill(session, skill_id)
+        if skill is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_not_found",
+                        "message": f"Skill '{skill_id}' not found.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        runs = list_skill_runs(session, skill.id)
+        return {
+            "skill_id": skill.id,
+            "runs": [_serialize_skill_run_summary(session, run) for run in runs],
+        }
+    finally:
+        session.close()
+
+
+@router.get("/skills/{skill_id}/runs/{skill_run_id}/timeline", response_model=SkillRunTimelineResponse)
+def get_skill_run_timeline_endpoint(skill_id: str, skill_run_id: str):
+    init_db()
+    session = SessionLocal()
+    try:
+        skill = get_skill(session, skill_id)
+        if skill is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_not_found",
+                        "message": f"Skill '{skill_id}' not found.",
+                        "details": {"skill_id": skill_id},
+                    }
+                },
+            )
+
+        run = get_skill_run(session, skill_run_id)
+        if run is None or run.skill_id != skill_id:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "skill_run_not_found",
+                        "message": f"Skill run '{skill_run_id}' not found for skill '{skill_id}'.",
+                        "details": {"skill_id": skill_id, "skill_run_id": skill_run_id},
+                    }
+                },
+            )
+
+        skill_version = get_skill_version(session, run.skill_version_id)
+        steps = list_skill_run_steps(session, skill_run_id)
+        timeline = [_serialize_skill_run_step(step) for step in steps]
+        proof = SkillRunTimelineProofResponse(
+            has_guard_step=any(step.step_id == "formula_guard" for step in steps),
+            has_result_step=any(step.step_id == "produce_result" for step in steps),
+            decision_is_auditable=run.decision in {"allow", "block"}
+            and any(step.step_id == "formula_guard" for step in steps)
+            and any(step.step_id == "produce_result" for step in steps),
+            llm_replay_not_required=not skill_version.llm_required_for_repeated_runs if skill_version else False,
+        )
+        return {
+            "skill_id": skill.id,
+            "skill_run_id": run.id,
+            "status": run.status,
+            "decision": run.decision,
+            "timeline": timeline,
+            "proof": proof.model_dump(mode="json"),
+        }
+    finally:
+        session.close()
+
+
+def _skill_inspection_workflow_steps(skill_package: dict) -> list[dict]:
+    workflow = skill_package.get("workflow")
+    if not isinstance(workflow, list):
+        return []
+
+    return [
+        {
+            "id": step.get("id"),
+            "type": step.get("type"),
+            "target": step.get("target"),
+            "selector": step.get("selector"),
+            "selector_template": step.get("selector_template"),
+            "guard": step.get("guard"),
+            "value": step.get("value"),
+        }
+        for step in workflow
+        if isinstance(step, dict)
+    ]
+
+
+def _skill_inspection_guards(skill_package: dict, workflow_steps: list[dict]) -> list[str]:
+    guards = skill_package.get("guards")
+    if isinstance(guards, list):
+        return [guard for guard in guards if isinstance(guard, str) and guard]
+
+    return [
+        step["guard"]
+        for step in workflow_steps
+        if isinstance(step, dict) and isinstance(step.get("guard"), str) and step.get("guard")
+    ]
+
+
+def _skill_inspection_has_write_actions(workflow_steps: list[dict]) -> bool:
+    write_step_types = {"write", "create", "update", "delete", "submit", "confirm", "save"}
+    return any(step.get("type") in write_step_types for step in workflow_steps if isinstance(step, dict))
+
+
+def _preview_formula_guard(order_reference: str) -> dict[str, int | str]:
+    adapter = FakeERPAdapter()
+    try:
+        order = adapter.get_sales_order_by_reference(order_reference)
+    except ObjectNotFoundError:
+        return {"decision": "block", "issues_count": 1}
+
+    policy_result = PolicyEngine().evaluate("formula_guard", order, canonical_action=CanonicalAction.VALIDATE_FORMULA)
+    return {
+        "decision": policy_result.decision.value,
+        "issues_count": len(policy_result.issues),
+    }
+
+
+def _serialize_skill_run_summary(session, run) -> dict:
+    input_json = json.loads(run.input_json) if run.input_json else None
+    output_json = json.loads(run.output_json) if run.output_json else {}
+    return {
+        "skill_run_id": run.id,
+        "skill_version_id": run.skill_version_id,
+        "status": run.status,
+        "decision": run.decision,
+        "created_at": run.created_at.isoformat(),
+        "finished_at": run.finished_at.isoformat() if run.finished_at else None,
+        "input": input_json,
+        "output_summary": {
+            "order_reference": output_json.get("order_reference") or _order_reference_from_run_input(input_json),
+            "issues_count": len(output_json.get("issues", [])) if isinstance(output_json.get("issues"), list) else 0,
+            "policy_id": output_json.get("policy_id"),
+        },
+        "estimated_tokens_saved": run.estimated_tokens_saved,
+    }
+
+
+def _serialize_skill_run_step(step) -> dict:
+    return {
+        "step_id": step.step_id,
+        "step_type": step.step_type,
+        "status": step.status,
+        "input": json.loads(step.input_json) if step.input_json else None,
+        "output": json.loads(step.output_json) if step.output_json else None,
+        "error": step.error_text,
+    }
+
+
+def _order_reference_from_run_input(input_json) -> str | None:
+    if not isinstance(input_json, dict):
+        return None
+    inputs = input_json.get("inputs")
+    if isinstance(inputs, dict):
+        order_reference = inputs.get("order_reference")
+        if isinstance(order_reference, str):
+            return order_reference
+    return None
 
 
 @router.post("/skills/{skill_id}/run-ui", response_model=SkillUIRunResponse)
@@ -423,11 +895,6 @@ def _run_response(run, skill_id: str, output: dict) -> dict:
         "output": output,
         "token_economics": _TOKEN_ECONOMICS,
     }
-
-
-def _has_write_actions(workflow_steps: list[dict]) -> bool:
-    write_action_types = {"write", "create", "update", "delete", "execute", "post", "confirm", "approve"}
-    return any(str(step.get("type", "")).casefold() in write_action_types for step in workflow_steps)
 
 
 def _ui_run_response(run, skill_id: str, output: dict, visited_urls: list[str], selectors_used: list[str], steps, no_llm_used: bool = True) -> dict:

@@ -161,6 +161,8 @@ def test_demo_dashboard_exposes_human_recording_preview_and_readiness():
     assert response.status_code == 200
     html = response.text
     assert "Recording Preview" in html
+    assert "Skill Inspector v0.4" in html
+    assert "Run History / Audit Timeline v0.5" in html
     assert "compiler readiness" in html
     assert "humanPreview" in html
     assert "ordered events" in html
