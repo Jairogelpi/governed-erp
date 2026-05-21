@@ -16,19 +16,14 @@ from apps.api.schemas.odoo import (
     OdooRawSalesOrderSummaryOrder,
     OdooRawSalesOrderSummaryResponse,
 )
-from erpguard.adapters.odoo.client import OdooClient
 from erpguard.adapters.odoo.config import OdooConfig
 from erpguard.adapters.odoo.diagnosis import OdooDiagnosisService
-from erpguard.adapters.odoo.readonly_client import OdooReadOnlyClient
+from erpguard.adapters.odoo.readonly_client import build_readonly_client
 from erpguard.canonical.enums import ERPType
 from erpguard.db.repositories import create_audit_event, create_connection, get_connection
 from erpguard.db.session import SessionLocal, init_db
 
 router = APIRouter(prefix="/v1/odoo", tags=["odoo"])
-
-
-def build_readonly_client(config: OdooConfig) -> OdooReadOnlyClient:
-    return OdooReadOnlyClient(OdooClient(config))
 
 
 @router.post("/connections", response_model=OdooConnectionCreateResponse)
