@@ -758,3 +758,79 @@ class RuntimeSafetyModel(BaseModel):
     active_tenant_count: int
     recent_write_pilot_runs: int
     safety_level: str
+
+
+# Sprint 10B — R2 Controlled Write Pilot (res.partner.write, staging only)
+
+class R2WritePilotPolicyViolation(BaseModel):
+    code: str
+    message: str
+    blocking: bool = True
+
+
+class R2WritePilotPolicyCheckModel(BaseModel):
+    request_id: str
+    skill_id: str
+    passed: bool
+    allow_r2_real_write_pilot: bool = False
+    allow_generic_real_odoo_writes: bool = False
+    allow_r3_r4_real_writes: bool = False
+    target_model: str
+    target_model_whitelisted: bool
+    target_fields: list[str] = Field(default_factory=list)
+    target_fields_whitelisted: bool
+    violations: list[R2WritePilotPolicyViolation] = Field(default_factory=list)
+
+
+class R2WritePilotRequestModel(BaseModel):
+    request_id: str
+    skill_id: str
+    certification_id: str | None = None
+    requested_by: dict[str, Any]
+    approver_1: dict[str, Any]
+    approver_2: dict[str, Any]
+    target_model: str
+    target_record_id: int
+    target_fields: list[str]
+    vals: dict[str, Any]
+    environment: str
+    idempotency_key: str
+    status: str
+    allow_r2_real_write_pilot: bool = False
+    allow_generic_real_odoo_writes: bool = False
+    allow_r3_r4_real_writes: bool = False
+    created_at: str | None = None
+
+
+class R2WritePilotRunModel(BaseModel):
+    run_id: str
+    request_id: str
+    skill_id: str
+    status: str
+    executed_action: str
+    pre_snapshot: dict[str, Any] = Field(default_factory=dict)
+    post_snapshot: dict[str, Any] = Field(default_factory=dict)
+    result: dict[str, Any] = Field(default_factory=dict)
+    policy_passed: bool
+    allow_r2_real_write_pilot: bool = False
+    allow_generic_real_odoo_writes: bool = False
+    allow_r3_r4_real_writes: bool = False
+    created_at: str | None = None
+    finished_at: str | None = None
+
+
+class R2WritePilotEvidenceModel(BaseModel):
+    evidence_id: str
+    run_id: str
+    request_id: str
+    skill_id: str
+    action_taken: str
+    target_model: str
+    target_record_id: str
+    pre_snapshot: dict[str, Any] = Field(default_factory=dict)
+    post_snapshot: dict[str, Any] = Field(default_factory=dict)
+    rollback_instructions: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str
+    allow_r2_real_write_pilot: bool = False
+    allow_generic_real_odoo_writes: bool = False
+    created_at: str | None = None

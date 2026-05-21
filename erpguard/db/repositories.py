@@ -25,6 +25,9 @@ from erpguard.db.models import (
     OperatorSession,
     OperatorSessionEvent,
     PreflightCase,
+    R2WritePilotEvidence,
+    R2WritePilotRequest,
+    R2WritePilotRun,
     RecordingEvent,
     RecordingSession,
     Opportunity,
@@ -1716,5 +1719,153 @@ def list_operator_session_events(session: Session, session_id: str) -> list[Oper
         session.query(OperatorSessionEvent)
         .filter(OperatorSessionEvent.session_id == session_id)
         .order_by(OperatorSessionEvent.created_at.asc())
+        .all()
+    )
+
+
+# Sprint 10B — R2 write pilot repositories
+
+def create_r2_write_pilot_request(
+    session: Session,
+    *,
+    skill_id: str,
+    certification_id: str | None,
+    requested_by_json: str,
+    approver_1_json: str,
+    approver_2_json: str,
+    target_model: str,
+    target_record_id: int,
+    target_fields_json: str,
+    vals_json: str,
+    environment: str,
+    idempotency_key: str,
+    status: str = "pending",
+    allow_r2_real_write_pilot: bool = False,
+) -> R2WritePilotRequest:
+    row = R2WritePilotRequest(
+        id=f"r2req_{uuid4().hex[:16]}",
+        skill_id=skill_id,
+        certification_id=certification_id,
+        requested_by_json=requested_by_json,
+        approver_1_json=approver_1_json,
+        approver_2_json=approver_2_json,
+        target_model=target_model,
+        target_record_id=target_record_id,
+        target_fields_json=target_fields_json,
+        vals_json=vals_json,
+        environment=environment,
+        idempotency_key=idempotency_key,
+        status=status,
+        allow_r2_real_write_pilot=allow_r2_real_write_pilot,
+        allow_generic_real_odoo_writes=False,
+        allow_r3_r4_real_writes=False,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_r2_write_pilot_request(session: Session, request_id: str) -> R2WritePilotRequest | None:
+    return session.get(R2WritePilotRequest, request_id)
+
+
+def get_r2_write_pilot_request_by_idempotency_key(session: Session, key: str) -> R2WritePilotRequest | None:
+    return session.query(R2WritePilotRequest).filter(R2WritePilotRequest.idempotency_key == key).first()
+
+
+def list_r2_write_pilot_requests_for_skill(session: Session, skill_id: str) -> list[R2WritePilotRequest]:
+    return (
+        session.query(R2WritePilotRequest)
+        .filter(R2WritePilotRequest.skill_id == skill_id)
+        .order_by(R2WritePilotRequest.created_at.desc())
+        .all()
+    )
+
+
+def create_r2_write_pilot_run(
+    session: Session,
+    *,
+    request_id: str,
+    skill_id: str,
+    status: str,
+    executed_action: str,
+    pre_snapshot_json: str,
+    post_snapshot_json: str,
+    result_json: str,
+    policy_passed: bool,
+    allow_r2_real_write_pilot: bool,
+    finished_at=None,
+) -> R2WritePilotRun:
+    row = R2WritePilotRun(
+        id=f"r2run_{uuid4().hex[:16]}",
+        request_id=request_id,
+        skill_id=skill_id,
+        status=status,
+        executed_action=executed_action,
+        pre_snapshot_json=pre_snapshot_json,
+        post_snapshot_json=post_snapshot_json,
+        result_json=result_json,
+        policy_passed=policy_passed,
+        allow_r2_real_write_pilot=allow_r2_real_write_pilot,
+        allow_generic_real_odoo_writes=False,
+        allow_r3_r4_real_writes=False,
+        finished_at=finished_at,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_r2_write_pilot_run(session: Session, run_id: str) -> R2WritePilotRun | None:
+    return session.get(R2WritePilotRun, run_id)
+
+
+def get_r2_write_pilot_run_for_request(session: Session, request_id: str) -> R2WritePilotRun | None:
+    return session.query(R2WritePilotRun).filter(R2WritePilotRun.request_id == request_id).first()
+
+
+def create_r2_write_pilot_evidence(
+    session: Session,
+    *,
+    run_id: str,
+    request_id: str,
+    skill_id: str,
+    action_taken: str,
+    target_model: str,
+    target_record_id: str,
+    pre_snapshot_json: str,
+    post_snapshot_json: str,
+    rollback_instructions_json: str,
+    idempotency_key: str,
+    allow_r2_real_write_pilot: bool,
+) -> R2WritePilotEvidence:
+    row = R2WritePilotEvidence(
+        id=f"r2ev_{uuid4().hex[:16]}",
+        run_id=run_id,
+        request_id=request_id,
+        skill_id=skill_id,
+        action_taken=action_taken,
+        target_model=target_model,
+        target_record_id=target_record_id,
+        pre_snapshot_json=pre_snapshot_json,
+        post_snapshot_json=post_snapshot_json,
+        rollback_instructions_json=rollback_instructions_json,
+        idempotency_key=idempotency_key,
+        allow_r2_real_write_pilot=allow_r2_real_write_pilot,
+        allow_generic_real_odoo_writes=False,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_r2_write_pilot_evidence_for_run(session: Session, run_id: str) -> list[R2WritePilotEvidence]:
+    return (
+        session.query(R2WritePilotEvidence)
+        .filter(R2WritePilotEvidence.run_id == run_id)
+        .order_by(R2WritePilotEvidence.created_at.asc())
         .all()
     )

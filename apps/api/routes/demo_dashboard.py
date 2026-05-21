@@ -301,6 +301,40 @@ selectors captured: none</pre>
         <pre id="approvalDecisionSimulation">No approval decision simulated yet.</pre>
       </div>
       <div class="card full">
+        <h2>R2 Controlled Write Pilot — res.partner.write (staging only)</h2>
+        <p>
+          Sprint 10B — First R2 reversible write candidate. Only <code>res.partner.write</code> on
+          allowed fields (<code>comment</code>, <code>website</code>). Staging/demo environment only.
+          Requires double approval (2 distinct approvers), Sprint 7 certification, pre/post snapshots,
+          idempotency, and a stored rollback plan. Feature flag: ALLOW_R2_REAL_WRITE_PILOT=false by default.
+          ALLOW_GENERIC_REAL_ODOO_WRITES=false. ALLOW_R3_R4_REAL_WRITES=false always.
+        </p>
+        <div class="toolbar">
+          <label>
+            Skill ID
+            <input id="r2SkillId" placeholder="skill_..." />
+          </label>
+          <button id="r2CreateRequest" type="button">Create R2 request</button>
+          <button id="r2CheckPolicy" type="button">Check R2 policy</button>
+          <button id="r2Execute" type="button">Execute R2 (blocked by default)</button>
+          <button id="r2GetRun" type="button">Get run result</button>
+          <button id="r2GetEvidence" type="button">Get evidence &amp; rollback</button>
+          <button id="r2History" type="button">Show R2 history</button>
+        </div>
+        <p class="tiny" id="r2Message">Enter a skill id with Sprint 7 certification. Staging only. Blocked by default.</p>
+        <pre id="r2-request-output">No R2 request yet.</pre>
+        <pre id="r2-policy-output">No R2 policy check yet.</pre>
+        <pre id="r2-run-output">No R2 run yet.</pre>
+        <pre id="r2-evidence-output">No R2 evidence yet.</pre>
+        <pre id="r2-history-output">No R2 history yet.</pre>
+        <p class="tiny">
+          Whitelisted: <code>res.partner.write</code> on <code>comment</code>, <code>website</code> only.
+          Environments: <code>staging</code> / <code>demo</code> only.
+          Blocked: <code>sale.order.action_confirm</code> / <code>account.move.action_post</code> /
+          any R3/R4 / any generic write.
+        </p>
+      </div>
+      <div class="card full">
         <h2>ERP Agent OS — End-to-End Operator Flow</h2>
         <p>
           Sprint 10A — Guided operator flow. Move through the full ERP Agent OS path without manually copying IDs.
@@ -1561,6 +1595,143 @@ selectors captured: none</pre>
       } finally {
         runDryRunProofButton.disabled = false;
       }
+    });
+
+    // Sprint 10B — R2 Controlled Write Pilot (res.partner.write, staging only)
+    const r2SkillIdInput = document.getElementById("r2SkillId");
+    const r2Message = document.getElementById("r2Message");
+    const r2RequestOutput = document.getElementById("r2-request-output");
+    const r2PolicyOutput = document.getElementById("r2-policy-output");
+    const r2RunOutput = document.getElementById("r2-run-output");
+    const r2EvidenceOutput = document.getElementById("r2-evidence-output");
+    const r2HistoryOutput = document.getElementById("r2-history-output");
+    const r2State = { requestId: null, runId: null };
+
+    const getR2SkillId = () => r2SkillIdInput?.value?.trim() || "";
+
+    document.getElementById("r2CreateRequest").addEventListener("click", async () => {
+      const skillId = getR2SkillId();
+      if (!skillId) { r2Message.textContent = "Enter a skill id first."; return; }
+      r2Message.textContent = `Creating R2 write pilot request for ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/r2-write-pilot/request`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            requested_by: { type: "user", id: "demo_operator", display_name: "Demo Operator" },
+            approver_1: { type: "user", id: "approver_1", display_name: "Demo Approver 1" },
+            approver_2: { type: "user", id: "approver_2", display_name: "Demo Approver 2" },
+            target_record_id: 1,
+            vals: { comment: "ERPGuard Sprint 10B R2 pilot — staging test annotation." },
+            environment: "staging",
+          }),
+        });
+        const body = await response.json();
+        if (!response.ok) { r2RequestOutput.textContent = `Request failed: ${body?.error?.message || "unknown"}`; return; }
+        r2State.requestId = body.request_id;
+        r2RequestOutput.textContent = jsonText({
+          request_id: body.request_id,
+          target_model: body.target_model,
+          target_record_id: body.target_record_id,
+          target_fields: body.target_fields,
+          environment: body.environment,
+          status: body.status,
+          allow_r2_real_write_pilot: body.allow_r2_real_write_pilot,
+          allow_generic_real_odoo_writes: body.allow_generic_real_odoo_writes,
+          idempotency_key: body.idempotency_key,
+          duplicate: body._idempotent_duplicate || false,
+        });
+        r2Message.textContent = `R2 request: ${body.request_id} (target: ${body.target_model} #${body.target_record_id})`;
+      } catch (error) { r2RequestOutput.textContent = `Request failed: ${String(error)}`; }
+    });
+
+    document.getElementById("r2CheckPolicy").addEventListener("click", async () => {
+      if (!r2State.requestId) { r2Message.textContent = "Create an R2 request first."; return; }
+      r2Message.textContent = `Checking R2 policy for ${r2State.requestId}...`;
+      try {
+        const response = await fetch(`/v1/product/r2-write-pilot/requests/${r2State.requestId}/policy-check`, { method: "POST" });
+        const body = await response.json();
+        r2PolicyOutput.textContent = jsonText({
+          passed: body.passed,
+          allow_r2_real_write_pilot: body.allow_r2_real_write_pilot,
+          allow_generic_real_odoo_writes: body.allow_generic_real_odoo_writes,
+          allow_r3_r4_real_writes: body.allow_r3_r4_real_writes,
+          target_model: body.target_model,
+          target_model_whitelisted: body.target_model_whitelisted,
+          target_fields: body.target_fields,
+          target_fields_whitelisted: body.target_fields_whitelisted,
+          violations: body.violations || [],
+        });
+        r2Message.textContent = `R2 policy: ${body.passed ? "PASSED" : "BLOCKED (" + (body.violations || []).length + " violation(s))"}`;
+      } catch (error) { r2PolicyOutput.textContent = `Policy check failed: ${String(error)}`; }
+    });
+
+    document.getElementById("r2Execute").addEventListener("click", async () => {
+      if (!r2State.requestId) { r2Message.textContent = "Create an R2 request first."; return; }
+      r2Message.textContent = `Executing R2 pilot for ${r2State.requestId}...`;
+      try {
+        const response = await fetch(`/v1/product/r2-write-pilot/requests/${r2State.requestId}/execute`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) { r2RunOutput.textContent = `Execute failed: ${body?.error?.message || "unknown"}`; return; }
+        r2State.runId = body.run_id;
+        r2RunOutput.textContent = jsonText({
+          run_id: body.run_id,
+          status: body.status,
+          executed_action: body.executed_action,
+          allow_r2_real_write_pilot: body.allow_r2_real_write_pilot,
+          allow_generic_real_odoo_writes: body.allow_generic_real_odoo_writes,
+          policy_passed: body.policy_passed,
+          result: body.result,
+        });
+        r2Message.textContent = `R2 run: ${body.status} / action: ${body.executed_action}`;
+      } catch (error) { r2RunOutput.textContent = `Execute failed: ${String(error)}`; }
+    });
+
+    document.getElementById("r2GetRun").addEventListener("click", async () => {
+      if (!r2State.runId) { r2Message.textContent = "Execute R2 pilot first."; return; }
+      try {
+        const response = await fetch(`/v1/product/r2-write-pilot/runs/${r2State.runId}`);
+        const body = await response.json();
+        r2RunOutput.textContent = jsonText(body);
+        r2Message.textContent = `Run ${body.run_id}: ${body.status}`;
+      } catch (error) { r2RunOutput.textContent = `Get run failed: ${String(error)}`; }
+    });
+
+    document.getElementById("r2GetEvidence").addEventListener("click", async () => {
+      if (!r2State.runId) { r2Message.textContent = "Execute R2 pilot first."; return; }
+      r2Message.textContent = `Loading R2 evidence for run ${r2State.runId}...`;
+      try {
+        const response = await fetch(`/v1/product/r2-write-pilot/runs/${r2State.runId}/evidence`);
+        const body = await response.json();
+        r2EvidenceOutput.textContent = jsonText(Array.isArray(body) ? body.map(ev => ({
+          evidence_id: ev.evidence_id,
+          action_taken: ev.action_taken,
+          pre_snapshot: ev.pre_snapshot,
+          post_snapshot: ev.post_snapshot,
+          rollback_instructions: ev.rollback_instructions,
+          allow_r2_real_write_pilot: ev.allow_r2_real_write_pilot,
+        })) : body);
+        r2Message.textContent = `${Array.isArray(body) ? body.length : 0} evidence record(s) — rollback plan included.`;
+      } catch (error) { r2EvidenceOutput.textContent = `Evidence failed: ${String(error)}`; }
+    });
+
+    document.getElementById("r2History").addEventListener("click", async () => {
+      const skillId = getR2SkillId();
+      if (!skillId) { r2Message.textContent = "Enter a skill id first."; return; }
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/r2-write-pilot/history`);
+        const body = await response.json();
+        r2HistoryOutput.textContent = jsonText(Array.isArray(body) ? body.map(r => ({
+          request_id: r.request_id,
+          status: r.status,
+          target_model: r.target_model,
+          target_record_id: r.target_record_id,
+          target_fields: r.target_fields,
+          environment: r.environment,
+          allow_r2_real_write_pilot: r.allow_r2_real_write_pilot,
+        })) : body);
+        r2Message.textContent = `${Array.isArray(body) ? body.length : 0} R2 request(s) for skill.`;
+      } catch (error) { r2HistoryOutput.textContent = `History failed: ${String(error)}`; }
     });
 
     // Sprint 10A — End-to-End Operator Flow
