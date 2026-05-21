@@ -36,6 +36,9 @@ from erpguard.db.models import (
     SkillRunStep,
     SkillVersion,
     WriteImpactPreview,
+    WritePilotEvidence,
+    WritePilotRequest,
+    WritePilotRun,
     WriteReadinessAssessment,
     WriteReadinessCertification,
     WriteRollbackPlan,
@@ -1309,4 +1312,154 @@ def get_latest_write_readiness_certification_for_skill(session: Session, skill_i
         .filter(WriteReadinessCertification.skill_id == skill_id)
         .order_by(WriteReadinessCertification.created_at.desc())
         .first()
+    )
+
+
+# Sprint 8 — Write Pilot
+
+def create_write_pilot_request(
+    session: Session,
+    skill_id: str,
+    certification_id: str | None,
+    requested_by_json: str,
+    approver_1_json: str,
+    approver_2_json: str,
+    target_model: str,
+    target_res_model: str,
+    target_res_id: int,
+    payload_json: str,
+    idempotency_key: str,
+) -> WritePilotRequest:
+    row = WritePilotRequest(
+        id=f"wp_req_{uuid4().hex}",
+        skill_id=skill_id,
+        certification_id=certification_id,
+        requested_by_json=requested_by_json,
+        approver_1_json=approver_1_json,
+        approver_2_json=approver_2_json,
+        target_model=target_model,
+        target_res_model=target_res_model,
+        target_res_id=target_res_id,
+        payload_json=payload_json,
+        idempotency_key=idempotency_key,
+        status="pending",
+        allow_r1_real_write_pilot=False,
+        allow_generic_real_odoo_writes=False,
+        allow_r3_r4_real_writes=False,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_write_pilot_request(session: Session, request_id: str) -> WritePilotRequest | None:
+    return session.get(WritePilotRequest, request_id)
+
+
+def get_write_pilot_request_by_idempotency_key(session: Session, key: str) -> WritePilotRequest | None:
+    return (
+        session.query(WritePilotRequest)
+        .filter(WritePilotRequest.idempotency_key == key)
+        .first()
+    )
+
+
+def list_write_pilot_requests_for_skill(session: Session, skill_id: str) -> list[WritePilotRequest]:
+    return list(
+        session.query(WritePilotRequest)
+        .filter(WritePilotRequest.skill_id == skill_id)
+        .order_by(WritePilotRequest.created_at.desc())
+        .all()
+    )
+
+
+def create_write_pilot_run(
+    session: Session,
+    request_id: str,
+    skill_id: str,
+    status: str,
+    executed_action: str,
+    pre_snapshot_json: str,
+    post_snapshot_json: str,
+    result_json: str,
+    policy_passed: bool,
+    allow_r1_real_write_pilot: bool,
+    finished_at=None,
+) -> WritePilotRun:
+    row = WritePilotRun(
+        id=f"wp_run_{uuid4().hex}",
+        request_id=request_id,
+        skill_id=skill_id,
+        status=status,
+        executed_action=executed_action,
+        pre_snapshot_json=pre_snapshot_json,
+        post_snapshot_json=post_snapshot_json,
+        result_json=result_json,
+        policy_passed=policy_passed,
+        allow_r1_real_write_pilot=allow_r1_real_write_pilot,
+        allow_generic_real_odoo_writes=False,
+        allow_r3_r4_real_writes=False,
+        finished_at=finished_at,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_write_pilot_run(session: Session, run_id: str) -> WritePilotRun | None:
+    return session.get(WritePilotRun, run_id)
+
+
+def get_write_pilot_run_for_request(session: Session, request_id: str) -> WritePilotRun | None:
+    return (
+        session.query(WritePilotRun)
+        .filter(WritePilotRun.request_id == request_id)
+        .order_by(WritePilotRun.created_at.desc())
+        .first()
+    )
+
+
+def create_write_pilot_evidence(
+    session: Session,
+    run_id: str,
+    request_id: str,
+    skill_id: str,
+    action_taken: str,
+    target_model: str,
+    target_res_model: str,
+    target_res_id: str,
+    pre_snapshot_json: str,
+    post_snapshot_json: str,
+    idempotency_key: str,
+    allow_r1_real_write_pilot: bool,
+) -> WritePilotEvidence:
+    ev = WritePilotEvidence(
+        id=f"wp_ev_{uuid4().hex}",
+        run_id=run_id,
+        request_id=request_id,
+        skill_id=skill_id,
+        action_taken=action_taken,
+        target_model=target_model,
+        target_res_model=target_res_model,
+        target_res_id=str(target_res_id),
+        pre_snapshot_json=pre_snapshot_json,
+        post_snapshot_json=post_snapshot_json,
+        idempotency_key=idempotency_key,
+        allow_r1_real_write_pilot=allow_r1_real_write_pilot,
+        allow_generic_real_odoo_writes=False,
+    )
+    session.add(ev)
+    session.commit()
+    session.refresh(ev)
+    return ev
+
+
+def list_write_pilot_evidence_for_run(session: Session, run_id: str) -> list[WritePilotEvidence]:
+    return list(
+        session.query(WritePilotEvidence)
+        .filter(WritePilotEvidence.run_id == run_id)
+        .order_by(WritePilotEvidence.created_at.asc())
+        .all()
     )

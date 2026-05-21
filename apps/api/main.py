@@ -10,6 +10,7 @@ from apps.api.routes.approval_workflow import router as approval_workflow_router
 from apps.api.routes.execution_sandbox import router as execution_sandbox_router
 from apps.api.routes.live_read_sandbox import router as live_read_sandbox_router
 from apps.api.routes.write_readiness import router as write_readiness_router
+from apps.api.routes.write_pilot import router as write_pilot_router
 from apps.api.routes.skill_compilation import router as skill_compilation_router
 from apps.api.routes.recordings import router as recordings_router
 from apps.api.routes.preflight import router as preflight_router
@@ -32,6 +33,7 @@ app.include_router(approval_workflow_router)
 app.include_router(execution_sandbox_router)
 app.include_router(live_read_sandbox_router)
 app.include_router(write_readiness_router)
+app.include_router(write_pilot_router)
 app.include_router(audit_router)
 app.include_router(skills_router)
 app.include_router(fake_erp_router)

@@ -308,6 +308,67 @@ class WriteReadinessCertification(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
 
 
+# Sprint 8 — First Real Write Pilot (mail.message.create only)
+
+class WritePilotRequest(Base):
+    __tablename__ = "write_pilot_requests"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    certification_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    requested_by_json: Mapped[str] = mapped_column(Text, nullable=False)
+    approver_1_json: Mapped[str] = mapped_column(Text, nullable=False)
+    approver_2_json: Mapped[str] = mapped_column(Text, nullable=False)
+    target_model: Mapped[str] = mapped_column(Text, nullable=False)
+    target_res_model: Mapped[str] = mapped_column(Text, nullable=False)
+    target_res_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    payload_json: Mapped[str] = mapped_column(Text, nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    allow_r1_real_write_pilot: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    allow_generic_real_odoo_writes: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    allow_r3_r4_real_writes: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class WritePilotRun(Base):
+    __tablename__ = "write_pilot_runs"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    request_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    executed_action: Mapped[str] = mapped_column(Text, nullable=False)
+    pre_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    post_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    result_json: Mapped[str] = mapped_column(Text, nullable=False)
+    policy_passed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    allow_r1_real_write_pilot: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    allow_generic_real_odoo_writes: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    allow_r3_r4_real_writes: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class WritePilotEvidence(Base):
+    __tablename__ = "write_pilot_evidence"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    request_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    action_taken: Mapped[str] = mapped_column(Text, nullable=False)
+    target_model: Mapped[str] = mapped_column(Text, nullable=False)
+    target_res_model: Mapped[str] = mapped_column(Text, nullable=False)
+    target_res_id: Mapped[str] = mapped_column(Text, nullable=False)
+    pre_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    post_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(Text, nullable=False)
+    allow_r1_real_write_pilot: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    allow_generic_real_odoo_writes: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
 class LiveReadExecutionRequest(Base):
     __tablename__ = "live_read_execution_requests"
 

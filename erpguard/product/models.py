@@ -582,3 +582,76 @@ class WriteReadinessSummaryModel(BaseModel):
     can_execute_real_writes: bool = False
     real_erp_writes_enabled: bool = False
     approved_for_real_execution: bool = False
+
+
+# Sprint 8 — First Real Write Pilot (mail.message.create only)
+
+class WritePilotPolicyViolation(BaseModel):
+    code: str
+    message: str
+    blocking: bool = True
+
+
+class WritePilotPolicyCheckModel(BaseModel):
+    request_id: str
+    skill_id: str
+    passed: bool
+    allow_r1_real_write_pilot: bool = False
+    allow_generic_real_odoo_writes: bool = False
+    allow_r3_r4_real_writes: bool = False
+    target_model: str
+    target_whitelisted: bool
+    violations: list[WritePilotPolicyViolation] = Field(default_factory=list)
+
+
+class WritePilotRequestModel(BaseModel):
+    request_id: str
+    skill_id: str
+    certification_id: str | None = None
+    requested_by: dict[str, Any]
+    approver_1: dict[str, Any]
+    approver_2: dict[str, Any]
+    target_model: str
+    target_res_model: str
+    target_res_id: int
+    payload: dict[str, Any]
+    idempotency_key: str
+    status: str
+    allow_r1_real_write_pilot: bool = False
+    allow_generic_real_odoo_writes: bool = False
+    allow_r3_r4_real_writes: bool = False
+    created_at: str | None = None
+
+
+class WritePilotRunModel(BaseModel):
+    run_id: str
+    request_id: str
+    skill_id: str
+    status: str
+    executed_action: str
+    pre_snapshot: dict[str, Any] = Field(default_factory=dict)
+    post_snapshot: dict[str, Any] = Field(default_factory=dict)
+    result: dict[str, Any] = Field(default_factory=dict)
+    policy_passed: bool
+    allow_r1_real_write_pilot: bool = False
+    allow_generic_real_odoo_writes: bool = False
+    allow_r3_r4_real_writes: bool = False
+    created_at: str | None = None
+    finished_at: str | None = None
+
+
+class WritePilotEvidenceModel(BaseModel):
+    evidence_id: str
+    run_id: str
+    request_id: str
+    skill_id: str
+    action_taken: str
+    target_model: str
+    target_res_model: str
+    target_res_id: str
+    pre_snapshot: dict[str, Any] = Field(default_factory=dict)
+    post_snapshot: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str
+    allow_r1_real_write_pilot: bool = False
+    allow_generic_real_odoo_writes: bool = False
+    created_at: str | None = None

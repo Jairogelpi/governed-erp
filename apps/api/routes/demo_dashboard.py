@@ -301,6 +301,39 @@ selectors captured: none</pre>
         <pre id="approvalDecisionSimulation">No approval decision simulated yet.</pre>
       </div>
       <div class="card full">
+        <h2>First Real Write Pilot — mail.message.create</h2>
+        <p>
+          Sprint 8 — Ultra-limited real Odoo write pilot. Only mail.message.create allowed. R1 risk only.
+          Feature flag: ALLOW_R1_REAL_WRITE_PILOT=false by default (pilot is blocked unless explicitly enabled).
+          ALLOW_GENERIC_REAL_ODOO_WRITES=false. ALLOW_R3_R4_REAL_WRITES=false always.
+          Requires Sprint 7 write readiness certification + double human approval.
+        </p>
+        <div class="toolbar">
+          <label>
+            Skill ID
+            <input id="wpSkillId" placeholder="skill_..." />
+          </label>
+          <button id="wpCreateRequest" type="button">Create pilot request</button>
+          <button id="wpCheckPolicy" type="button">Check pilot policy</button>
+          <button id="wpExecute" type="button">Execute pilot (blocked by default)</button>
+          <button id="wpGetRun" type="button">Get run result</button>
+          <button id="wpGetEvidence" type="button">Get pilot evidence</button>
+          <button id="wpHistory" type="button">Show pilot history</button>
+        </div>
+        <p class="tiny" id="wpMessage">Enter an approved skill id (with Sprint 7 certification) to test the write pilot. Blocked by default.</p>
+        <pre id="wp-request-output">No pilot request yet.</pre>
+        <pre id="wp-policy-output">No policy check yet.</pre>
+        <pre id="wp-run-output">No pilot run yet.</pre>
+        <pre id="wp-evidence-output">No pilot evidence yet.</pre>
+        <pre id="wp-history-output">No pilot history yet.</pre>
+        <p class="tiny">
+          Whitelisted: <code>mail.message.create</code> only.
+          Blocked: <code>sale.order.action_confirm</code> / <code>stock.picking.button_validate</code> /
+          <code>account.move.action_post</code> / <code>mrp.production.button_mark_done</code> /
+          any generic <code>create/write/unlink/copy/action_*/button_*</code>.
+        </p>
+      </div>
+      <div class="card full">
         <h2>Write Capability Readiness &amp; Risk Certification</h2>
         <p>
           Sprint 7 — Static analysis of write candidates for approved compiled skills.
@@ -1464,6 +1497,132 @@ selectors captured: none</pre>
       } finally {
         runDryRunProofButton.disabled = false;
       }
+    });
+
+    // Sprint 8 — First Real Write Pilot (mail.message.create only)
+    const wpSkillIdInput = document.getElementById("wpSkillId");
+    const wpMessage = document.getElementById("wpMessage");
+    const wpRequestOutput = document.getElementById("wp-request-output");
+    const wpPolicyOutput = document.getElementById("wp-policy-output");
+    const wpRunOutput = document.getElementById("wp-run-output");
+    const wpEvidenceOutput = document.getElementById("wp-evidence-output");
+    const wpHistoryOutput = document.getElementById("wp-history-output");
+    const wpState = { requestId: null, runId: null };
+
+    const getWpSkillId = () => wpSkillIdInput?.value?.trim() || "";
+
+    document.getElementById("wpCreateRequest").addEventListener("click", async () => {
+      const skillId = getWpSkillId();
+      if (!skillId) { wpMessage.textContent = "Enter a skill id first."; return; }
+      wpMessage.textContent = `Creating write pilot request for ${skillId}...`;
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/write-pilot/request`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            requested_by: { type: "user", id: "demo_operator", display_name: "Demo Operator" },
+            approver_1: { type: "user", id: "approver_1", display_name: "Demo Approver 1" },
+            approver_2: { type: "user", id: "approver_2", display_name: "Demo Approver 2" },
+            target_res_model: "sale.order",
+            target_res_id: 42,
+            payload: { body: "<p>ERPGuard Sprint 8 pilot audit note — controlled write test.</p>" },
+          }),
+        });
+        const body = await response.json();
+        if (!response.ok && response.status !== 200 && response.status !== 201) {
+          wpRequestOutput.textContent = `Request failed: ${body?.error?.message || "unknown"}`;
+          return;
+        }
+        wpState.requestId = body.request_id;
+        wpRequestOutput.textContent = jsonText({
+          request_id: body.request_id,
+          target_model: body.target_model,
+          target_res_model: body.target_res_model,
+          status: body.status,
+          allow_r1_real_write_pilot: body.allow_r1_real_write_pilot,
+          allow_generic_real_odoo_writes: body.allow_generic_real_odoo_writes,
+          idempotency_key: body.idempotency_key,
+          duplicate: body._idempotent_duplicate || false,
+        });
+        wpMessage.textContent = `Pilot request: ${body.request_id} (target: ${body.target_model})`;
+      } catch (error) { wpRequestOutput.textContent = `Request failed: ${String(error)}`; }
+    });
+
+    document.getElementById("wpCheckPolicy").addEventListener("click", async () => {
+      if (!wpState.requestId) { wpMessage.textContent = "Create a pilot request first."; return; }
+      wpMessage.textContent = `Checking pilot policy for ${wpState.requestId}...`;
+      try {
+        const response = await fetch(`/v1/product/write-pilot/requests/${wpState.requestId}/policy-check`, { method: "POST" });
+        const body = await response.json();
+        wpPolicyOutput.textContent = jsonText({
+          passed: body.passed,
+          allow_r1_real_write_pilot: body.allow_r1_real_write_pilot,
+          allow_generic_real_odoo_writes: body.allow_generic_real_odoo_writes,
+          allow_r3_r4_real_writes: body.allow_r3_r4_real_writes,
+          target_model: body.target_model,
+          target_whitelisted: body.target_whitelisted,
+          violations: body.violations || [],
+        });
+        wpMessage.textContent = `Policy: ${body.passed ? "PASSED" : "BLOCKED (" + (body.violations || []).length + " violation(s))"}`;
+      } catch (error) { wpPolicyOutput.textContent = `Policy check failed: ${String(error)}`; }
+    });
+
+    document.getElementById("wpExecute").addEventListener("click", async () => {
+      if (!wpState.requestId) { wpMessage.textContent = "Create a pilot request first."; return; }
+      wpMessage.textContent = `Executing pilot for request ${wpState.requestId}...`;
+      try {
+        const response = await fetch(`/v1/product/write-pilot/requests/${wpState.requestId}/execute`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) { wpRunOutput.textContent = `Execute failed: ${body?.error?.message || "unknown"}`; return; }
+        wpState.runId = body.run_id;
+        wpRunOutput.textContent = jsonText({
+          run_id: body.run_id,
+          status: body.status,
+          executed_action: body.executed_action,
+          allow_r1_real_write_pilot: body.allow_r1_real_write_pilot,
+          allow_generic_real_odoo_writes: body.allow_generic_real_odoo_writes,
+          policy_passed: body.policy_passed,
+          result: body.result,
+        });
+        wpMessage.textContent = `Pilot run: ${body.status} / action: ${body.executed_action}`;
+      } catch (error) { wpRunOutput.textContent = `Execute failed: ${String(error)}`; }
+    });
+
+    document.getElementById("wpGetRun").addEventListener("click", async () => {
+      if (!wpState.runId) { wpMessage.textContent = "Execute pilot first."; return; }
+      try {
+        const response = await fetch(`/v1/product/write-pilot/runs/${wpState.runId}`);
+        const body = await response.json();
+        wpRunOutput.textContent = jsonText(body);
+        wpMessage.textContent = `Run ${body.run_id}: ${body.status}`;
+      } catch (error) { wpRunOutput.textContent = `Get run failed: ${String(error)}`; }
+    });
+
+    document.getElementById("wpGetEvidence").addEventListener("click", async () => {
+      if (!wpState.runId) { wpMessage.textContent = "Execute pilot first."; return; }
+      wpMessage.textContent = `Loading pilot evidence for run ${wpState.runId}...`;
+      try {
+        const response = await fetch(`/v1/product/write-pilot/runs/${wpState.runId}/evidence`);
+        const body = await response.json();
+        wpEvidenceOutput.textContent = jsonText(body);
+        wpMessage.textContent = `${Array.isArray(body) ? body.length : 0} evidence record(s) for pilot run.`;
+      } catch (error) { wpEvidenceOutput.textContent = `Evidence failed: ${String(error)}`; }
+    });
+
+    document.getElementById("wpHistory").addEventListener("click", async () => {
+      const skillId = getWpSkillId();
+      if (!skillId) { wpMessage.textContent = "Enter a skill id first."; return; }
+      try {
+        const response = await fetch(`/v1/product/skills/${skillId}/write-pilot/history`);
+        const body = await response.json();
+        wpHistoryOutput.textContent = jsonText(Array.isArray(body) ? body.map(r => ({
+          request_id: r.request_id,
+          status: r.status,
+          target_model: r.target_model,
+          allow_r1_real_write_pilot: r.allow_r1_real_write_pilot,
+        })) : body);
+        wpMessage.textContent = `${Array.isArray(body) ? body.length : 0} pilot request(s) for skill.`;
+      } catch (error) { wpHistoryOutput.textContent = `History failed: ${String(error)}`; }
     });
 
     // Sprint 7 — Write Capability Readiness & Risk Certification
