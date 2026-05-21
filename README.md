@@ -47,6 +47,52 @@ ALLOW_GENERIC_REAL_ODOO_WRITES=false
 ALLOW_R3_R4_REAL_WRITES=false
 ```
 
+## VPS Operations
+
+Sprint 14 adds deployment and operations hardening for running the release candidate as a VPS service.
+
+Deployment docs:
+
+- [docs/deployment/00_vps_deployment.md](docs/deployment/00_vps_deployment.md)
+- [docs/deployment/01_systemd_service.md](docs/deployment/01_systemd_service.md)
+- [docs/deployment/02_operations_runbook.md](docs/deployment/02_operations_runbook.md)
+- [docs/deployment/03_backup_and_restore.md](docs/deployment/03_backup_and_restore.md)
+- [docs/deployment/04_update_procedure.md](docs/deployment/04_update_procedure.md)
+- [docs/deployment/05_deployment_validation_report.md](docs/deployment/05_deployment_validation_report.md)
+
+Deployment assets:
+
+- `deploy/systemd/erpguard.service`
+- `deploy/env/erpguard.env.example`
+- `scripts/ops_check.py`
+- `scripts/backup_release_db.py`
+- `scripts/update_release_candidate.sh`
+
+Recommended VPS paths:
+
+```text
+/opt/erpguard/app
+/opt/erpguard/.venv
+/var/lib/erpguard
+/var/lib/erpguard/backups
+/etc/erpguard/erpguard.env
+/etc/systemd/system/erpguard.service
+```
+
+Post-deploy check:
+
+```bash
+python scripts/ops_check.py --base-url http://127.0.0.1:8000
+```
+
+Backup:
+
+```bash
+python scripts/backup_release_db.py
+```
+
+Deployment scripts and docs keep generic writes, R3/R4 writes, and write pilots disabled by default.
+
 ## Current Demo Story
 
 Implemented: record once in the Fake ERP demo, validate readiness, compile a reusable skill, inspect the compiled package, run it deterministically, and audit the resulting runs and steps.

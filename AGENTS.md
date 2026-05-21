@@ -160,3 +160,12 @@
 - Ran full verification with `python -m pytest`; result: `595 passed, 2 warnings`.
 - Started `uvicorn apps.api.main:app --host 0.0.0.0 --port 8000` locally and validated `GET /v1/release/health`, `GET /v1/release/readiness-report`, `POST /v1/release/demo-seed`, `POST /v1/release/operator-smoke`, `GET /v1/release/safety-boundaries`, and `GET /demo`; all returned `200`.
 - Ran `python scripts/check_release_install.py --base-url http://127.0.0.1:8000`; result: `passed (14/14)`.
+- Started Sprint 14 VPS operations hardening from GitHub issue #12. Added tests first for deployment docs, systemd unit, deployment env example, ops check script, backup script, update script, and unchanged release safety boundaries; initial focused run failed only on expected missing deployment artifacts.
+- Added deployment docs under `docs/deployment/`: VPS deployment, systemd service, operations runbook, backup/restore, update procedure, and deployment validation report with status `validated_locally_with_vps_contract`.
+- Added `deploy/systemd/erpguard.service` and `deploy/env/erpguard.env.example` with non-root `erpguard` service user, persistent `/var/lib/erpguard` data path, `/etc/erpguard/erpguard.env`, uvicorn startup, journal logging, restart policy, and all write flags false by default.
+- Added `scripts/ops_check.py`, `scripts/backup_release_db.py`, and `scripts/update_release_candidate.sh` for post-deploy health/smoke checks, timestamped SQLite backups, and update/restart/ops-check workflow.
+- Updated `README.md` with the Sprint 14 deployment docs, assets, recommended VPS paths, post-deploy check, backup command, and safety boundaries.
+- Verified Sprint 14 focused contracts with `python -m pytest tests/test_deployment_contract.py tests/test_ops_scripts_contract.py -q`; result: `9 passed`.
+- Verified operations scripts manually: `python scripts/ops_check.py --help` and `python scripts/backup_release_db.py --help` both returned usage successfully.
+- Verified `scripts/backup_release_db.py` against a temporary SQLite database; it created a timestamped backup and printed JSON without exposing secrets.
+- Started `uvicorn apps.api.main:app --host 0.0.0.0 --port 8000` locally and ran `python scripts/ops_check.py --base-url http://127.0.0.1:8000`; result: `passed (7/7)`.
