@@ -732,3 +732,60 @@ class OperatorSessionEvent(Base):
     status: Mapped[str] = mapped_column(Text, nullable=False)
     detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 11 — R2 Evidence Review, Rollback Rehearsal & Production Readiness
+
+class R2EvidenceReview(Base):
+    __tablename__ = "r2_evidence_reviews"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    delta_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    fields_changed: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    fields_unchanged: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    drift_detected: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    drift_details_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class R2RollbackRehearsal(Base):
+    __tablename__ = "r2_rollback_rehearsals"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    instructions_valid: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    missing_fields_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    dry_run_steps_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    rehearsal_passed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class R2ExecutionReport(Base):
+    __tablename__ = "r2_execution_reports"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    report_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    residual_risk_score: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    risk_level: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class R2PromotionGate(Base):
+    __tablename__ = "r2_promotion_gates"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    gate_status: Mapped[str] = mapped_column(Text, nullable=False)
+    blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    checks_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

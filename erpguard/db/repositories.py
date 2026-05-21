@@ -25,6 +25,10 @@ from erpguard.db.models import (
     OperatorSession,
     OperatorSessionEvent,
     PreflightCase,
+    R2EvidenceReview,
+    R2ExecutionReport,
+    R2PromotionGate,
+    R2RollbackRehearsal,
     R2WritePilotEvidence,
     R2WritePilotRequest,
     R2WritePilotRun,
@@ -1869,3 +1873,127 @@ def list_r2_write_pilot_evidence_for_run(session: Session, run_id: str) -> list[
         .order_by(R2WritePilotEvidence.created_at.asc())
         .all()
     )
+
+
+# Sprint 11 — R2 Evidence Review, Rollback Rehearsal & Production Readiness
+
+def create_r2_evidence_review(
+    session: Session,
+    *,
+    run_id: str,
+    skill_id: str,
+    delta_json: str = "{}",
+    fields_changed: int = 0,
+    fields_unchanged: int = 0,
+    drift_detected: bool = False,
+    drift_details_json: str = "[]",
+    status: str = "completed",
+) -> R2EvidenceReview:
+    row = R2EvidenceReview(
+        id=f"r2review_{uuid4().hex[:12]}",
+        run_id=run_id,
+        skill_id=skill_id,
+        delta_json=delta_json,
+        fields_changed=fields_changed,
+        fields_unchanged=fields_unchanged,
+        drift_detected=drift_detected,
+        drift_details_json=drift_details_json,
+        status=status,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_r2_evidence_review_for_run(session: Session, run_id: str) -> R2EvidenceReview | None:
+    return session.query(R2EvidenceReview).filter(R2EvidenceReview.run_id == run_id).first()
+
+
+def create_r2_rollback_rehearsal(
+    session: Session,
+    *,
+    run_id: str,
+    skill_id: str,
+    instructions_valid: bool,
+    missing_fields_json: str = "[]",
+    dry_run_steps_json: str = "[]",
+    rehearsal_passed: bool,
+    notes: str = "",
+) -> R2RollbackRehearsal:
+    row = R2RollbackRehearsal(
+        id=f"r2reh_{uuid4().hex[:12]}",
+        run_id=run_id,
+        skill_id=skill_id,
+        instructions_valid=instructions_valid,
+        missing_fields_json=missing_fields_json,
+        dry_run_steps_json=dry_run_steps_json,
+        rehearsal_passed=rehearsal_passed,
+        notes=notes,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_r2_rollback_rehearsal_for_run(session: Session, run_id: str) -> R2RollbackRehearsal | None:
+    return session.query(R2RollbackRehearsal).filter(R2RollbackRehearsal.run_id == run_id).first()
+
+
+def create_r2_execution_report(
+    session: Session,
+    *,
+    run_id: str,
+    skill_id: str,
+    report_json: str = "{}",
+    residual_risk_score: int = 0,
+    risk_level: str = "low",
+    status: str = "completed",
+) -> R2ExecutionReport:
+    row = R2ExecutionReport(
+        id=f"r2report_{uuid4().hex[:12]}",
+        run_id=run_id,
+        skill_id=skill_id,
+        report_json=report_json,
+        residual_risk_score=residual_risk_score,
+        risk_level=risk_level,
+        status=status,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_r2_execution_report_for_run(session: Session, run_id: str) -> R2ExecutionReport | None:
+    return session.query(R2ExecutionReport).filter(R2ExecutionReport.run_id == run_id).first()
+
+
+def create_r2_promotion_gate(
+    session: Session,
+    *,
+    run_id: str,
+    skill_id: str,
+    gate_status: str,
+    blocked: bool,
+    checks_json: str = "[]",
+    blocking_reasons_json: str = "[]",
+) -> R2PromotionGate:
+    row = R2PromotionGate(
+        id=f"r2gate_{uuid4().hex[:12]}",
+        run_id=run_id,
+        skill_id=skill_id,
+        gate_status=gate_status,
+        blocked=blocked,
+        checks_json=checks_json,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_r2_promotion_gate_for_run(session: Session, run_id: str) -> R2PromotionGate | None:
+    return session.query(R2PromotionGate).filter(R2PromotionGate.run_id == run_id).first()

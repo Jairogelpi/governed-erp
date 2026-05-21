@@ -301,6 +301,35 @@ selectors captured: none</pre>
         <pre id="approvalDecisionSimulation">No approval decision simulated yet.</pre>
       </div>
       <div class="card full">
+        <h2>R2 Pilot Evidence Review, Rollback Rehearsal &amp; Production Readiness</h2>
+        <p>
+          Sprint 11 — Make the R2 pilot operationally defensible. Review evidence (pre/post snapshot delta),
+          rehearse rollback (dry-run only, no real execution), generate an audit-grade execution report,
+          measure residual risk, and evaluate the promotion gate. Blocked if any check fails.
+          No new writes. ALLOW_GENERIC_REAL_ODOO_WRITES=false. ALLOW_R3_R4_REAL_WRITES=false always.
+        </p>
+        <div class="toolbar">
+          <label>
+            Run ID
+            <input id="r2rRunId" placeholder="r2run_..." />
+          </label>
+          <button id="r2rEvidenceReview" type="button">Evidence review</button>
+          <button id="r2rRollbackRehearsal" type="button">Rollback rehearsal (dry-run)</button>
+          <button id="r2rExecutionReport" type="button">Execution report</button>
+          <button id="r2rPromotionGate" type="button">Evaluate promotion gate</button>
+        </div>
+        <p class="tiny" id="r2rMessage">Enter an R2 run ID (from Sprint 10B) to review evidence, rehearse rollback, and check promotion readiness.</p>
+        <pre id="r2r-review-output">No evidence review yet.</pre>
+        <pre id="r2r-rehearsal-output">No rollback rehearsal yet.</pre>
+        <pre id="r2r-report-output">No execution report yet.</pre>
+        <pre id="r2r-gate-output">No promotion gate yet.</pre>
+        <p class="tiny">
+          Promotion gate checks: evidence review done, no drift, rollback rehearsal passed,
+          execution report generated, residual risk ≤ 30. Blocked if any check fails.
+          Real rollback never auto-executed — human operator confirms first.
+        </p>
+      </div>
+      <div class="card full">
         <h2>R2 Controlled Write Pilot — res.partner.write (staging only)</h2>
         <p>
           Sprint 10B — First R2 reversible write candidate. Only <code>res.partner.write</code> on
@@ -1595,6 +1624,100 @@ selectors captured: none</pre>
       } finally {
         runDryRunProofButton.disabled = false;
       }
+    });
+
+    // Sprint 11 — R2 Evidence Review, Rollback Rehearsal & Production Readiness
+    const r2rMessage = document.getElementById("r2rMessage");
+    const r2rReviewOutput = document.getElementById("r2r-review-output");
+    const r2rRehearsalOutput = document.getElementById("r2r-rehearsal-output");
+    const r2rReportOutput = document.getElementById("r2r-report-output");
+    const r2rGateOutput = document.getElementById("r2r-gate-output");
+    const r2rRunIdInput = document.getElementById("r2rRunId");
+
+    const getR2rRunId = () => r2rRunIdInput?.value?.trim() || "";
+
+    document.getElementById("r2rEvidenceReview").addEventListener("click", async () => {
+      const runId = getR2rRunId();
+      if (!runId) { r2rMessage.textContent = "Enter an R2 run ID first."; return; }
+      r2rMessage.textContent = `Loading evidence review for ${runId}...`;
+      try {
+        const response = await fetch(`/v1/product/r2-write-pilot/runs/${runId}/evidence-review`);
+        const body = await response.json();
+        if (!response.ok) { r2rReviewOutput.textContent = `Review failed: ${body?.error?.message || "unknown"}`; return; }
+        r2rReviewOutput.textContent = jsonText({
+          review_id: body.review_id,
+          fields_changed: body.fields_changed,
+          fields_unchanged: body.fields_unchanged,
+          drift_detected: body.drift_detected,
+          drift_details: body.drift_details || [],
+          delta: body.delta || {},
+          rollback_instructions: body.rollback_instructions || {},
+          safety_invariants: body.safety_invariants,
+        });
+        r2rMessage.textContent = `Evidence review: ${body.fields_changed} field(s) changed. Drift: ${body.drift_detected}`;
+      } catch (error) { r2rReviewOutput.textContent = `Review failed: ${String(error)}`; }
+    });
+
+    document.getElementById("r2rRollbackRehearsal").addEventListener("click", async () => {
+      const runId = getR2rRunId();
+      if (!runId) { r2rMessage.textContent = "Enter an R2 run ID first."; return; }
+      r2rMessage.textContent = `Rehearsing rollback for ${runId} (dry-run only)...`;
+      try {
+        const response = await fetch(`/v1/product/r2-write-pilot/runs/${runId}/rollback-rehearsal`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) { r2rRehearsalOutput.textContent = `Rehearsal failed: ${body?.error?.message || "unknown"}`; return; }
+        r2rRehearsalOutput.textContent = jsonText({
+          rehearsal_id: body.rehearsal_id,
+          instructions_valid: body.instructions_valid,
+          rehearsal_passed: body.rehearsal_passed,
+          missing_fields: body.missing_fields,
+          dry_run_steps: (body.dry_run_steps || []).map(s => ({ step: s.step, action: s.action, description: s.description })),
+          notes: body.notes,
+          real_rollback_executed: body.real_rollback_executed,
+        });
+        r2rMessage.textContent = `Rollback rehearsal: ${body.rehearsal_passed ? "PASSED" : "FAILED"} — ${body.notes}`;
+      } catch (error) { r2rRehearsalOutput.textContent = `Rehearsal failed: ${String(error)}`; }
+    });
+
+    document.getElementById("r2rExecutionReport").addEventListener("click", async () => {
+      const runId = getR2rRunId();
+      if (!runId) { r2rMessage.textContent = "Enter an R2 run ID first."; return; }
+      r2rMessage.textContent = `Generating execution report for ${runId}...`;
+      try {
+        const response = await fetch(`/v1/product/r2-write-pilot/runs/${runId}/execution-report`);
+        const body = await response.json();
+        if (!response.ok) { r2rReportOutput.textContent = `Report failed: ${body?.error?.message || "unknown"}`; return; }
+        r2rReportOutput.textContent = jsonText({
+          report_id: body.report_id,
+          residual_risk_score: body.residual_risk_score,
+          risk_level: body.risk_level,
+          status: body.status,
+          report: body.report || {},
+        });
+        r2rMessage.textContent = `Execution report: residual risk ${body.residual_risk_score}/100 (${body.risk_level})`;
+      } catch (error) { r2rReportOutput.textContent = `Report failed: ${String(error)}`; }
+    });
+
+    document.getElementById("r2rPromotionGate").addEventListener("click", async () => {
+      const runId = getR2rRunId();
+      if (!runId) { r2rMessage.textContent = "Enter an R2 run ID first."; return; }
+      r2rMessage.textContent = `Evaluating promotion gate for ${runId}...`;
+      try {
+        const response = await fetch(`/v1/product/r2-write-pilot/runs/${runId}/promotion-gate`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) { r2rGateOutput.textContent = `Gate failed: ${body?.error?.message || "unknown"}`; return; }
+        r2rGateOutput.textContent = jsonText({
+          gate_id: body.gate_id,
+          gate_status: body.gate_status,
+          blocked: body.blocked,
+          checks: (body.checks || []).map(c => ({ name: c.name, passed: c.passed })),
+          blocking_reasons: body.blocking_reasons || [],
+          safety_invariants: body.safety_invariants,
+        });
+        const passed = (body.checks || []).filter(c => c.passed).length;
+        const total = (body.checks || []).length;
+        r2rMessage.textContent = `Promotion gate: ${body.gate_status.toUpperCase()} — ${passed}/${total} checks passed`;
+      } catch (error) { r2rGateOutput.textContent = `Gate failed: ${String(error)}`; }
     });
 
     // Sprint 10B — R2 Controlled Write Pilot (res.partner.write, staging only)
