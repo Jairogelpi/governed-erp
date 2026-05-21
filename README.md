@@ -173,6 +173,26 @@ The vault stores only a credential reference and fingerprint in the application 
 
 Sprint 17 intentionally does not add real OAuth, Gmail/Calendar/Drive/WhatsApp API calls, MCP execution, or new ERP write capability. Connection tests are simulated and report `provider_api_called=false`.
 
+## External Connector Read-Only Pilot
+
+Sprint 18 opens the first external connector in fixture mode: Google Calendar read-only.
+
+External connector endpoints:
+
+- `GET /v1/external-connectors` — list available connectors and their policies
+- `GET /v1/external-connectors/google-calendar-readonly/policy` — get read-only policy
+- `POST /v1/external-connectors/google-calendar-readonly/test-readiness` — policy check before read
+- `POST /v1/external-connectors/google-calendar-readonly/read-calendars` — read calendars (redacted)
+- `POST /v1/external-connectors/google-calendar-readonly/read-upcoming-events` — read events (redacted)
+- `GET /v1/external-connectors/read-evidence/{evidence_id}` — retrieve read evidence record
+- `GET /v1/external-connectors/auth-profiles/{id}/read-evidence` — list evidence for a profile
+- `GET /v1/external-connectors/auth-profiles/{id}/signals` — business signals (no PII)
+- `GET /v1/external-connectors/auth-profiles/{id}/audit` — audit trail (tokens redacted)
+
+Default mode is fixture — no credentials, no real API calls. Set `USE_REAL_GOOGLE_CALENDAR=true` to enable the real read path (requires OAuth token). Redaction removes attendee emails, organizer/creator emails, hangoutLink, htmlLink, description, and conferenceData from all responses.
+
+Sprint 18 does not create/update/delete calendar events, send emails, read Gmail bodies, ingest Drive content, add MCP execution, add ERP write capability, or enable R3/R4 writes.
+
 ## Current Demo Story
 
 Implemented: record once in the Fake ERP demo, validate readiness, compile a reusable skill, inspect the compiled package, run it deterministically, and audit the resulting runs and steps.

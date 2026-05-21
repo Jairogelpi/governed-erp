@@ -851,3 +851,36 @@ class R2PromotionGate(Base):
     checks_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 18 — First Real External Connector Read-Only Pilot
+
+class ConnectorReadEvidence(Base):
+    __tablename__ = "connector_read_evidence"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    auth_profile_id: Mapped[str] = mapped_column(Text, nullable=False)
+    connector_id: Mapped[str] = mapped_column(Text, nullable=False)
+    operation: Mapped[str] = mapped_column(Text, nullable=False)
+    fixture_mode: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    record_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    redacted_fields_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    result_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    policy_passed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    read_only: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class ExternalConnectorAuditEvent(Base):
+    __tablename__ = "external_connector_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    auth_profile_id: Mapped[str] = mapped_column(Text, nullable=False)
+    connector_id: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    operation: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    fixture_mode: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

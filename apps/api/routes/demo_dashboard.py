@@ -685,6 +685,38 @@ selectors captured: none</pre>
         <pre id="connectorAuthTestOutput">No simulated connection test yet.</pre>
         <pre id="connectorAuthAuditOutput">No connector credential audit loaded yet.</pre>
       </div>
+
+      <!-- Sprint 18 — External Connector Read-Only Pilot -->
+      <div class="card full">
+        <h2>External Connector Read-Only Pilot</h2>
+        <p>
+          Sprint 18 — First real external connector in fixture mode.
+          Google Calendar read-only: policy check → redacted read → evidence → business signals.
+          No events created, no emails sent, no PII exposed.
+        </p>
+
+        <label>Auth Profile ID (from Connector Vault above):</label>
+        <input id="extConnProfileId" placeholder="auth_profile_..." style="width:340px" />
+
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="extConnPolicy">Get Policy</button>
+          <button id="extConnTestReadiness">Test Readiness</button>
+          <button id="extConnReadCalendars">Read Calendars</button>
+          <button id="extConnReadEvents">Read Upcoming Events</button>
+          <button id="extConnLoadEvidence">Load Evidence</button>
+          <button id="extConnLoadSignals">Load Signals</button>
+          <button id="extConnLoadAudit">Load Audit</button>
+        </div>
+
+        <pre id="extConnPolicyOutput">Policy not loaded yet.</pre>
+        <pre id="extConnReadinessOutput">Readiness not tested yet.</pre>
+        <pre id="extConnCalendarsOutput">Calendars not loaded yet.</pre>
+        <pre id="extConnEventsOutput">Events not loaded yet.</pre>
+        <pre id="extConnEvidenceOutput">Evidence not loaded yet.</pre>
+        <pre id="extConnSignalsOutput">Signals not loaded yet.</pre>
+        <pre id="extConnAuditOutput">Audit not loaded yet.</pre>
+      </div>
+
       <div class="card full">
         <h2>Safe Skill Review &amp; Compilation</h2>
         <p>
@@ -3234,6 +3266,80 @@ selectors captured: none</pre>
       } finally {
         runButton.disabled = false;
       }
+    });
+
+    // Sprint 18 — External Connector Read-Only Pilot
+    const extConnProfileIdInput = document.getElementById("extConnProfileId");
+    const extConnPolicyOutput = document.getElementById("extConnPolicyOutput");
+    const extConnReadinessOutput = document.getElementById("extConnReadinessOutput");
+    const extConnCalendarsOutput = document.getElementById("extConnCalendarsOutput");
+    const extConnEventsOutput = document.getElementById("extConnEventsOutput");
+    const extConnEvidenceOutput = document.getElementById("extConnEvidenceOutput");
+    const extConnSignalsOutput = document.getElementById("extConnSignalsOutput");
+    const extConnAuditOutput = document.getElementById("extConnAuditOutput");
+
+    const extConnState = { lastEvidenceId: null };
+
+    document.getElementById("extConnPolicy").addEventListener("click", async () => {
+      const r = await fetch("/v1/external-connectors/google-calendar-readonly/policy");
+      extConnPolicyOutput.textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("extConnTestReadiness").addEventListener("click", async () => {
+      const profileId = extConnProfileIdInput.value.trim() || "demo_profile";
+      const r = await fetch("/v1/external-connectors/google-calendar-readonly/test-readiness", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ auth_profile_id: profileId, actor: { id: "demo_user" } }),
+      });
+      extConnReadinessOutput.textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("extConnReadCalendars").addEventListener("click", async () => {
+      const profileId = extConnProfileIdInput.value.trim() || "demo_profile";
+      const r = await fetch("/v1/external-connectors/google-calendar-readonly/read-calendars", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ auth_profile_id: profileId, actor: { id: "demo_user" } }),
+      });
+      const body = await r.json();
+      if (body.evidence_id) extConnState.lastEvidenceId = body.evidence_id;
+      extConnCalendarsOutput.textContent = jsonText(body);
+    });
+
+    document.getElementById("extConnReadEvents").addEventListener("click", async () => {
+      const profileId = extConnProfileIdInput.value.trim() || "demo_profile";
+      const r = await fetch("/v1/external-connectors/google-calendar-readonly/read-upcoming-events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ auth_profile_id: profileId, max_results: 5, actor: { id: "demo_user" } }),
+      });
+      const body = await r.json();
+      if (body.evidence_id) extConnState.lastEvidenceId = body.evidence_id;
+      extConnEventsOutput.textContent = jsonText(body);
+    });
+
+    document.getElementById("extConnLoadEvidence").addEventListener("click", async () => {
+      const profileId = extConnProfileIdInput.value.trim() || "demo_profile";
+      if (extConnState.lastEvidenceId) {
+        const r = await fetch(`/v1/external-connectors/read-evidence/${extConnState.lastEvidenceId}`);
+        extConnEvidenceOutput.textContent = jsonText(await r.json());
+      } else {
+        const r = await fetch(`/v1/external-connectors/auth-profiles/${profileId}/read-evidence`);
+        extConnEvidenceOutput.textContent = jsonText(await r.json());
+      }
+    });
+
+    document.getElementById("extConnLoadSignals").addEventListener("click", async () => {
+      const profileId = extConnProfileIdInput.value.trim() || "demo_profile";
+      const r = await fetch(`/v1/external-connectors/auth-profiles/${profileId}/signals`);
+      extConnSignalsOutput.textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("extConnLoadAudit").addEventListener("click", async () => {
+      const profileId = extConnProfileIdInput.value.trim() || "demo_profile";
+      const r = await fetch(`/v1/external-connectors/auth-profiles/${profileId}/audit`);
+      extConnAuditOutput.textContent = jsonText(await r.json());
     });
   </script>
 </body>

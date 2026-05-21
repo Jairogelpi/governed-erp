@@ -16,6 +16,8 @@ from erpguard.db.models import (
     Connection,
     ConnectorAuthProfile,
     ConnectorCredentialAuditEvent,
+    ConnectorReadEvidence,
+    ExternalConnectorAuditEvent,
     BusinessSignal,
     BusinessSnapshot,
     ExecutionRequest,
@@ -2150,3 +2152,88 @@ def create_r2_promotion_gate(
 
 def get_r2_promotion_gate_for_run(session: Session, run_id: str) -> R2PromotionGate | None:
     return session.query(R2PromotionGate).filter(R2PromotionGate.run_id == run_id).first()
+
+
+# Sprint 18 — External Connector Read-Only Pilot
+
+def create_connector_read_evidence(
+    session: Session,
+    *,
+    auth_profile_id: str,
+    connector_id: str,
+    operation: str,
+    fixture_mode: bool,
+    record_count: int,
+    redacted_fields_count: int,
+    result_summary_json: str,
+    policy_passed: bool = True,
+) -> ConnectorReadEvidence:
+    row = ConnectorReadEvidence(
+        id=f"cre_{uuid4().hex[:16]}",
+        auth_profile_id=auth_profile_id,
+        connector_id=connector_id,
+        operation=operation,
+        fixture_mode=fixture_mode,
+        record_count=record_count,
+        redacted_fields_count=redacted_fields_count,
+        result_summary_json=result_summary_json,
+        policy_passed=policy_passed,
+        read_only=True,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_connector_read_evidence(session: Session, evidence_id: str) -> ConnectorReadEvidence | None:
+    return session.get(ConnectorReadEvidence, evidence_id)
+
+
+def list_connector_read_evidence_for_profile(session: Session, auth_profile_id: str) -> list[ConnectorReadEvidence]:
+    return list(
+        session.query(ConnectorReadEvidence)
+        .filter(ConnectorReadEvidence.auth_profile_id == auth_profile_id)
+        .order_by(ConnectorReadEvidence.created_at.desc())
+        .all()
+    )
+
+
+def create_external_connector_audit_event(
+    session: Session,
+    *,
+    auth_profile_id: str,
+    connector_id: str,
+    event_type: str,
+    operation: str,
+    status: str,
+    fixture_mode: bool,
+    actor_json: str,
+    details_json: str,
+) -> ExternalConnectorAuditEvent:
+    row = ExternalConnectorAuditEvent(
+        id=f"ecae_{uuid4().hex[:16]}",
+        auth_profile_id=auth_profile_id,
+        connector_id=connector_id,
+        event_type=event_type,
+        operation=operation,
+        status=status,
+        fixture_mode=fixture_mode,
+        actor_json=actor_json,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_external_connector_audit_events_for_profile(
+    session: Session, auth_profile_id: str
+) -> list[ExternalConnectorAuditEvent]:
+    return list(
+        session.query(ExternalConnectorAuditEvent)
+        .filter(ExternalConnectorAuditEvent.auth_profile_id == auth_profile_id)
+        .order_by(ExternalConnectorAuditEvent.created_at.asc())
+        .all()
+    )
