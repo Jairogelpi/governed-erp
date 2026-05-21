@@ -35,6 +35,10 @@ from erpguard.db.models import (
     SkillRun,
     SkillRunStep,
     SkillVersion,
+    AuditExport,
+    KillSwitchEvent,
+    PlatformAuditEvent,
+    Tenant,
     WriteImpactPreview,
     WritePilotEvidence,
     WritePilotRequest,
@@ -1462,4 +1466,166 @@ def list_write_pilot_evidence_for_run(session: Session, run_id: str) -> list[Wri
         .filter(WritePilotEvidence.run_id == run_id)
         .order_by(WritePilotEvidence.created_at.asc())
         .all()
+    )
+
+
+# Sprint 9 — Production Safety Hardening & Tenant Controls
+
+def create_tenant(
+    session: Session,
+    name: str,
+    environment: str,
+    kill_switch_json: str,
+    rate_limit_json: str,
+    roles_json: str,
+    secret_scope_json: str,
+) -> Tenant:
+    row = Tenant(
+        id=f"tenant_{uuid4().hex}",
+        name=name,
+        environment=environment,
+        status="active",
+        kill_switch_json=kill_switch_json,
+        rate_limit_json=rate_limit_json,
+        roles_json=roles_json,
+        secret_scope_json=secret_scope_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_tenant(session: Session, tenant_id: str) -> Tenant | None:
+    return session.get(Tenant, tenant_id)
+
+
+def list_tenants(session: Session) -> list[Tenant]:
+    return list(session.query(Tenant).order_by(Tenant.created_at.desc()).all())
+
+
+def update_tenant_kill_switches(session: Session, tenant_id: str, kill_switch_json: str) -> Tenant | None:
+    row = session.get(Tenant, tenant_id)
+    if row is None:
+        return None
+    row.kill_switch_json = kill_switch_json
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def suspend_tenant(session: Session, tenant_id: str) -> Tenant | None:
+    row = session.get(Tenant, tenant_id)
+    if row is None:
+        return None
+    row.status = "suspended"
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def create_kill_switch_event(
+    session: Session,
+    tenant_id: str,
+    switch_name: str,
+    action: str,
+    activated_by_json: str,
+    reason: str,
+) -> KillSwitchEvent:
+    ev = KillSwitchEvent(
+        id=f"ks_ev_{uuid4().hex}",
+        tenant_id=tenant_id,
+        switch_name=switch_name,
+        action=action,
+        activated_by_json=activated_by_json,
+        reason=reason,
+    )
+    session.add(ev)
+    session.commit()
+    session.refresh(ev)
+    return ev
+
+
+def list_kill_switch_events_for_tenant(session: Session, tenant_id: str) -> list[KillSwitchEvent]:
+    return list(
+        session.query(KillSwitchEvent)
+        .filter(KillSwitchEvent.tenant_id == tenant_id)
+        .order_by(KillSwitchEvent.created_at.desc())
+        .all()
+    )
+
+
+def create_audit_export(
+    session: Session,
+    tenant_id: str,
+    export_type: str,
+    filters_json: str,
+    record_count: int,
+    result_json: str,
+) -> AuditExport:
+    from datetime import datetime, timezone
+    row = AuditExport(
+        id=f"export_{uuid4().hex}",
+        tenant_id=tenant_id,
+        export_type=export_type,
+        filters_json=filters_json,
+        record_count=record_count,
+        status="completed",
+        result_json=result_json,
+        completed_at=datetime.now(timezone.utc),
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_audit_export(session: Session, export_id: str) -> AuditExport | None:
+    return session.get(AuditExport, export_id)
+
+
+def create_platform_audit_event(
+    session: Session,
+    tenant_id: str,
+    event_category: str,
+    event_type: str,
+    actor_json: str,
+    details_json: str,
+    severity: str = "info",
+) -> PlatformAuditEvent:
+    ev = PlatformAuditEvent(
+        id=f"pae_{uuid4().hex}",
+        tenant_id=tenant_id,
+        event_category=event_category,
+        event_type=event_type,
+        actor_json=actor_json,
+        details_json=details_json,
+        severity=severity,
+    )
+    session.add(ev)
+    session.commit()
+    session.refresh(ev)
+    return ev
+
+
+def list_platform_audit_events_for_tenant(
+    session: Session, tenant_id: str, limit: int = 50
+) -> list[PlatformAuditEvent]:
+    return list(
+        session.query(PlatformAuditEvent)
+        .filter(PlatformAuditEvent.tenant_id == tenant_id)
+        .order_by(PlatformAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def count_write_pilot_runs_recent(session: Session, hours: int = 24) -> int:
+    from datetime import datetime, timezone, timedelta
+    from erpguard.db.models import WritePilotRun
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+    return (
+        session.query(WritePilotRun)
+        .filter(WritePilotRun.created_at >= cutoff)
+        .count()
     )

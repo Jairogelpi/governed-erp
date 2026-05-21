@@ -655,3 +655,106 @@ class WritePilotEvidenceModel(BaseModel):
     allow_r1_real_write_pilot: bool = False
     allow_generic_real_odoo_writes: bool = False
     created_at: str | None = None
+
+
+# Sprint 9 — Production Safety Hardening & Tenant Controls
+
+class TenantKillSwitchConfig(BaseModel):
+    global_kill_switch: bool = False
+    runtime_execution_kill_switch: bool = False
+    write_pilot_kill_switch: bool = False
+
+
+class TenantRateLimitConfig(BaseModel):
+    max_write_pilots_per_day: int = 10
+    max_live_reads_per_hour: int = 100
+
+
+class TenantRoleModel(BaseModel):
+    name: str
+    permissions: list[str] = Field(default_factory=list)
+
+
+class TenantModel(BaseModel):
+    tenant_id: str
+    name: str
+    environment: str
+    status: str
+    kill_switches: TenantKillSwitchConfig
+    rate_limits: TenantRateLimitConfig
+    roles: list[TenantRoleModel] = Field(default_factory=list)
+    secret_redaction_enforced: bool = True
+    created_at: str | None = None
+    updated_at: str | None = None
+
+
+class KillSwitchEventModel(BaseModel):
+    event_id: str
+    tenant_id: str
+    switch_name: str
+    action: str
+    activated_by: dict[str, Any]
+    reason: str
+    created_at: str | None = None
+
+
+class TenantSafetySummaryModel(BaseModel):
+    tenant_id: str
+    tenant_name: str
+    environment: str
+    status: str
+    kill_switches: TenantKillSwitchConfig
+    any_kill_switch_active: bool
+    rate_limits: TenantRateLimitConfig
+    secret_redaction_enforced: bool
+    recent_kill_switch_events: int
+    allow_generic_real_odoo_writes: bool = False
+    allow_r3_r4_real_writes: bool = False
+
+
+class AuditExportModel(BaseModel):
+    export_id: str
+    tenant_id: str
+    export_type: str
+    filters: dict[str, Any] = Field(default_factory=dict)
+    record_count: int
+    status: str
+    result: list[dict[str, Any]] = Field(default_factory=list)
+    created_at: str | None = None
+    completed_at: str | None = None
+
+
+class PolicyEvaluationRequestModel(BaseModel):
+    actor: dict[str, Any]
+    action: str
+    resource: str
+    context: dict[str, Any] = Field(default_factory=dict)
+
+
+class PolicyEvaluationResultModel(BaseModel):
+    allowed: bool
+    actor: dict[str, Any]
+    action: str
+    resource: str
+    reason: str
+    violations: list[str] = Field(default_factory=list)
+    kill_switches_active: list[str] = Field(default_factory=list)
+    allow_generic_real_odoo_writes: bool = False
+    allow_r3_r4_real_writes: bool = False
+
+
+class RuntimeSafetyModel(BaseModel):
+    platform_global_kill_switch: bool
+    runtime_execution_kill_switch: bool
+    write_pilot_kill_switch: bool
+    tenant_controls_enabled: bool
+    environment_guard_enabled: bool
+    audit_export_enabled: bool
+    rate_limits_enabled: bool
+    secret_redaction_enforced: bool
+    allow_r1_real_write_pilot: bool
+    allow_generic_real_odoo_writes: bool
+    allow_r3_r4_real_writes: bool
+    active_tenant_count: int
+    recent_write_pilot_runs: int
+    safety_level: str

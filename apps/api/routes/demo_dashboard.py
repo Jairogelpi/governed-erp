@@ -301,6 +301,39 @@ selectors captured: none</pre>
         <pre id="approvalDecisionSimulation">No approval decision simulated yet.</pre>
       </div>
       <div class="card full">
+        <h2>Production Safety &amp; Tenant Controls</h2>
+        <p>
+          Sprint 9 — Platform hardening before any new write risk. Tenant lifecycle, per-tenant kill switches,
+          secret redaction, audit export, RBAC policy evaluation, and runtime safety dashboard.
+          No new ERP writes added. ALLOW_GENERIC_REAL_ODOO_WRITES=false. ALLOW_R3_R4_REAL_WRITES=false always.
+        </p>
+        <div class="toolbar">
+          <label>
+            Tenant name
+            <input id="psaTenantName" value="Demo Tenant" />
+          </label>
+          <button id="psaCreateTenant" type="button">Create tenant</button>
+          <button id="psaGetSafetySummary" type="button">Get safety summary</button>
+          <button id="psaActivateKillSwitch" type="button">Activate kill switch</button>
+          <button id="psaDeactivateKillSwitch" type="button">Deactivate kill switch</button>
+          <button id="psaGenerateAuditExport" type="button">Generate audit export</button>
+          <button id="psaEvaluatePolicy" type="button">Evaluate operator policy</button>
+          <button id="psaGetRuntimeSafety" type="button">Get runtime safety</button>
+        </div>
+        <p class="tiny" id="psaMessage">Create a tenant first, then test kill switches, audit export, and policy evaluation.</p>
+        <pre id="psa-tenant-output">No tenant yet.</pre>
+        <pre id="psa-summary-output">No safety summary yet.</pre>
+        <pre id="psa-kill-switch-output">No kill switch event yet.</pre>
+        <pre id="psa-audit-export-output">No audit export yet.</pre>
+        <pre id="psa-policy-output">No policy evaluation yet.</pre>
+        <pre id="psa-runtime-output">No runtime safety yet.</pre>
+        <p class="tiny">
+          Kill switches: <code>global_kill_switch</code> / <code>runtime_execution_kill_switch</code> /
+          <code>write_pilot_kill_switch</code>. Secret redaction enforced. Audit export enabled.
+          ALLOW_GENERIC_REAL_ODOO_WRITES=false. ALLOW_R3_R4_REAL_WRITES=false.
+        </p>
+      </div>
+      <div class="card full">
         <h2>First Real Write Pilot — mail.message.create</h2>
         <p>
           Sprint 8 — Ultra-limited real Odoo write pilot. Only mail.message.create allowed. R1 risk only.
@@ -1497,6 +1530,193 @@ selectors captured: none</pre>
       } finally {
         runDryRunProofButton.disabled = false;
       }
+    });
+
+    // Sprint 9 — Production Safety & Tenant Controls
+    const psaTenantNameInput = document.getElementById("psaTenantName");
+    const psaMessage = document.getElementById("psaMessage");
+    const psaTenantOutput = document.getElementById("psa-tenant-output");
+    const psaSummaryOutput = document.getElementById("psa-summary-output");
+    const psaKillSwitchOutput = document.getElementById("psa-kill-switch-output");
+    const psaAuditExportOutput = document.getElementById("psa-audit-export-output");
+    const psaPolicyOutput = document.getElementById("psa-policy-output");
+    const psaRuntimeOutput = document.getElementById("psa-runtime-output");
+    const psaState = { tenantId: null, exportId: null };
+
+    document.getElementById("psaCreateTenant").addEventListener("click", async () => {
+      const name = psaTenantNameInput?.value?.trim() || "Demo Tenant";
+      psaMessage.textContent = `Creating tenant '${name}'...`;
+      try {
+        const response = await fetch("/v1/platform/tenants", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, environment: "staging" }),
+        });
+        const body = await response.json();
+        if (!response.ok) { psaTenantOutput.textContent = `Create failed: ${body?.error?.message || "unknown"}`; return; }
+        psaState.tenantId = body.tenant_id;
+        psaTenantOutput.textContent = jsonText({
+          tenant_id: body.tenant_id,
+          name: body.name,
+          environment: body.environment,
+          status: body.status,
+          kill_switches: body.kill_switches,
+          secret_redaction_enforced: body.secret_redaction_enforced,
+          roles: (body.roles || []).map(r => r.name),
+        });
+        psaMessage.textContent = `Tenant created: ${body.tenant_id}`;
+      } catch (error) { psaTenantOutput.textContent = `Create failed: ${String(error)}`; }
+    });
+
+    document.getElementById("psaGetSafetySummary").addEventListener("click", async () => {
+      if (!psaState.tenantId) { psaMessage.textContent = "Create a tenant first."; return; }
+      psaMessage.textContent = `Loading safety summary for ${psaState.tenantId}...`;
+      try {
+        const response = await fetch(`/v1/platform/tenants/${psaState.tenantId}/safety-summary`);
+        const body = await response.json();
+        if (!response.ok) { psaSummaryOutput.textContent = `Summary failed: ${body?.error?.message || "unknown"}`; return; }
+        psaSummaryOutput.textContent = jsonText({
+          tenant_id: body.tenant_id,
+          tenant_name: body.tenant_name,
+          status: body.status,
+          any_kill_switch_active: body.any_kill_switch_active,
+          kill_switches: body.kill_switches,
+          allow_generic_real_odoo_writes: body.allow_generic_real_odoo_writes,
+          allow_r3_r4_real_writes: body.allow_r3_r4_real_writes,
+          secret_redaction_enforced: body.secret_redaction_enforced,
+          recent_kill_switch_events: body.recent_kill_switch_events,
+        });
+        psaMessage.textContent = `Safety summary loaded. Any kill switch active: ${body.any_kill_switch_active}`;
+      } catch (error) { psaSummaryOutput.textContent = `Summary failed: ${String(error)}`; }
+    });
+
+    document.getElementById("psaActivateKillSwitch").addEventListener("click", async () => {
+      if (!psaState.tenantId) { psaMessage.textContent = "Create a tenant first."; return; }
+      psaMessage.textContent = `Activating write_pilot_kill_switch for ${psaState.tenantId}...`;
+      try {
+        const response = await fetch(`/v1/platform/tenants/${psaState.tenantId}/kill-switch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            switch_name: "write_pilot_kill_switch",
+            action: "activate",
+            activated_by: { type: "user", id: "demo_admin", display_name: "Demo Admin" },
+            reason: "Sprint 9 safety demo: activating write pilot kill switch.",
+          }),
+        });
+        const body = await response.json();
+        if (!response.ok) { psaKillSwitchOutput.textContent = `Kill switch failed: ${body?.error?.message || "unknown"}`; return; }
+        psaKillSwitchOutput.textContent = jsonText({
+          event_id: body.event_id,
+          switch_name: body.switch_name,
+          action: body.action,
+          activated_by: body.activated_by,
+          reason: body.reason,
+        });
+        psaMessage.textContent = `Kill switch activated: ${body.switch_name}`;
+      } catch (error) { psaKillSwitchOutput.textContent = `Kill switch failed: ${String(error)}`; }
+    });
+
+    document.getElementById("psaDeactivateKillSwitch").addEventListener("click", async () => {
+      if (!psaState.tenantId) { psaMessage.textContent = "Create a tenant first."; return; }
+      psaMessage.textContent = `Deactivating write_pilot_kill_switch for ${psaState.tenantId}...`;
+      try {
+        const response = await fetch(`/v1/platform/tenants/${psaState.tenantId}/kill-switch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            switch_name: "write_pilot_kill_switch",
+            action: "deactivate",
+            activated_by: { type: "user", id: "demo_admin", display_name: "Demo Admin" },
+            reason: "Sprint 9 safety demo: deactivating write pilot kill switch.",
+          }),
+        });
+        const body = await response.json();
+        if (!response.ok) { psaKillSwitchOutput.textContent = `Kill switch failed: ${body?.error?.message || "unknown"}`; return; }
+        psaKillSwitchOutput.textContent = jsonText({
+          event_id: body.event_id,
+          switch_name: body.switch_name,
+          action: body.action,
+        });
+        psaMessage.textContent = `Kill switch deactivated: ${body.switch_name}`;
+      } catch (error) { psaKillSwitchOutput.textContent = `Kill switch failed: ${String(error)}`; }
+    });
+
+    document.getElementById("psaGenerateAuditExport").addEventListener("click", async () => {
+      if (!psaState.tenantId) { psaMessage.textContent = "Create a tenant first."; return; }
+      psaMessage.textContent = `Generating audit export for ${psaState.tenantId}...`;
+      try {
+        const response = await fetch(`/v1/platform/tenants/${psaState.tenantId}/audit-export`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filters: {} }),
+        });
+        const body = await response.json();
+        if (!response.ok) { psaAuditExportOutput.textContent = `Export failed: ${body?.error?.message || "unknown"}`; return; }
+        psaState.exportId = body.export_id;
+        psaAuditExportOutput.textContent = jsonText({
+          export_id: body.export_id,
+          tenant_id: body.tenant_id,
+          export_type: body.export_type,
+          record_count: body.record_count,
+          status: body.status,
+          result_preview: (body.result || []).slice(0, 3),
+        });
+        psaMessage.textContent = `Audit export generated: ${body.record_count} records, secrets redacted.`;
+      } catch (error) { psaAuditExportOutput.textContent = `Export failed: ${String(error)}`; }
+    });
+
+    document.getElementById("psaEvaluatePolicy").addEventListener("click", async () => {
+      if (!psaState.tenantId) { psaMessage.textContent = "Create a tenant first."; return; }
+      psaMessage.textContent = `Evaluating operator policy for ${psaState.tenantId}...`;
+      try {
+        const response = await fetch("/v1/platform/policy/evaluate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            actor: { type: "user", id: "demo_operator", display_name: "Demo Operator", role: "operator" },
+            action: "execute_real_read",
+            resource: `tenant:${psaState.tenantId}`,
+            context: {},
+            tenant_id: psaState.tenantId,
+          }),
+        });
+        const body = await response.json();
+        if (!response.ok) { psaPolicyOutput.textContent = `Policy failed: ${body?.error?.message || "unknown"}`; return; }
+        psaPolicyOutput.textContent = jsonText({
+          allowed: body.allowed,
+          actor: body.actor,
+          action: body.action,
+          reason: body.reason,
+          violations: body.violations || [],
+          kill_switches_active: body.kill_switches_active || [],
+          allow_generic_real_odoo_writes: body.allow_generic_real_odoo_writes,
+          allow_r3_r4_real_writes: body.allow_r3_r4_real_writes,
+        });
+        psaMessage.textContent = `Policy: ${body.allowed ? "ALLOWED" : "BLOCKED — " + body.reason}`;
+      } catch (error) { psaPolicyOutput.textContent = `Policy failed: ${String(error)}`; }
+    });
+
+    document.getElementById("psaGetRuntimeSafety").addEventListener("click", async () => {
+      psaMessage.textContent = "Loading platform runtime safety...";
+      try {
+        const response = await fetch("/v1/platform/runtime-safety");
+        const body = await response.json();
+        if (!response.ok) { psaRuntimeOutput.textContent = `Runtime safety failed: ${body?.error?.message || "unknown"}`; return; }
+        psaRuntimeOutput.textContent = jsonText({
+          safety_level: body.safety_level,
+          platform_global_kill_switch: body.platform_global_kill_switch,
+          runtime_execution_kill_switch: body.runtime_execution_kill_switch,
+          write_pilot_kill_switch: body.write_pilot_kill_switch,
+          allow_generic_real_odoo_writes: body.allow_generic_real_odoo_writes,
+          allow_r3_r4_real_writes: body.allow_r3_r4_real_writes,
+          allow_r1_real_write_pilot: body.allow_r1_real_write_pilot,
+          secret_redaction_enforced: body.secret_redaction_enforced,
+          active_tenant_count: body.active_tenant_count,
+          recent_write_pilot_runs: body.recent_write_pilot_runs,
+        });
+        psaMessage.textContent = `Runtime safety level: ${body.safety_level}. Writes: BLOCKED.`;
+      } catch (error) { psaRuntimeOutput.textContent = `Runtime safety failed: ${String(error)}`; }
     });
 
     // Sprint 8 — First Real Write Pilot (mail.message.create only)
