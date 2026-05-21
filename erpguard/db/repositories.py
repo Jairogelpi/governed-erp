@@ -8,6 +8,8 @@ from erpguard.canonical.enums import ERPType, InvariantSeverity, InvariantStatus
 from erpguard.core.results import PreflightResult
 from erpguard.db.models import (
     AuditEvent,
+    AgentBuilderEvent,
+    AgentBuilderSession,
     AutomationDraft,
     AutomationDraftReview,
     BlockedWriteEvidenceRecord,
@@ -594,6 +596,73 @@ def list_automation_drafts(session: Session, opportunity_id: str) -> list[Automa
         session.query(AutomationDraft)
         .filter(AutomationDraft.opportunity_id == opportunity_id)
         .order_by(AutomationDraft.created_at.desc())
+        .all()
+    )
+
+
+def create_agent_builder_session(session: Session, created_by_actor_json: str) -> AgentBuilderSession:
+    row = AgentBuilderSession(
+        id=f"builder_{uuid4().hex}",
+        status="created",
+        trigger_json="{}",
+        inputs_json="{}",
+        outputs_json="{}",
+        steps_json="[]",
+        guards_json="[]",
+        requirement_result_json="{}",
+        safety_preview_json="{}",
+        created_by_actor_json=created_by_actor_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_agent_builder_session(session: Session, session_id: str) -> AgentBuilderSession | None:
+    return session.get(AgentBuilderSession, session_id)
+
+
+def update_agent_builder_session(session: Session, session_id: str, **updates) -> AgentBuilderSession | None:
+    row = session.get(AgentBuilderSession, session_id)
+    if row is None:
+        return None
+    for key, value in updates.items():
+        setattr(row, key, value)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def create_agent_builder_event(
+    session: Session,
+    session_id: str,
+    event_type: str,
+    status: str,
+    input_json: str = "{}",
+    output_json: str = "{}",
+    error_json: str = "{}",
+) -> AgentBuilderEvent:
+    row = AgentBuilderEvent(
+        id=f"builder_event_{uuid4().hex}",
+        session_id=session_id,
+        event_type=event_type,
+        status=status,
+        input_json=input_json,
+        output_json=output_json,
+        error_json=error_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_agent_builder_events(session: Session, session_id: str) -> list[AgentBuilderEvent]:
+    return list(
+        session.query(AgentBuilderEvent)
+        .filter(AgentBuilderEvent.session_id == session_id)
+        .order_by(AgentBuilderEvent.created_at.asc())
         .all()
     )
 

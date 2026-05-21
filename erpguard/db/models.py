@@ -646,6 +646,39 @@ class AutomationDraft(Base):
 
 # Sprint 10B — First R2 Controlled Write Candidate (res.partner.write, staging only)
 
+class AgentBuilderSession(Base):
+    __tablename__ = "agent_builder_sessions"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    template_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    connector_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    trigger_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    inputs_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    outputs_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    steps_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    guards_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    requirement_result_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    safety_preview_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    automation_draft_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_by_actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class AgentBuilderEvent(Base):
+    __tablename__ = "agent_builder_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    input_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    output_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    error_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
 class R2WritePilotRequest(Base):
     __tablename__ = "r2_write_pilot_requests"
 

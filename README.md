@@ -122,6 +122,38 @@ Placeholder connectors:
 
 Templates install only as automation drafts. The existing review, validation, compile, approval, and activation gates remain mandatory. No MCP runtime, OAuth production flow, real Gmail/WhatsApp execution, generic ERP writes, or R3/R4 writes are added.
 
+## Safe Agent Builder
+
+Sprint 16 adds a controlled Agent Builder for assembling safe skills from marketplace connectors, templates, allowed steps, and required guards.
+
+Agent Builder endpoints:
+
+- `POST /v1/agent-builder/sessions`
+- `GET /v1/agent-builder/sessions/{session_id}`
+- `POST /v1/agent-builder/sessions/{session_id}/select-template`
+- `POST /v1/agent-builder/sessions/{session_id}/select-connector`
+- `POST /v1/agent-builder/sessions/{session_id}/configure-trigger`
+- `POST /v1/agent-builder/sessions/{session_id}/configure-inputs`
+- `POST /v1/agent-builder/sessions/{session_id}/configure-steps`
+- `POST /v1/agent-builder/sessions/{session_id}/configure-guards`
+- `POST /v1/agent-builder/sessions/{session_id}/check-requirements`
+- `GET /v1/agent-builder/sessions/{session_id}/preview`
+- `POST /v1/agent-builder/sessions/{session_id}/save-draft`
+- `GET /v1/agent-builder/sessions/{session_id}/timeline`
+- `GET /v1/agent-builder/step-library`
+
+Builder output is always:
+
+```text
+runtime_mode=dry_run_only
+write_actions=false
+requires_review=true
+requires_compile=true
+requires_approval=true
+```
+
+The builder blocks forbidden step types such as shell commands, raw Odoo execution, direct HTTP calls, browser automation, and high-risk business actions. Saving creates an `AutomationDraft`; the existing review, compile, approval, and activation flow remains mandatory.
+
 ## Current Demo Story
 
 Implemented: record once in the Fake ERP demo, validate readiness, compile a reusable skill, inspect the compiled package, run it deterministically, and audit the resulting runs and steps.

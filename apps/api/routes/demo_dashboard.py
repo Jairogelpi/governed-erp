@@ -599,6 +599,37 @@ selectors captured: none</pre>
         <pre id="governanceSummaryOutput">No governance summary yet.</pre>
       </div>
       <div class="card full">
+        <h2>Safe Agent Builder</h2>
+        <p>
+          This builder creates reviewed drafts only. It does not execute free-form agents or enable new ERP writes.
+          Build from connector/template pieces, then send the draft through review / compile / approval.
+        </p>
+        <div class="toolbar">
+          <label>
+            Builder Template ID
+            <input id="agentBuilderTemplateId" value="odoo_formula_preflight" />
+          </label>
+          <label>
+            Builder Connector ID
+            <input id="agentBuilderConnectorId" value="odoo" />
+          </label>
+          <label>
+            Builder Connection ID
+            <input id="agentBuilderConnectionId" placeholder="conn_..." />
+          </label>
+          <button id="createAgentBuilderSession" type="button">Create builder session</button>
+          <button id="loadAgentBuilderStepLibrary" type="button">Load step library</button>
+          <button id="configureAgentBuilder" type="button">Configure safe workflow</button>
+          <button id="previewAgentBuilder" type="button">Preview execution plan</button>
+          <button id="saveAgentBuilderDraft" type="button">Save as automation draft</button>
+        </div>
+        <p class="tiny">Allowed steps only. Mandatory guards: no_generic_writes, no_r3_r4_writes, no_raw_tool_execution, requires_human_review.</p>
+        <pre id="agentBuilderSessionOutput">No builder session yet.</pre>
+        <pre id="agentBuilderStepLibraryOutput">No step library loaded yet.</pre>
+        <pre id="agentBuilderPreviewOutput">No workflow preview yet.</pre>
+        <pre id="agentBuilderDraftOutput">No builder draft saved yet.</pre>
+      </div>
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -749,6 +780,13 @@ selectors captured: none</pre>
     const marketplaceTemplateOutput = document.getElementById("marketplaceTemplateOutput");
     const marketplaceRequirementsOutput = document.getElementById("marketplaceRequirementsOutput");
     const marketplaceInstallOutput = document.getElementById("marketplaceInstallOutput");
+    const agentBuilderTemplateIdInput = document.getElementById("agentBuilderTemplateId");
+    const agentBuilderConnectorIdInput = document.getElementById("agentBuilderConnectorId");
+    const agentBuilderConnectionIdInput = document.getElementById("agentBuilderConnectionId");
+    const agentBuilderSessionOutput = document.getElementById("agentBuilderSessionOutput");
+    const agentBuilderStepLibraryOutput = document.getElementById("agentBuilderStepLibraryOutput");
+    const agentBuilderPreviewOutput = document.getElementById("agentBuilderPreviewOutput");
+    const agentBuilderDraftOutput = document.getElementById("agentBuilderDraftOutput");
 
     const humanState = {
       recordingId: null,
@@ -762,6 +800,10 @@ selectors captured: none</pre>
     const productState = {
       analysis: null,
       drafts: [],
+    };
+
+    const agentBuilderState = {
+      sessionId: null,
     };
 
     const humanDefaults = {
@@ -906,6 +948,76 @@ selectors captured: none</pre>
       const response = await fetch("/v1/marketplace/installed");
       const body = await response.json();
       marketplaceInstallOutput.textContent = response.ok ? jsonText(body) : `Installed drafts failed: ${body?.error?.message || "unknown error"}`;
+    };
+
+    const createAgentBuilderSession = async () => {
+      const response = await fetch("/v1/agent-builder/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ created_by: defaults.actor }),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        agentBuilderSessionOutput.textContent = `Builder session failed: ${body?.error?.message || "unknown error"}`;
+        return;
+      }
+      agentBuilderState.sessionId = body.session_id;
+      agentBuilderSessionOutput.textContent = jsonText(body);
+    };
+
+    const loadAgentBuilderStepLibrary = async () => {
+      const response = await fetch("/v1/agent-builder/step-library");
+      const body = await response.json();
+      agentBuilderStepLibraryOutput.textContent = response.ok ? jsonText(body) : `Step library failed: ${body?.error?.message || "unknown error"}`;
+    };
+
+    const configureAgentBuilder = async () => {
+      if (!agentBuilderState.sessionId) {
+        await createAgentBuilderSession();
+      }
+      const sessionId = agentBuilderState.sessionId;
+      const templateId = agentBuilderTemplateIdInput.value.trim() || "odoo_formula_preflight";
+      const connectorId = agentBuilderConnectorIdInput.value.trim() || "odoo";
+      const connectionId = agentBuilderConnectionIdInput.value.trim() || marketplaceConnectionIdInput.value.trim() || "conn_builder_demo";
+      const calls = [
+        fetch(`/v1/agent-builder/sessions/${sessionId}/select-template`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ template_id: templateId }) }),
+        fetch(`/v1/agent-builder/sessions/${sessionId}/select-connector`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ connector_id: connectorId }) }),
+        fetch(`/v1/agent-builder/sessions/${sessionId}/configure-trigger`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trigger: { type: "manual" } }) }),
+        fetch(`/v1/agent-builder/sessions/${sessionId}/configure-inputs`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ inputs: { connection_id: connectionId, order_reference: "S00042" } }) }),
+        fetch(`/v1/agent-builder/sessions/${sessionId}/configure-steps`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ steps: ["load_context", "read_record", "run_guard", "produce_decision"] }) }),
+        fetch(`/v1/agent-builder/sessions/${sessionId}/configure-guards`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guards: ["no_generic_writes", "no_r3_r4_writes", "no_raw_tool_execution", "requires_human_review", "formula_guard", "odoo_readonly_guard"] }) }),
+        fetch(`/v1/agent-builder/sessions/${sessionId}/check-requirements`, { method: "POST" }),
+      ];
+      const responses = await Promise.all(calls);
+      const bodies = await Promise.all(responses.map((response) => response.json()));
+      agentBuilderSessionOutput.textContent = jsonText({ session_id: sessionId, configured: responses.every((response) => response.ok), results: bodies });
+    };
+
+    const previewAgentBuilder = async () => {
+      if (!agentBuilderState.sessionId) {
+        agentBuilderPreviewOutput.textContent = "Create and configure a builder session first.";
+        return;
+      }
+      const response = await fetch(`/v1/agent-builder/sessions/${agentBuilderState.sessionId}/preview`);
+      const body = await response.json();
+      agentBuilderPreviewOutput.textContent = response.ok ? jsonText(body) : `Preview failed: ${body?.error?.message || "unknown error"}`;
+    };
+
+    const saveAgentBuilderDraft = async () => {
+      if (!agentBuilderState.sessionId) {
+        agentBuilderDraftOutput.textContent = "Create and configure a builder session first.";
+        return;
+      }
+      const response = await fetch(`/v1/agent-builder/sessions/${agentBuilderState.sessionId}/save-draft`, { method: "POST" });
+      const body = await response.json();
+      if (!response.ok) {
+        agentBuilderDraftOutput.textContent = `Save failed: ${body?.error?.message || "unknown error"}`;
+        return;
+      }
+      agentBuilderDraftOutput.textContent = jsonText(body);
+      if (body.automation_draft_id) {
+        compileDraftIdInput.value = body.automation_draft_id;
+      }
     };
 
     const renderProductAnalysis = (result) => {
@@ -2932,6 +3044,11 @@ selectors captured: none</pre>
     document.getElementById("checkMarketplaceRequirements").addEventListener("click", checkMarketplaceRequirements);
     document.getElementById("installMarketplaceDraft").addEventListener("click", installMarketplaceDraft);
     document.getElementById("loadMarketplaceInstalled").addEventListener("click", loadMarketplaceInstalled);
+    document.getElementById("createAgentBuilderSession").addEventListener("click", createAgentBuilderSession);
+    document.getElementById("loadAgentBuilderStepLibrary").addEventListener("click", loadAgentBuilderStepLibrary);
+    document.getElementById("configureAgentBuilder").addEventListener("click", configureAgentBuilder);
+    document.getElementById("previewAgentBuilder").addEventListener("click", previewAgentBuilder);
+    document.getElementById("saveAgentBuilderDraft").addEventListener("click", saveAgentBuilderDraft);
 
     runButton.addEventListener("click", async () => {
       runButton.disabled = true;
