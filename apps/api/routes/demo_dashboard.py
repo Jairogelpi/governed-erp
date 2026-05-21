@@ -717,6 +717,45 @@ selectors captured: none</pre>
         <pre id="extConnAuditOutput">Audit not loaded yet.</pre>
       </div>
 
+      <!-- Sprint 19 — Real OAuth Consent Flow for Google Calendar Read-Only -->
+      <div class="card full">
+        <h2>Google Calendar OAuth Authorization</h2>
+        <p>
+          Sprint 19 — Real OAuth 2.0 consent flow for Google Calendar read-only.
+          Placeholder mode when no Google credentials are set.
+          Scope: <code>calendar.readonly</code> only. Tokens never exposed in UI or API.
+        </p>
+
+        <label>Auth Profile ID:</label>
+        <input id="oauthProfileId" placeholder="auth_profile_..." style="width:340px" />
+        <label style="margin-left:12px">Redirect URI (optional):</label>
+        <input id="oauthRedirectUri" placeholder="http://localhost:8000/v1/oauth/google-calendar/callback" style="width:420px" />
+
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="oauthAuthorize">1. Get Authorization URL</button>
+          <button id="oauthStatus">Check Auth Status</button>
+          <button id="oauthVerifyScope">Verify Scope</button>
+          <button id="oauthRevoke">Revoke Token</button>
+        </div>
+
+        <p style="font-size:0.85em; color:#666; margin-top:8px;">
+          After getting the URL, open it in a browser (real mode) or use the
+          <strong>Simulate Callback</strong> button to test the placeholder exchange.
+        </p>
+
+        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+          <label>State token (from step 1):</label>
+          <input id="oauthStateToken" placeholder="state token from authorize response" style="width:340px" />
+          <button id="oauthSimulateCallback">Simulate Callback (placeholder code)</button>
+        </div>
+
+        <pre id="oauthAuthorizeOutput">Authorization URL not generated yet.</pre>
+        <pre id="oauthCallbackOutput">Callback not executed yet.</pre>
+        <pre id="oauthStatusOutput">Auth status not checked yet.</pre>
+        <pre id="oauthScopeOutput">Scope not verified yet.</pre>
+        <pre id="oauthRevokeOutput">Token not revoked yet.</pre>
+      </div>
+
       <div class="card full">
         <h2>Safe Skill Review &amp; Compilation</h2>
         <p>
@@ -3340,6 +3379,65 @@ selectors captured: none</pre>
       const profileId = extConnProfileIdInput.value.trim() || "demo_profile";
       const r = await fetch(`/v1/external-connectors/auth-profiles/${profileId}/audit`);
       extConnAuditOutput.textContent = jsonText(await r.json());
+    });
+
+    // Sprint 19 — Google Calendar OAuth Authorization
+    const oauthProfileIdInput = document.getElementById("oauthProfileId");
+    const oauthRedirectUriInput = document.getElementById("oauthRedirectUri");
+    const oauthStateTokenInput = document.getElementById("oauthStateToken");
+    const oauthAuthorizeOutput = document.getElementById("oauthAuthorizeOutput");
+    const oauthCallbackOutput = document.getElementById("oauthCallbackOutput");
+    const oauthStatusOutput = document.getElementById("oauthStatusOutput");
+    const oauthScopeOutput = document.getElementById("oauthScopeOutput");
+    const oauthRevokeOutput = document.getElementById("oauthRevokeOutput");
+    const oauthState = { lastStateToken: null };
+
+    document.getElementById("oauthAuthorize").addEventListener("click", async () => {
+      const profileId = oauthProfileIdInput.value.trim() || "demo_oauth_profile";
+      const redirectUri = oauthRedirectUriInput.value.trim() || null;
+      const r = await fetch("/v1/oauth/google-calendar/authorize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile_id: profileId, redirect_uri: redirectUri, actor: { id: "demo_user" } }),
+      });
+      const body = await r.json();
+      if (body.state_token) {
+        oauthState.lastStateToken = body.state_token;
+        oauthStateTokenInput.value = body.state_token;
+      }
+      oauthAuthorizeOutput.textContent = jsonText(body);
+    });
+
+    document.getElementById("oauthSimulateCallback").addEventListener("click", async () => {
+      const stateToken = oauthStateTokenInput.value.trim() || oauthState.lastStateToken;
+      if (!stateToken) {
+        oauthCallbackOutput.textContent = "Generate an authorization URL first (Step 1).";
+        return;
+      }
+      const r = await fetch(`/v1/oauth/google-calendar/callback?code=placeholder_code_demo&state=${encodeURIComponent(stateToken)}`);
+      oauthCallbackOutput.textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("oauthStatus").addEventListener("click", async () => {
+      const profileId = oauthProfileIdInput.value.trim() || "demo_oauth_profile";
+      const r = await fetch(`/v1/oauth/google-calendar/status/${profileId}`);
+      oauthStatusOutput.textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("oauthVerifyScope").addEventListener("click", async () => {
+      const profileId = oauthProfileIdInput.value.trim() || "demo_oauth_profile";
+      const r = await fetch(`/v1/oauth/google-calendar/verify-scope/${profileId}`);
+      oauthScopeOutput.textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("oauthRevoke").addEventListener("click", async () => {
+      const profileId = oauthProfileIdInput.value.trim() || "demo_oauth_profile";
+      const r = await fetch(`/v1/oauth/google-calendar/revoke/${profileId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actor: { id: "demo_user" } }),
+      });
+      oauthRevokeOutput.textContent = jsonText(await r.json());
     });
   </script>
 </body>

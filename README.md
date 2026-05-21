@@ -193,6 +193,22 @@ Default mode is fixture — no credentials, no real API calls. Set `USE_REAL_GOO
 
 Sprint 18 does not create/update/delete calendar events, send emails, read Gmail bodies, ingest Drive content, add MCP execution, add ERP write capability, or enable R3/R4 writes.
 
+## Google Calendar OAuth Authorization
+
+Sprint 19 adds the real OAuth 2.0 consent flow for `calendar.readonly`.
+
+OAuth endpoints:
+
+- `POST /v1/oauth/google-calendar/authorize` — generate authorization URL + CSRF state token
+- `GET /v1/oauth/google-calendar/callback?code=...&state=...` — exchange code for token (stored in vault)
+- `GET /v1/oauth/google-calendar/status/{profile_id}` — authorization status (no token exposed)
+- `GET /v1/oauth/google-calendar/verify-scope/{profile_id}` — confirm only `calendar.readonly` was granted
+- `POST /v1/oauth/google-calendar/revoke/{profile_id}` — revoke token and update profile status
+
+Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` env vars for real OAuth. Without them, placeholder mode is active: same flow, same audit trail, mock authorization URL. Tokens are never stored plaintext in the database or returned in any API response — only a vault reference and SHA-256 fingerprint are persisted.
+
+Sprint 19 does not add calendar write, Gmail, Drive, WhatsApp, MCP execution, arbitrary HTTP, or ERP write capability.
+
 ## Current Demo Story
 
 Implemented: record once in the Fake ERP demo, validate readiness, compile a reusable skill, inspect the compiled package, run it deterministically, and audit the resulting runs and steps.

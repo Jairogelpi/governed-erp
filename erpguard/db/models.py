@@ -853,6 +853,42 @@ class R2PromotionGate(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
 
 
+# Sprint 19 — Real OAuth Consent Flow for Google Calendar Read-Only
+
+class OAuthState(Base):
+    __tablename__ = "oauth_states"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    state_token: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    profile_id: Mapped[str] = mapped_column(Text, nullable=False)
+    connector_id: Mapped[str] = mapped_column(Text, nullable=False)
+    redirect_uri: Mapped[str] = mapped_column(Text, nullable=False)
+    scope_requested: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="pending")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class OAuthTokenRecord(Base):
+    __tablename__ = "oauth_token_records"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    profile_id: Mapped[str] = mapped_column(Text, nullable=False)
+    connector_id: Mapped[str] = mapped_column(Text, nullable=False)
+    vault_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    secret_fingerprint: Mapped[str] = mapped_column(Text, nullable=False)
+    scope_granted_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    scope_compliant: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    has_refresh_token: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    token_type: Mapped[str] = mapped_column(Text, nullable=False, default="Bearer")
+    placeholder_mode: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="active")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
 # Sprint 18 — First Real External Connector Read-Only Pilot
 
 class ConnectorReadEvidence(Base):

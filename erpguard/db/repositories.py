@@ -18,6 +18,8 @@ from erpguard.db.models import (
     ConnectorCredentialAuditEvent,
     ConnectorReadEvidence,
     ExternalConnectorAuditEvent,
+    OAuthState,
+    OAuthTokenRecord,
     BusinessSignal,
     BusinessSnapshot,
     ExecutionRequest,
@@ -2237,3 +2239,102 @@ def list_external_connector_audit_events_for_profile(
         .order_by(ExternalConnectorAuditEvent.created_at.asc())
         .all()
     )
+
+
+# Sprint 19 — OAuth Consent Flow
+
+def create_oauth_state(
+    session: Session,
+    *,
+    state_token: str,
+    profile_id: str,
+    connector_id: str,
+    redirect_uri: str,
+    scope_requested: str,
+    expires_at,
+) -> OAuthState:
+    row = OAuthState(
+        id=f"oauth_state_{uuid4().hex[:16]}",
+        state_token=state_token,
+        profile_id=profile_id,
+        connector_id=connector_id,
+        redirect_uri=redirect_uri,
+        scope_requested=scope_requested,
+        status="pending",
+        expires_at=expires_at,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_oauth_state_by_token(session: Session, state_token: str) -> OAuthState | None:
+    return session.query(OAuthState).filter(OAuthState.state_token == state_token).first()
+
+
+def consume_oauth_state(session: Session, state_token: str) -> OAuthState | None:
+    from datetime import datetime, timezone
+    row = session.query(OAuthState).filter(OAuthState.state_token == state_token).first()
+    if row is None:
+        return None
+    row.status = "used"
+    row.used_at = datetime.now(timezone.utc)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def create_oauth_token_record(
+    session: Session,
+    *,
+    profile_id: str,
+    connector_id: str,
+    vault_ref: str,
+    secret_fingerprint: str,
+    scope_granted_json: str,
+    scope_compliant: bool,
+    has_refresh_token: bool,
+    token_type: str,
+    placeholder_mode: bool,
+    expires_at=None,
+) -> OAuthTokenRecord:
+    row = OAuthTokenRecord(
+        id=f"oauth_token_{uuid4().hex[:16]}",
+        profile_id=profile_id,
+        connector_id=connector_id,
+        vault_ref=vault_ref,
+        secret_fingerprint=secret_fingerprint,
+        scope_granted_json=scope_granted_json,
+        scope_compliant=scope_compliant,
+        has_refresh_token=has_refresh_token,
+        token_type=token_type,
+        placeholder_mode=placeholder_mode,
+        status="active",
+        expires_at=expires_at,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_oauth_token_record_for_profile(session: Session, profile_id: str) -> OAuthTokenRecord | None:
+    return (
+        session.query(OAuthTokenRecord)
+        .filter(OAuthTokenRecord.profile_id == profile_id, OAuthTokenRecord.status == "active")
+        .order_by(OAuthTokenRecord.created_at.desc())
+        .first()
+    )
+
+
+def revoke_oauth_token_record(session: Session, profile_id: str) -> OAuthTokenRecord | None:
+    from datetime import datetime, timezone
+    row = get_oauth_token_record_for_profile(session, profile_id)
+    if row is None:
+        return None
+    row.status = "revoked"
+    row.revoked_at = datetime.now(timezone.utc)
+    session.commit()
+    session.refresh(row)
+    return row
