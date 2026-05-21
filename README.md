@@ -93,6 +93,35 @@ python scripts/backup_release_db.py
 
 Deployment scripts and docs keep generic writes, R3/R4 writes, and write pilots disabled by default.
 
+## Connector & Skill Marketplace
+
+Sprint 15 adds an internal connector and skill-template marketplace foundation.
+
+Marketplace endpoints:
+
+- `GET /v1/marketplace/connectors`
+- `GET /v1/marketplace/connectors/{connector_id}`
+- `GET /v1/marketplace/skill-templates`
+- `GET /v1/marketplace/skill-templates/{template_id}`
+- `POST /v1/marketplace/skill-templates/{template_id}/check-requirements`
+- `POST /v1/marketplace/skill-templates/{template_id}/install-draft`
+- `GET /v1/marketplace/installed`
+
+Implemented connector:
+
+- Odoo
+
+Placeholder connectors:
+
+- Gmail
+- Google Calendar
+- Google Drive
+- WhatsApp
+- Slack
+- Custom HTTP API
+
+Templates install only as automation drafts. The existing review, validation, compile, approval, and activation gates remain mandatory. No MCP runtime, OAuth production flow, real Gmail/WhatsApp execution, generic ERP writes, or R3/R4 writes are added.
+
 ## Current Demo Story
 
 Implemented: record once in the Fake ERP demo, validate readiness, compile a reusable skill, inspect the compiled package, run it deterministically, and audit the resulting runs and steps.

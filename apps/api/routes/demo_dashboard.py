@@ -599,6 +599,34 @@ selectors captured: none</pre>
         <pre id="governanceSummaryOutput">No governance summary yet.</pre>
       </div>
       <div class="card full">
+        <h2>Skill Marketplace / Connector Catalog</h2>
+        <p>
+          Sprint 15 — Browse controlled connectors and predefined automation templates.
+          Templates install only as draft, then must go through review, validation, compile, and approval.
+          No MCP execution gateway. No new ERP writes.
+        </p>
+        <div class="toolbar">
+          <label>
+            Marketplace Connection ID
+            <input id="marketplaceConnectionId" placeholder="conn_..." />
+          </label>
+          <label>
+            Template ID
+            <input id="marketplaceTemplateId" value="odoo_formula_preflight" />
+          </label>
+          <button id="loadMarketplaceConnectors" type="button">Load connectors</button>
+          <button id="loadMarketplaceTemplates" type="button">Load skill templates</button>
+          <button id="checkMarketplaceRequirements" type="button">Check requirements</button>
+          <button id="installMarketplaceDraft" type="button">Install as draft</button>
+          <button id="loadMarketplaceInstalled" type="button">Installed drafts</button>
+        </div>
+        <p class="tiny">Connector, Skill template, Risk level, Required guards, Required connection, Required permissions, Safety summary, Compile later.</p>
+        <pre id="marketplaceConnectorOutput">No connector catalog loaded yet.</pre>
+        <pre id="marketplaceTemplateOutput">No skill template catalog loaded yet.</pre>
+        <pre id="marketplaceRequirementsOutput">No requirements check yet.</pre>
+        <pre id="marketplaceInstallOutput">No marketplace draft installed yet.</pre>
+      </div>
+      <div class="card full">
         <h2>Safe Skill Review &amp; Compilation</h2>
         <p>
           Sprint 3 — Convert a Sprint 2 automation_draft into a safe, versioned skill.
@@ -715,6 +743,12 @@ selectors captured: none</pre>
     const recommendationCards = document.getElementById("recommendationCards");
     const productROI = document.getElementById("productROI");
     const productDrafts = document.getElementById("productDrafts");
+    const marketplaceConnectionIdInput = document.getElementById("marketplaceConnectionId");
+    const marketplaceTemplateIdInput = document.getElementById("marketplaceTemplateId");
+    const marketplaceConnectorOutput = document.getElementById("marketplaceConnectorOutput");
+    const marketplaceTemplateOutput = document.getElementById("marketplaceTemplateOutput");
+    const marketplaceRequirementsOutput = document.getElementById("marketplaceRequirementsOutput");
+    const marketplaceInstallOutput = document.getElementById("marketplaceInstallOutput");
 
     const humanState = {
       recordingId: null,
@@ -810,6 +844,68 @@ selectors captured: none</pre>
           }
         });
       });
+    };
+
+    const marketplaceConfiguration = () => ({
+      connection_id: marketplaceConnectionIdInput.value.trim() || "conn_marketplace_demo",
+    });
+
+    const loadMarketplaceConnectors = async () => {
+      marketplaceConnectorOutput.textContent = "Loading connector catalog...";
+      const response = await fetch("/v1/marketplace/connectors");
+      const body = await response.json();
+      marketplaceConnectorOutput.textContent = response.ok ? jsonText(body) : `Connector catalog failed: ${body?.error?.message || "unknown error"}`;
+    };
+
+    const loadMarketplaceTemplates = async () => {
+      marketplaceTemplateOutput.textContent = "Loading skill template catalog...";
+      const response = await fetch("/v1/marketplace/skill-templates");
+      const body = await response.json();
+      marketplaceTemplateOutput.textContent = response.ok ? jsonText(body) : `Skill template catalog failed: ${body?.error?.message || "unknown error"}`;
+    };
+
+    const checkMarketplaceRequirements = async () => {
+      const templateId = marketplaceTemplateIdInput.value.trim() || "odoo_formula_preflight";
+      marketplaceRequirementsOutput.textContent = `Checking requirements for ${templateId}...`;
+      const response = await fetch(`/v1/marketplace/skill-templates/${templateId}/check-requirements`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ configuration: marketplaceConfiguration() }),
+      });
+      const body = await response.json();
+      marketplaceRequirementsOutput.textContent = response.ok ? jsonText(body) : `Requirements check failed: ${body?.error?.message || "unknown error"}`;
+    };
+
+    const installMarketplaceDraft = async () => {
+      const templateId = marketplaceTemplateIdInput.value.trim() || "odoo_formula_preflight";
+      marketplaceInstallOutput.textContent = `Installing ${templateId} as draft...`;
+      const response = await fetch(`/v1/marketplace/skill-templates/${templateId}/install-draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ configuration: marketplaceConfiguration() }),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        marketplaceInstallOutput.textContent = `Install failed: ${body?.error?.message || "unknown error"}`;
+        return;
+      }
+      marketplaceInstallOutput.textContent = jsonText({
+        status: body.status,
+        template_id: body.template_id,
+        draft_id: body.draft?.draft_id,
+        review_id: body.review?.review_id,
+        next_steps: body.next_steps,
+        safety_summary: body.safety_summary,
+      });
+      if (body.draft?.draft_id) {
+        compileDraftIdInput.value = body.draft.draft_id;
+      }
+    };
+
+    const loadMarketplaceInstalled = async () => {
+      const response = await fetch("/v1/marketplace/installed");
+      const body = await response.json();
+      marketplaceInstallOutput.textContent = response.ok ? jsonText(body) : `Installed drafts failed: ${body?.error?.message || "unknown error"}`;
     };
 
     const renderProductAnalysis = (result) => {
@@ -2831,6 +2927,11 @@ selectors captured: none</pre>
 
     loadLatestOdooConnectionButton.addEventListener("click", loadLatestOdooConnection);
     runBusinessAnalysisButton.addEventListener("click", runBusinessAnalysis);
+    document.getElementById("loadMarketplaceConnectors").addEventListener("click", loadMarketplaceConnectors);
+    document.getElementById("loadMarketplaceTemplates").addEventListener("click", loadMarketplaceTemplates);
+    document.getElementById("checkMarketplaceRequirements").addEventListener("click", checkMarketplaceRequirements);
+    document.getElementById("installMarketplaceDraft").addEventListener("click", installMarketplaceDraft);
+    document.getElementById("loadMarketplaceInstalled").addEventListener("click", loadMarketplaceInstalled);
 
     runButton.addEventListener("click", async () => {
       runButton.disabled = true;
