@@ -826,6 +826,45 @@ selectors captured: none</pre>
         <pre id="verifRobustReportOutput">No robust report yet.</pre>
       </div>
 
+      <!-- Sprint 23 — Skill Versioning, Promotion & Rollback -->
+      <div class="card full">
+        <h2>Skill Versioning, Promotion &amp; Rollback</h2>
+        <p>
+          Sprint 23 — Governs compiled UI skills as immutable versioned artifacts.
+          Lifecycle: draft → candidate → approved → active → deprecated / rolled_back.
+          Active versions are immutable. Rollback is a lifecycle switch only — not mutation.
+          No automatic execution on promotion or rollback.
+        </p>
+        <p class="tiny">Requires a compiled skill from the recorder above.</p>
+
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <input id="svCompiledSkillId" placeholder="ui_skill_... or use compiler above" style="width:280px" />
+          <button id="svCreateVersion" data-testid="demo-sv-create">Create Version</button>
+          <button id="svReadiness" data-testid="demo-sv-readiness">Promotion Readiness</button>
+          <button id="svPromoteCandidate" data-testid="demo-sv-promote">Promote → Candidate</button>
+          <button id="svApprove" data-testid="demo-sv-approve">Approve</button>
+          <button id="svActivate" data-testid="demo-sv-activate">Activate</button>
+          <button id="svAudit" data-testid="demo-sv-audit">Lifecycle Audit</button>
+        </div>
+
+        <p class="tiny" style="margin-top:6px;">
+          To test rollback: create a second version, activate the first, then roll back to the second.
+        </p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:6px;">
+          <input id="svTargetVersionId" placeholder="target version id for rollback" style="width:280px" />
+          <button id="svRollbackPlan" data-testid="demo-sv-rollback-plan">Rollback Plan</button>
+          <button id="svRollbackExecute" data-testid="demo-sv-rollback-execute">Execute Rollback</button>
+          <button id="svCompare" data-testid="demo-sv-compare">Compare Versions</button>
+        </div>
+
+        <pre id="svVersionOutput">No version yet.</pre>
+        <pre id="svReadinessOutput">No readiness yet.</pre>
+        <pre id="svLifecycleOutput">No lifecycle event yet.</pre>
+        <pre id="svAuditOutput">No audit yet.</pre>
+        <pre id="svRollbackOutput">No rollback yet.</pre>
+        <pre id="svCompareOutput">No comparison yet.</pre>
+      </div>
+
       <div class="card full">
         <h2>Safe Skill Review &amp; Compilation</h2>
         <p>
@@ -3653,6 +3692,100 @@ selectors captured: none</pre>
       if (!verifState.replayId) { document.getElementById("verifRobustReportOutput").textContent = "Run a verified replay first."; return; }
       const r = await fetch(`/v1/record-to-skill/replays/${verifState.replayId}/robust-report`);
       document.getElementById("verifRobustReportOutput").textContent = jsonText(await r.json());
+    });
+
+    // Sprint 23 — Skill Versioning, Promotion & Rollback
+    const svState = { versionId: null, secondVersionId: null };
+
+    document.getElementById("svCreateVersion").addEventListener("click", async () => {
+      const csid = document.getElementById("svCompiledSkillId").value.trim() || r2sState.compiledSkillId;
+      if (!csid) { document.getElementById("svVersionOutput").textContent = "Enter a compiled skill id first."; return; }
+      const r = await fetch(`/v1/skills/versioning/from-ui-compiled-skill/${csid}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const body = await r.json();
+      if (body.version_id) {
+        if (!svState.versionId) { svState.versionId = body.version_id; }
+        else { svState.secondVersionId = body.version_id; }
+      }
+      document.getElementById("svVersionOutput").textContent = jsonText(body);
+    });
+
+    document.getElementById("svReadiness").addEventListener("click", async () => {
+      if (!svState.versionId) { document.getElementById("svReadinessOutput").textContent = "Create a version first."; return; }
+      const r = await fetch(`/v1/skills/versions/${svState.versionId}/promotion-readiness`, { method: "POST" });
+      document.getElementById("svReadinessOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("svPromoteCandidate").addEventListener("click", async () => {
+      if (!svState.versionId) { document.getElementById("svLifecycleOutput").textContent = "Create a version first."; return; }
+      const r = await fetch(`/v1/skills/versions/${svState.versionId}/promote-candidate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actor: "demo_user", reason: "ready for review" }),
+      });
+      document.getElementById("svLifecycleOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("svApprove").addEventListener("click", async () => {
+      if (!svState.versionId) { document.getElementById("svLifecycleOutput").textContent = "Create a version first."; return; }
+      const r = await fetch(`/v1/skills/versions/${svState.versionId}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actor: "approver_1", reason: "reviewed and approved" }),
+      });
+      document.getElementById("svLifecycleOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("svActivate").addEventListener("click", async () => {
+      if (!svState.versionId) { document.getElementById("svLifecycleOutput").textContent = "Create a version first."; return; }
+      const r = await fetch(`/v1/skills/versions/${svState.versionId}/activate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actor: "ops_user", reason: "promoting to active" }),
+      });
+      document.getElementById("svLifecycleOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("svAudit").addEventListener("click", async () => {
+      if (!svState.versionId) { document.getElementById("svAuditOutput").textContent = "Create a version first."; return; }
+      const r = await fetch(`/v1/skills/versions/${svState.versionId}/lifecycle-audit`);
+      document.getElementById("svAuditOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("svRollbackPlan").addEventListener("click", async () => {
+      const targetId = document.getElementById("svTargetVersionId").value.trim() || svState.secondVersionId;
+      if (!svState.versionId || !targetId) { document.getElementById("svRollbackOutput").textContent = "Need current and target version ids."; return; }
+      const r = await fetch(`/v1/skills/versions/${svState.versionId}/rollback-plan`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_version_id: targetId }),
+      });
+      document.getElementById("svRollbackOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("svRollbackExecute").addEventListener("click", async () => {
+      const targetId = document.getElementById("svTargetVersionId").value.trim() || svState.secondVersionId;
+      if (!svState.versionId || !targetId) { document.getElementById("svRollbackOutput").textContent = "Need current and target version ids."; return; }
+      const r = await fetch(`/v1/skills/versions/${svState.versionId}/rollback-to/${targetId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actor: "ops_user", reason: "rolling back to previous stable version" }),
+      });
+      document.getElementById("svRollbackOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("svCompare").addEventListener("click", async () => {
+      const targetId = document.getElementById("svTargetVersionId").value.trim() || svState.secondVersionId;
+      if (!svState.versionId || !targetId) { document.getElementById("svCompareOutput").textContent = "Need two version ids to compare."; return; }
+      const r = await fetch("/v1/skills/versions/compare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ version_id_a: svState.versionId, version_id_b: targetId }),
+      });
+      document.getElementById("svCompareOutput").textContent = jsonText(await r.json());
     });
   </script>
 </body>

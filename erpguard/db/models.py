@@ -1045,3 +1045,41 @@ class UIReplayFailure(Base):
     recovery_suggestion: Mapped[str] = mapped_column(Text, nullable=False, default="")
     severity: Mapped[str] = mapped_column(Text, nullable=False, default="error")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 23 — Skill Versioning, Promotion & Rollback
+
+class UISkillVersionRecord(Base):
+    __tablename__ = "ui_skill_version_records"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    compiled_skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="draft")
+    steps_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    guard_names_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    replay_run_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    promotion_readiness_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    llm_required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    runtime_type: Mapped[str] = mapped_column(Text, nullable=False, default="deterministic_ui")
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
+    )
+
+
+class UISkillVersionLifecycleEvent(Base):
+    __tablename__ = "ui_skill_version_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    from_status: Mapped[str] = mapped_column(Text, nullable=False)
+    to_status: Mapped[str] = mapped_column(Text, nullable=False)
+    actor: Mapped[str] = mapped_column(Text, nullable=False, default="system")
+    reason: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

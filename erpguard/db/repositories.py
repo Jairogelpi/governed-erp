@@ -71,6 +71,8 @@ from erpguard.db.models import (
     UIReplayStepAudit,
     UIReplayVerification,
     UIReplayFailure,
+    UISkillVersionRecord,
+    UISkillVersionLifecycleEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -2654,5 +2656,120 @@ def list_ui_replay_failures(session: Session, replay_run_id: str) -> list[UIRepl
         session.query(UIReplayFailure)
         .filter(UIReplayFailure.replay_run_id == replay_run_id)
         .order_by(UIReplayFailure.step_index.asc())
+        .all()
+    )
+
+
+# Sprint 23 — Skill Versioning, Promotion & Rollback
+
+def create_ui_skill_version_record(
+    session: Session,
+    *,
+    skill_id: str,
+    compiled_skill_id: str,
+    name: str,
+    steps_json: str = "[]",
+    guard_names_json: str = "[]",
+    replay_run_id: str | None = None,
+) -> UISkillVersionRecord:
+    version_number = (
+        session.query(UISkillVersionRecord)
+        .filter(UISkillVersionRecord.skill_id == skill_id)
+        .count()
+    ) + 1
+    row = UISkillVersionRecord(
+        id=f"ui_skv_{uuid4().hex[:16]}",
+        skill_id=skill_id,
+        compiled_skill_id=compiled_skill_id,
+        version_number=version_number,
+        name=name,
+        status="draft",
+        steps_json=steps_json,
+        guard_names_json=guard_names_json,
+        replay_run_id=replay_run_id,
+        promotion_readiness_json="{}",
+        llm_required=False,
+        runtime_type="deterministic_ui",
+        is_active=False,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_ui_skill_version_record(session: Session, version_id: str) -> UISkillVersionRecord | None:
+    return session.get(UISkillVersionRecord, version_id)
+
+
+def list_ui_skill_version_records(session: Session, skill_id: str) -> list[UISkillVersionRecord]:
+    return list(
+        session.query(UISkillVersionRecord)
+        .filter(UISkillVersionRecord.skill_id == skill_id)
+        .order_by(UISkillVersionRecord.version_number.asc())
+        .all()
+    )
+
+
+def get_active_ui_skill_version(session: Session, skill_id: str) -> UISkillVersionRecord | None:
+    return (
+        session.query(UISkillVersionRecord)
+        .filter(UISkillVersionRecord.skill_id == skill_id, UISkillVersionRecord.is_active.is_(True))
+        .first()
+    )
+
+
+def update_ui_skill_version_status(
+    session: Session,
+    version_id: str,
+    status: str,
+    is_active: bool | None = None,
+    promotion_readiness_json: str | None = None,
+) -> UISkillVersionRecord | None:
+    row = session.get(UISkillVersionRecord, version_id)
+    if row is None:
+        return None
+    row.status = status
+    if is_active is not None:
+        row.is_active = is_active
+    if promotion_readiness_json is not None:
+        row.promotion_readiness_json = promotion_readiness_json
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def create_ui_skill_version_lifecycle_event(
+    session: Session,
+    *,
+    version_id: str,
+    skill_id: str,
+    event_type: str,
+    from_status: str,
+    to_status: str,
+    actor: str = "system",
+    reason: str = "",
+) -> UISkillVersionLifecycleEvent:
+    row = UISkillVersionLifecycleEvent(
+        id=f"ui_skve_{uuid4().hex[:16]}",
+        version_id=version_id,
+        skill_id=skill_id,
+        event_type=event_type,
+        from_status=from_status,
+        to_status=to_status,
+        actor=actor,
+        reason=reason,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_ui_skill_version_lifecycle_events(session: Session, version_id: str) -> list[UISkillVersionLifecycleEvent]:
+    return list(
+        session.query(UISkillVersionLifecycleEvent)
+        .filter(UISkillVersionLifecycleEvent.version_id == version_id)
+        .order_by(UISkillVersionLifecycleEvent.created_at.asc())
         .all()
     )
