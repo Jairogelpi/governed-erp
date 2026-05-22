@@ -143,3 +143,83 @@ class ReportResponse(BaseModel):
     audit_evidence_count: int
     findings: list[str]
     summary: str
+
+
+# Sprint 22 — Verification, Failures, Robust Report, Verified Replay
+
+class VerifiedStepResponse(BaseModel):
+    step_index: int
+    step_id: str
+    step_type: str
+    status: str
+    verification_status: str
+    before_state: dict
+    after_state: dict
+    evidence: dict
+    checks: dict
+    failure_type: str | None
+    recovery_suggestion: str
+    error: str | None
+
+
+class VerifiedReplayResponse(BaseModel):
+    replay_id: str
+    compiled_skill_id: str
+    status: str
+    step_count: int
+    steps_passed: int
+    steps_failed: int
+    steps_verification_failed: int
+    step_results: list[VerifiedStepResponse]
+    finished_at: str
+
+
+class VerificationEntryResponse(BaseModel):
+    step_index: int
+    step_id: str
+    page_state_ok: bool
+    record_identity_ok: bool
+    selector_ambiguity_ok: bool
+    modal_error_ok: bool
+    post_state_ok: bool
+    overall_status: str
+    checks: dict
+
+
+class VerificationResponse(BaseModel):
+    replay_id: str
+    verifications: list[VerificationEntryResponse]
+
+
+class FailureEntryResponse(BaseModel):
+    step_index: int
+    step_id: str
+    failure_type: str
+    failure_detail: str
+    recovery_suggestion: str
+    severity: str
+
+
+class FailuresResponse(BaseModel):
+    replay_id: str
+    failure_count: int
+    failures: list[FailureEntryResponse]
+
+
+class RobustReportResponse(BaseModel):
+    replay_id: str
+    compiled_skill_id: str
+    target_base_url: str
+    replay_status: str
+    step_count: int
+    steps_passed: int
+    steps_failed: int
+    success_rate_pct: float
+    llm_used_at_replay: bool
+    deterministic: bool
+    verification_count: int
+    failure_count: int
+    verifications: list[VerificationEntryResponse]
+    failures: list[FailureEntryResponse]
+    summary: str
+    recovery_actions_required: bool

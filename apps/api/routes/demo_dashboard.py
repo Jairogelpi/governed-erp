@@ -801,6 +801,31 @@ selectors captured: none</pre>
         <pre id="r2sReportOutput">No report yet.</pre>
       </div>
 
+      <!-- Sprint 22 — Verified UI Replay -->
+      <div class="card full">
+        <h2>Verified UI Replay</h2>
+        <p>
+          Sprint 22 — Replay with pre/post verification: page state, record identity, selector stability,
+          modal/error detection, failure classification and non-executable recovery suggestions.
+          Fail closed: if verification fails, the step is not executed.
+          No LLM, no coordinate automation, no automatic repair.
+        </p>
+        <p class="tiny">Requires a compiled skill from the recorder above.</p>
+
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <input id="verifCompiledSkillId" placeholder="ui_skill_..." style="width:280px" />
+          <button id="verifRunReplay" data-testid="demo-verif-replay">Verified Replay</button>
+          <button id="verifGetVerification" data-testid="demo-verif-verification">Verification</button>
+          <button id="verifGetFailures" data-testid="demo-verif-failures">Failures</button>
+          <button id="verifGetRobustReport" data-testid="demo-verif-robust-report">Robust Report</button>
+        </div>
+
+        <pre id="verifReplayOutput">No verified replay yet.</pre>
+        <pre id="verifVerificationOutput">No verification yet.</pre>
+        <pre id="verifFailuresOutput">No failures yet.</pre>
+        <pre id="verifRobustReportOutput">No robust report yet.</pre>
+      </div>
+
       <div class="card full">
         <h2>Safe Skill Review &amp; Compilation</h2>
         <p>
@@ -3594,6 +3619,40 @@ selectors captured: none</pre>
       if (!r2sState.replayId) { document.getElementById("r2sReportOutput").textContent = "Run a replay first (Step 6)."; return; }
       const r = await fetch(`/v1/record-to-skill/replays/${r2sState.replayId}/report`);
       document.getElementById("r2sReportOutput").textContent = jsonText(await r.json());
+    });
+
+    // Sprint 22 — Verified UI Replay
+    const verifState = { replayId: null };
+
+    document.getElementById("verifRunReplay").addEventListener("click", async () => {
+      const csid = document.getElementById("verifCompiledSkillId").value.trim() || r2sState.compiledSkillId;
+      if (!csid) { document.getElementById("verifReplayOutput").textContent = "Enter a compiled skill id or compile one above."; return; }
+      const r = await fetch(`/v1/record-to-skill/compiled-skills/${csid}/verified-replay`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_base_url: FAKE_ERP_BASE }),
+      });
+      const body = await r.json();
+      if (body.replay_id) { verifState.replayId = body.replay_id; document.getElementById("verifCompiledSkillId").value = csid; }
+      document.getElementById("verifReplayOutput").textContent = jsonText(body);
+    });
+
+    document.getElementById("verifGetVerification").addEventListener("click", async () => {
+      if (!verifState.replayId) { document.getElementById("verifVerificationOutput").textContent = "Run a verified replay first."; return; }
+      const r = await fetch(`/v1/record-to-skill/replays/${verifState.replayId}/verification`);
+      document.getElementById("verifVerificationOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("verifGetFailures").addEventListener("click", async () => {
+      if (!verifState.replayId) { document.getElementById("verifFailuresOutput").textContent = "Run a verified replay first."; return; }
+      const r = await fetch(`/v1/record-to-skill/replays/${verifState.replayId}/failures`);
+      document.getElementById("verifFailuresOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("verifGetRobustReport").addEventListener("click", async () => {
+      if (!verifState.replayId) { document.getElementById("verifRobustReportOutput").textContent = "Run a verified replay first."; return; }
+      const r = await fetch(`/v1/record-to-skill/replays/${verifState.replayId}/robust-report`);
+      document.getElementById("verifRobustReportOutput").textContent = jsonText(await r.json());
     });
   </script>
 </body>

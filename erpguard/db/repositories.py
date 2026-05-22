@@ -69,6 +69,8 @@ from erpguard.db.models import (
     UICompiledSkill,
     UIReplayRun,
     UIReplayStepAudit,
+    UIReplayVerification,
+    UIReplayFailure,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -2572,5 +2574,85 @@ def list_ui_replay_step_audits(session: Session, replay_run_id: str) -> list[UIR
         session.query(UIReplayStepAudit)
         .filter(UIReplayStepAudit.replay_run_id == replay_run_id)
         .order_by(UIReplayStepAudit.step_index.asc())
+        .all()
+    )
+
+
+# Sprint 22 — Verification and failure repositories
+
+def add_ui_replay_verification(
+    session: Session,
+    *,
+    replay_run_id: str,
+    step_index: int,
+    step_id: str,
+    page_state_ok: bool = True,
+    record_identity_ok: bool = True,
+    selector_ambiguity_ok: bool = True,
+    modal_error_ok: bool = True,
+    post_state_ok: bool = True,
+    overall_status: str = "passed",
+    checks_json: str = "{}",
+) -> UIReplayVerification:
+    row = UIReplayVerification(
+        id=f"ui_verif_{uuid4().hex[:16]}",
+        replay_run_id=replay_run_id,
+        step_index=step_index,
+        step_id=step_id,
+        page_state_ok=page_state_ok,
+        record_identity_ok=record_identity_ok,
+        selector_ambiguity_ok=selector_ambiguity_ok,
+        modal_error_ok=modal_error_ok,
+        post_state_ok=post_state_ok,
+        overall_status=overall_status,
+        checks_json=checks_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_ui_replay_verifications(session: Session, replay_run_id: str) -> list[UIReplayVerification]:
+    return list(
+        session.query(UIReplayVerification)
+        .filter(UIReplayVerification.replay_run_id == replay_run_id)
+        .order_by(UIReplayVerification.step_index.asc())
+        .all()
+    )
+
+
+def add_ui_replay_failure(
+    session: Session,
+    *,
+    replay_run_id: str,
+    step_index: int,
+    step_id: str,
+    failure_type: str,
+    failure_detail: str = "",
+    recovery_suggestion: str = "",
+    severity: str = "error",
+) -> UIReplayFailure:
+    row = UIReplayFailure(
+        id=f"ui_fail_{uuid4().hex[:16]}",
+        replay_run_id=replay_run_id,
+        step_index=step_index,
+        step_id=step_id,
+        failure_type=failure_type,
+        failure_detail=failure_detail,
+        recovery_suggestion=recovery_suggestion,
+        severity=severity,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_ui_replay_failures(session: Session, replay_run_id: str) -> list[UIReplayFailure]:
+    return list(
+        session.query(UIReplayFailure)
+        .filter(UIReplayFailure.replay_run_id == replay_run_id)
+        .order_by(UIReplayFailure.step_index.asc())
         .all()
     )

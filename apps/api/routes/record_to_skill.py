@@ -11,6 +11,8 @@ from apps.api.schemas.record_to_skill import (
     CompileUISkillResponse,
     CreateSessionRequest,
     CreateSessionResponse,
+    FailureEntryResponse,
+    FailuresResponse,
     FinishSessionResponse,
     GenerateDraftRequest,
     GenerateDraftResponse,
@@ -18,6 +20,11 @@ from apps.api.schemas.record_to_skill import (
     ReplayResponse,
     ReplayStepResponse,
     ReportResponse,
+    RobustReportResponse,
+    VerificationEntryResponse,
+    VerificationResponse,
+    VerifiedReplayResponse,
+    VerifiedStepResponse,
 )
 from erpguard.product.ui_recording_session import UIRecordingSessionService
 from erpguard.product.ui_event_capture import UIEventCaptureService
@@ -27,6 +34,8 @@ from erpguard.product.ui_skill_compiler import UISkillCompilerService
 from erpguard.product.ui_replay_runtime import UIReplayRuntime
 from erpguard.product.ui_replay_audit import UIReplayAuditService
 from erpguard.product.ui_replay_report import UIReplayReportService
+from erpguard.product.ui_verified_replay_runtime import UIVerifiedReplayRuntime
+from erpguard.product.ui_robust_replay_report import UIRobustReplayReportService
 
 
 router = APIRouter(prefix="/v1/record-to-skill", tags=["record-to-skill"])
@@ -39,6 +48,8 @@ _compiler = UISkillCompilerService()
 _replay = UIReplayRuntime()
 _audit = UIReplayAuditService()
 _report = UIReplayReportService()
+_verified_replay = UIVerifiedReplayRuntime()
+_robust_report = UIRobustReplayReportService()
 
 
 @router.post("/sessions", response_model=CreateSessionResponse)
@@ -248,4 +259,118 @@ def get_replay_report(replay_id: str):
         audit_evidence_count=result.audit_evidence_count,
         findings=result.findings,
         summary=result.summary,
+    )
+
+
+# Sprint 22 — Verified replay, verification, failures, robust report
+
+@router.post("/compiled-skills/{compiled_skill_id}/verified-replay", response_model=VerifiedReplayResponse)
+def verified_replay_skill(compiled_skill_id: str, request: ReplayRequest):
+    try:
+        result = _verified_replay.replay(compiled_skill_id, request.target_base_url)
+    except ValueError as exc:
+        return JSONResponse(status_code=400, content={"error": {"code": "replay_error", "detail": str(exc)}})
+    return VerifiedReplayResponse(
+        replay_id=result.replay_id,
+        compiled_skill_id=result.compiled_skill_id,
+        status=result.status,
+        step_count=result.step_count,
+        steps_passed=result.steps_passed,
+        steps_failed=result.steps_failed,
+        steps_verification_failed=result.steps_verification_failed,
+        step_results=[
+            VerifiedStepResponse(
+                step_index=s.step_index, step_id=s.step_id, step_type=s.step_type,
+                status=s.status, verification_status=s.verification_status,
+                before_state=s.before_state, after_state=s.after_state,
+                evidence=s.evidence, checks=s.checks,
+                failure_type=s.failure_type,
+                recovery_suggestion=s.recovery_suggestion,
+                error=s.error,
+            )
+            for s in result.step_results
+        ],
+        finished_at=result.finished_at,
+    )
+
+
+@router.get("/replays/{replay_id}/verification", response_model=VerificationResponse)
+def get_replay_verification(replay_id: str):
+    result = _robust_report.get_verifications(replay_id)
+    if result is None:
+        return JSONResponse(status_code=404, content={"error": {"code": "replay_not_found", "replay_id": replay_id}})
+    return VerificationResponse(
+        replay_id=replay_id,
+        verifications=[
+            VerificationEntryResponse(
+                step_index=v.step_index, step_id=v.step_id,
+                page_state_ok=v.page_state_ok,
+                record_identity_ok=v.record_identity_ok,
+                selector_ambiguity_ok=v.selector_ambiguity_ok,
+                modal_error_ok=v.modal_error_ok,
+                post_state_ok=v.post_state_ok,
+                overall_status=v.overall_status,
+                checks=v.checks,
+            )
+            for v in result
+        ],
+    )
+
+
+@router.get("/replays/{replay_id}/failures", response_model=FailuresResponse)
+def get_replay_failures(replay_id: str):
+    result = _robust_report.get_failures(replay_id)
+    if result is None:
+        return JSONResponse(status_code=404, content={"error": {"code": "replay_not_found", "replay_id": replay_id}})
+    return FailuresResponse(
+        replay_id=replay_id,
+        failure_count=len(result),
+        failures=[
+            FailureEntryResponse(
+                step_index=f.step_index, step_id=f.step_id,
+                failure_type=f.failure_type, failure_detail=f.failure_detail,
+                recovery_suggestion=f.recovery_suggestion, severity=f.severity,
+            )
+            for f in result
+        ],
+    )
+
+
+@router.get("/replays/{replay_id}/robust-report", response_model=RobustReportResponse)
+def get_robust_report(replay_id: str):
+    result = _robust_report.get_report(replay_id)
+    if result is None:
+        return JSONResponse(status_code=404, content={"error": {"code": "replay_not_found", "replay_id": replay_id}})
+    return RobustReportResponse(
+        replay_id=result.replay_id,
+        compiled_skill_id=result.compiled_skill_id,
+        target_base_url=result.target_base_url,
+        replay_status=result.replay_status,
+        step_count=result.step_count,
+        steps_passed=result.steps_passed,
+        steps_failed=result.steps_failed,
+        success_rate_pct=result.success_rate_pct,
+        llm_used_at_replay=result.llm_used_at_replay,
+        deterministic=result.deterministic,
+        verification_count=result.verification_count,
+        failure_count=result.failure_count,
+        verifications=[
+            VerificationEntryResponse(
+                step_index=v.step_index, step_id=v.step_id,
+                page_state_ok=v.page_state_ok, record_identity_ok=v.record_identity_ok,
+                selector_ambiguity_ok=v.selector_ambiguity_ok, modal_error_ok=v.modal_error_ok,
+                post_state_ok=v.post_state_ok, overall_status=v.overall_status, checks=v.checks,
+            )
+            for v in result.verifications
+        ],
+        failures=[
+            FailureEntryResponse(
+                step_index=f.step_index, step_id=f.step_id,
+                failure_type=f.failure_type, failure_detail=f.failure_detail,
+                recovery_suggestion=f.recovery_suggestion, severity=f.severity,
+            )
+            for f in result.failures
+        ],
+        summary=result.summary,
+        recovery_actions_required=result.recovery_actions_required,
     )

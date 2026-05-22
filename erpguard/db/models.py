@@ -1012,3 +1012,36 @@ class UIReplayStepAudit(Base):
     evidence_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 22 — UI Skill Verification, Replay Robustness & Failure Recovery
+
+class UIReplayVerification(Base):
+    __tablename__ = "ui_replay_verifications"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    replay_run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    step_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    step_id: Mapped[str] = mapped_column(Text, nullable=False)
+    page_state_ok: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    record_identity_ok: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    selector_ambiguity_ok: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    modal_error_ok: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    post_state_ok: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    overall_status: Mapped[str] = mapped_column(Text, nullable=False, default="passed")
+    checks_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class UIReplayFailure(Base):
+    __tablename__ = "ui_replay_failures"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    replay_run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    step_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    step_id: Mapped[str] = mapped_column(Text, nullable=False)
+    failure_type: Mapped[str] = mapped_column(Text, nullable=False)
+    failure_detail: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    recovery_suggestion: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    severity: Mapped[str] = mapped_column(Text, nullable=False, default="error")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
