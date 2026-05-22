@@ -73,6 +73,8 @@ from erpguard.db.models import (
     UIReplayFailure,
     UISkillVersionRecord,
     UISkillVersionLifecycleEvent,
+    ActiveSkillRun,
+    ActiveSkillRunEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -2771,5 +2773,106 @@ def list_ui_skill_version_lifecycle_events(session: Session, version_id: str) ->
         session.query(UISkillVersionLifecycleEvent)
         .filter(UISkillVersionLifecycleEvent.version_id == version_id)
         .order_by(UISkillVersionLifecycleEvent.created_at.asc())
+        .all()
+    )
+
+
+# Sprint 24 — Active Skill Runner & Manual Runs
+
+def create_active_skill_run(
+    session: Session,
+    *,
+    version_id: str,
+    skill_id: str,
+    actor: str = "manual_operator",
+    target_base_url: str,
+    inputs_json: str = "{}",
+    gate_result_json: str = "{}",
+    input_validation_json: str = "{}",
+) -> ActiveSkillRun:
+    row = ActiveSkillRun(
+        id=f"as_run_{uuid4().hex[:16]}",
+        version_id=version_id,
+        skill_id=skill_id,
+        actor=actor,
+        trigger="manual",
+        status="requested",
+        target_base_url=target_base_url,
+        inputs_json=inputs_json,
+        gate_result_json=gate_result_json,
+        input_validation_json=input_validation_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_active_skill_run(session: Session, run_id: str) -> ActiveSkillRun | None:
+    return session.get(ActiveSkillRun, run_id)
+
+
+def list_active_skill_runs_for_skill(session: Session, skill_id: str) -> list[ActiveSkillRun]:
+    return list(
+        session.query(ActiveSkillRun)
+        .filter(ActiveSkillRun.skill_id == skill_id)
+        .order_by(ActiveSkillRun.created_at.desc())
+        .all()
+    )
+
+
+def update_active_skill_run(
+    session: Session,
+    run_id: str,
+    *,
+    status: str | None = None,
+    replay_run_id: str | None = None,
+    summary_json: str | None = None,
+    finished_at=None,
+) -> ActiveSkillRun | None:
+    row = session.get(ActiveSkillRun, run_id)
+    if row is None:
+        return None
+    if status is not None:
+        row.status = status
+    if replay_run_id is not None:
+        row.replay_run_id = replay_run_id
+    if summary_json is not None:
+        row.summary_json = summary_json
+    if finished_at is not None:
+        row.finished_at = finished_at
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def add_active_skill_run_event(
+    session: Session,
+    *,
+    run_id: str,
+    event_type: str,
+    status: str = "info",
+    detail: str = "",
+    payload_json: str = "{}",
+) -> ActiveSkillRunEvent:
+    row = ActiveSkillRunEvent(
+        id=f"as_ev_{uuid4().hex[:16]}",
+        run_id=run_id,
+        event_type=event_type,
+        status=status,
+        detail=detail,
+        payload_json=payload_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_active_skill_run_events(session: Session, run_id: str) -> list[ActiveSkillRunEvent]:
+    return list(
+        session.query(ActiveSkillRunEvent)
+        .filter(ActiveSkillRunEvent.run_id == run_id)
+        .order_by(ActiveSkillRunEvent.created_at.asc())
         .all()
     )

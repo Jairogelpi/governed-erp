@@ -865,6 +865,31 @@ selectors captured: none</pre>
         <pre id="svCompareOutput">No comparison yet.</pre>
       </div>
 
+      <!-- Sprint 24 — Active Skill Runner & Manual Runs -->
+      <div class="card full">
+        <h2>Active Skill Runner — Manual Run</h2>
+        <p>
+          Sprint 24 — Executes a manual run of an <strong>active</strong> immutable skill version
+          through the verified replay stack. Only active versions can run. Manual trigger only —
+          no scheduler, no background worker, no queue, no LLM.
+        </p>
+        <p class="tiny">Requires a version in <code>active</code> status (use Sprint 23 above to activate).</p>
+
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <input id="asrVersionId" placeholder="ui_skv_... (active version id)" style="width:280px" />
+          <button id="asrManualRun" data-testid="demo-asr-run">Run</button>
+          <button id="asrGetRun" data-testid="demo-asr-get-run">Get Run</button>
+          <button id="asrGetEvents" data-testid="demo-asr-events">Events</button>
+          <button id="asrGetReport" data-testid="demo-asr-report">Report</button>
+          <button id="asrListRuns" data-testid="demo-asr-list">List Runs (for skill)</button>
+        </div>
+
+        <pre id="asrRunOutput">No run yet.</pre>
+        <pre id="asrEventsOutput">No events yet.</pre>
+        <pre id="asrReportOutput">No report yet.</pre>
+        <pre id="asrListOutput">No list yet.</pre>
+      </div>
+
       <div class="card full">
         <h2>Safe Skill Review &amp; Compilation</h2>
         <p>
@@ -3786,6 +3811,53 @@ selectors captured: none</pre>
         body: JSON.stringify({ version_id_a: svState.versionId, version_id_b: targetId }),
       });
       document.getElementById("svCompareOutput").textContent = jsonText(await r.json());
+    });
+
+    // Sprint 24 — Active Skill Runner & Manual Runs
+    const asrState = { runId: null, skillId: null };
+
+    document.getElementById("asrManualRun").addEventListener("click", async () => {
+      const vid = document.getElementById("asrVersionId").value.trim() || svState.versionId;
+      if (!vid) { document.getElementById("asrRunOutput").textContent = "Enter an active version id first."; return; }
+      const r = await fetch(`/v1/skills/versions/${vid}/manual-run`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          target_base_url: FAKE_ERP_BASE,
+          actor: "demo_operator",
+          inputs: {},
+        }),
+      });
+      const body = await r.json();
+      if (body.run_id) {
+        asrState.runId = body.run_id;
+        asrState.skillId = body.skill_id;
+      }
+      document.getElementById("asrRunOutput").textContent = jsonText(body);
+    });
+
+    document.getElementById("asrGetRun").addEventListener("click", async () => {
+      if (!asrState.runId) { document.getElementById("asrRunOutput").textContent = "Run a skill first."; return; }
+      const r = await fetch(`/v1/skills/runs/${asrState.runId}`);
+      document.getElementById("asrRunOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("asrGetEvents").addEventListener("click", async () => {
+      if (!asrState.runId) { document.getElementById("asrEventsOutput").textContent = "Run a skill first."; return; }
+      const r = await fetch(`/v1/skills/runs/${asrState.runId}/events`);
+      document.getElementById("asrEventsOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("asrGetReport").addEventListener("click", async () => {
+      if (!asrState.runId) { document.getElementById("asrReportOutput").textContent = "Run a skill first."; return; }
+      const r = await fetch(`/v1/skills/runs/${asrState.runId}/report`);
+      document.getElementById("asrReportOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("asrListRuns").addEventListener("click", async () => {
+      if (!asrState.skillId) { document.getElementById("asrListOutput").textContent = "Run a skill first."; return; }
+      const r = await fetch(`/v1/skills/${asrState.skillId}/active-runs`);
+      document.getElementById("asrListOutput").textContent = jsonText(await r.json());
     });
   </script>
 </body>

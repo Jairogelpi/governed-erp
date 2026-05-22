@@ -1083,3 +1083,36 @@ class UISkillVersionLifecycleEvent(Base):
     actor: Mapped[str] = mapped_column(Text, nullable=False, default="system")
     reason: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 24 — Active Skill Runner & Manual Runs
+
+class ActiveSkillRun(Base):
+    __tablename__ = "active_skill_runs"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    actor: Mapped[str] = mapped_column(Text, nullable=False, default="manual_operator")
+    trigger: Mapped[str] = mapped_column(Text, nullable=False, default="manual")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="requested")
+    target_base_url: Mapped[str] = mapped_column(Text, nullable=False)
+    inputs_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    replay_run_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    gate_result_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    input_validation_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class ActiveSkillRunEvent(Base):
+    __tablename__ = "active_skill_run_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="info")
+    detail: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    payload_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
