@@ -2,6 +2,29 @@
 
 ERPGuard is a semantic safety layer for ERP operations. This repository is currently in Phase 1: the Odoo Preflight Core backend foundation.
 
+## Release Candidate v0.13.0-rc1 — Operator Demo & Evidence Pack
+
+ERPGuard v0.13.0-rc1 closes the Record-to-Skill loop (Sprints 20–26) and packages it as a reproducible operator demo with a full release evidence pack.
+
+Sprint 26 operator evidence endpoints:
+
+- `POST /v1/operator/demo-seed` — seeds the full end-to-end demo scenario
+- `POST /v1/operator/evidence-packs` — assembles a release evidence pack
+- `GET /v1/operator/evidence-packs/{id}` — retrieves a pack
+- `GET /v1/operator/evidence-packs/{id}/safety-report` — 12 enforced safety invariants
+- `GET /v1/operator/evidence-packs/{id}/final-report` — complete operator demo report
+- `GET /v1/operator/demo-runbook` — 15 documented operations across Sprints 20–26
+
+Demo docs:
+
+- [docs/demo/00_operator_demo_overview.md](docs/demo/00_operator_demo_overview.md)
+- [docs/demo/01_end_to_end_scenario.md](docs/demo/01_end_to_end_scenario.md)
+- [docs/demo/02_operator_runbook.md](docs/demo/02_operator_runbook.md)
+- [docs/demo/03_safety_boundaries.md](docs/demo/03_safety_boundaries.md)
+- [docs/demo/04_failure_modes.md](docs/demo/04_failure_modes.md)
+- [docs/demo/05_release_evidence_pack.md](docs/demo/05_release_evidence_pack.md)
+- [docs/demo/06_tfm_defense_script.md](docs/demo/06_tfm_defense_script.md)
+
 ## Release Candidate v0.12.0-rc1
 
 ERPGuard v0.12.0-rc1 is packaged as an operator release candidate.

@@ -78,6 +78,7 @@ from erpguard.db.models import (
     SkillSchedule,
     SkillScheduleEvent,
     SkillRunQueueEntry,
+    OperatorEvidencePack,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -3090,3 +3091,45 @@ def update_skill_run_queue_entry(
     session.commit()
     session.refresh(row)
     return row
+
+
+# Sprint 26 — Operator Evidence Packs
+
+def create_operator_evidence_pack(
+    session: Session,
+    created_by: str,
+    scenario_label: str,
+    sprint_chain: str,
+    seed_result: dict,
+    safety_checks: dict,
+    runbook_summary: dict,
+    test_evidence: dict,
+    evidence_status: str = "assembling",
+) -> OperatorEvidencePack:
+    pack = OperatorEvidencePack(
+        id=f"evpack_{uuid4().hex[:12]}",
+        created_by=created_by,
+        scenario_label=scenario_label,
+        sprint_chain=sprint_chain,
+        seed_result_json=json.dumps(seed_result),
+        safety_checks_json=json.dumps(safety_checks),
+        runbook_summary_json=json.dumps(runbook_summary),
+        test_evidence_json=json.dumps(test_evidence),
+        evidence_status=evidence_status,
+    )
+    session.add(pack)
+    session.commit()
+    session.refresh(pack)
+    return pack
+
+
+def get_operator_evidence_pack(session: Session, pack_id: str) -> OperatorEvidencePack | None:
+    return session.get(OperatorEvidencePack, pack_id)
+
+
+def list_operator_evidence_packs(session: Session) -> list[OperatorEvidencePack]:
+    return list(
+        session.query(OperatorEvidencePack)
+        .order_by(OperatorEvidencePack.created_at.desc())
+        .all()
+    )

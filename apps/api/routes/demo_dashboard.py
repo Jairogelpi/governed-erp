@@ -929,6 +929,38 @@ selectors captured: none</pre>
         <pre id="schListOutput">No list yet.</pre>
       </div>
 
+      <!-- Sprint 26 — Operator Evidence Pack -->
+      <div class="card full">
+        <h2>Operator Evidence Pack</h2>
+        <p>
+          Sprint 26 — Package the entire Record-to-Skill OS into a reproducible evidence pack.
+          Seed the full demo scenario (Fake ERP only), assemble the evidence pack, inspect the
+          safety report, and generate the final operator demo report. No new execution power added.
+        </p>
+        <p class="tiny">
+          Safety: Fake ERP only · No LLM replay · No background scheduler · No real Odoo browser automation.
+        </p>
+
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button id="epSeed" data-testid="demo-ep-seed">Seed Full Demo</button>
+          <button id="epAssemble" data-testid="demo-ep-assemble" style="background:#275d63;">Assemble Evidence Pack</button>
+          <button id="epRunbook" data-testid="demo-ep-runbook">Get Runbook</button>
+        </div>
+
+        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button id="epGetPack" data-testid="demo-ep-get-pack">Get Pack</button>
+          <button id="epSafetyReport" data-testid="demo-ep-safety">Safety Report</button>
+          <button id="epFinalReport" data-testid="demo-ep-final-report">Final Report</button>
+        </div>
+
+        <pre id="epSeedOutput">No demo seed yet.</pre>
+        <pre id="epAssembleOutput">No evidence pack yet.</pre>
+        <pre id="epRunbookOutput">No runbook yet.</pre>
+        <pre id="epPackOutput">No pack detail yet.</pre>
+        <pre id="epSafetyOutput">No safety report yet.</pre>
+        <pre id="epFinalOutput">No final report yet.</pre>
+      </div>
+
       <div class="card full">
         <h2>Safe Skill Review &amp; Compilation</h2>
         <p>
@@ -3972,6 +4004,62 @@ selectors captured: none</pre>
       if (!schState.skillId) { document.getElementById("schListOutput").textContent = "Create a schedule first."; return; }
       const r = await fetch(`/v1/skills/${schState.skillId}/schedules`);
       document.getElementById("schListOutput").textContent = jsonText(await r.json());
+    });
+
+    // Sprint 26 — Operator Evidence Pack
+    const epState = { packId: null };
+
+    document.getElementById("epSeed").addEventListener("click", async () => {
+      document.getElementById("epSeedOutput").textContent = "Seeding full demo scenario...";
+      const r = await fetch(`${currentBaseUrl()}/v1/operator/demo-seed`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ operator: "demo_operator" }),
+      });
+      const body = await r.json();
+      document.getElementById("epSeedOutput").textContent = r.ok ? jsonText(body) : `Seed failed: ${body?.error?.detail || JSON.stringify(body)}`;
+    });
+
+    document.getElementById("epAssemble").addEventListener("click", async () => {
+      document.getElementById("epAssembleOutput").textContent = "Assembling evidence pack...";
+      const seedText = document.getElementById("epSeedOutput").textContent;
+      let seedResult = {};
+      try { seedResult = JSON.parse(seedText); } catch (_) {}
+      const r = await fetch(`${currentBaseUrl()}/v1/operator/evidence-packs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ created_by: "demo_operator", scenario_label: "Fake ERP Formula Review — End-to-End Demo", seed_result: seedResult }),
+      });
+      const body = await r.json();
+      if (r.ok) {
+        epState.packId = body.pack_id;
+        document.getElementById("epAssembleOutput").textContent = jsonText(body);
+      } else {
+        document.getElementById("epAssembleOutput").textContent = `Pack failed: ${body?.error?.detail || JSON.stringify(body)}`;
+      }
+    });
+
+    document.getElementById("epRunbook").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator/demo-runbook`);
+      document.getElementById("epRunbookOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("epGetPack").addEventListener("click", async () => {
+      if (!epState.packId) { document.getElementById("epPackOutput").textContent = "Assemble a pack first."; return; }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator/evidence-packs/${epState.packId}`);
+      document.getElementById("epPackOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("epSafetyReport").addEventListener("click", async () => {
+      if (!epState.packId) { document.getElementById("epSafetyOutput").textContent = "Assemble a pack first."; return; }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator/evidence-packs/${epState.packId}/safety-report`);
+      document.getElementById("epSafetyOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("epFinalReport").addEventListener("click", async () => {
+      if (!epState.packId) { document.getElementById("epFinalOutput").textContent = "Assemble a pack first."; return; }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator/evidence-packs/${epState.packId}/final-report`);
+      document.getElementById("epFinalOutput").textContent = jsonText(await r.json());
     });
   </script>
 </body>

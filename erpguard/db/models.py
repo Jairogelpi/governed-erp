@@ -1172,3 +1172,23 @@ class SkillRunQueueEntry(Base):
     enqueued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
     dispatched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+# Sprint 26 — Operator Runbook, Demo Scenario & Release Evidence Pack
+
+class OperatorEvidencePack(Base):
+    __tablename__ = "operator_evidence_packs"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    created_by: Mapped[str] = mapped_column(Text, nullable=False)
+    scenario_label: Mapped[str] = mapped_column(Text, nullable=False)
+    sprint_chain: Mapped[str] = mapped_column(Text, nullable=False)
+    seed_result_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    safety_checks_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    runbook_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    test_evidence_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    evidence_status: Mapped[str] = mapped_column(Text, nullable=False, default="assembling")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
+    )
