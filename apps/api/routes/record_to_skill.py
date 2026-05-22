@@ -59,6 +59,22 @@ def create_session(request: CreateSessionRequest):
     )
 
 
+@router.get("/sessions/{session_id}", response_model=CreateSessionResponse)
+def get_session(session_id: str):
+    result = _sessions.get_session(session_id)
+    if result is None:
+        return JSONResponse(status_code=404, content={"error": {"code": "session_not_found", "session_id": session_id}})
+    return CreateSessionResponse(
+        session_id=result.session_id,
+        name=result.name,
+        description=result.description,
+        target_base_url=result.target_base_url,
+        status=result.status,
+        created_at=result.created_at,
+        updated_at=result.updated_at,
+    )
+
+
 @router.post("/sessions/{session_id}/events", response_model=CaptureEventResponse)
 def capture_event(session_id: str, request: CaptureEventRequest):
     session = _sessions.get_session(session_id)

@@ -756,26 +756,42 @@ selectors captured: none</pre>
         <pre id="oauthRevokeOutput">Token not revoked yet.</pre>
       </div>
 
-      <!-- Sprint 20 — Record-to-Skill End-to-End Loop -->
+      <!-- Sprint 20/21 — Record-to-Skill with Real Browser Recorder -->
       <div class="card full">
-        <h2>Record-to-Skill End-to-End Loop</h2>
+        <h2>Record-to-Skill — Real Browser Recorder</h2>
         <p>
-          Sprint 20 — Teach once, compile into a safe skill, replay deterministically, audit every step.
-          No LLM at replay time. Only against Fake ERP. Full step evidence stored per run.
+          Sprint 21 — Real browser recording on Fake ERP. The recorder JS captures every click,
+          fill, and navigation in real time and sends them to the Record-to-Skill pipeline.
+          No LLM at replay time. Fake ERP only. Full step audit evidence stored per run.
         </p>
-        <p class="tiny">Flow: Create Session → Capture Events → Finish Session → Generate Draft → Compile UI Skill → Replay → Audit → Report</p>
+        <p class="tiny">
+          Flow: <strong>1. Create session</strong> → <strong>2. Open Fake ERP Recorder</strong> (new tab, interact, click Stop)
+          → <strong>3. Generate Draft</strong> → <strong>4. Compile</strong> → <strong>5. Replay</strong>
+          → <strong>6. Audit</strong> → <strong>7. Report</strong>
+        </p>
 
-        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-          <input id="r2sTargetUrl" placeholder="http://localhost:8000/fake-erp" style="width:320px" />
-          <button id="r2sCreateSession">1. Create Session</button>
-          <button id="r2sCaptureEvents">2. Capture Events</button>
-          <button id="r2sFinishSession">3. Finish Session</button>
-          <button id="r2sGenerateDraft">4. Generate Draft</button>
-          <button id="r2sCompileSkill">5. Compile UI Skill</button>
-          <button id="r2sReplay">6. Replay</button>
-          <button id="r2sAudit">7. Audit</button>
-          <button id="r2sReport">8. Report</button>
+        <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button id="r2sCreateSession" data-testid="demo-r2s-create-session">1. Create Recording Session</button>
+          <button id="r2sOpenRecorder" data-testid="demo-r2s-open-recorder" style="background:#275d63; border-color:#275d63;">2. Open Fake ERP Recorder ↗</button>
         </div>
+
+        <p class="tiny" style="margin-top:8px;">
+          After clicking Stop in the overlay, return here and continue:
+        </p>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button id="r2sGenerateDraft" data-testid="demo-r2s-generate-draft">3. Generate Draft</button>
+          <button id="r2sCompileSkill" data-testid="demo-r2s-compile-skill">4. Compile UI Skill</button>
+          <button id="r2sReplay" data-testid="demo-r2s-replay">5. Replay</button>
+          <button id="r2sAudit" data-testid="demo-r2s-audit">6. Audit</button>
+          <button id="r2sReport" data-testid="demo-r2s-report">7. Report</button>
+        </div>
+
+        <p class="tiny" style="margin-top:6px;">
+          Or test with synthetic events (no browser needed):
+          <button id="r2sCaptureEvents" data-testid="demo-r2s-capture-events" style="font-size:0.85em; padding:4px 8px;">Inject demo events</button>
+          <button id="r2sFinishSession" data-testid="demo-r2s-finish-session" style="font-size:0.85em; padding:4px 8px;">Finish session</button>
+        </p>
 
         <pre id="r2sSessionOutput">No session yet.</pre>
         <pre id="r2sDraftOutput">No draft yet.</pre>
@@ -3469,31 +3485,46 @@ selectors captured: none</pre>
       oauthRevokeOutput.textContent = jsonText(await r.json());
     });
 
-    // Sprint 20 — Record-to-Skill End-to-End Loop
+    // Sprint 20/21 — Record-to-Skill with Real Browser Recorder
     const r2sState = { sessionId: null, draftId: null, compiledSkillId: null, replayId: null };
+    const FAKE_ERP_BASE = window.location.origin + "/fake-erp";
 
     document.getElementById("r2sCreateSession").addEventListener("click", async () => {
-      const baseUrl = document.getElementById("r2sTargetUrl").value.trim() || "http://localhost:8000/fake-erp";
       const r = await fetch("/v1/record-to-skill/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Demo Formula Review Flow", description: "Sprint 20 demo recording", target_base_url: baseUrl }),
+        body: JSON.stringify({
+          name: "Browser Recording — Formula Review",
+          description: "Sprint 21 real browser recording",
+          target_base_url: FAKE_ERP_BASE,
+        }),
       });
       const body = await r.json();
       if (body.session_id) r2sState.sessionId = body.session_id;
       document.getElementById("r2sSessionOutput").textContent = jsonText(body);
     });
 
+    document.getElementById("r2sOpenRecorder").addEventListener("click", () => {
+      if (!r2sState.sessionId) {
+        document.getElementById("r2sSessionOutput").textContent = "Create a session first (Step 1).";
+        return;
+      }
+      const url = `/fake-erp/sales/orders?rsid=${encodeURIComponent(r2sState.sessionId)}`;
+      window.open(url, "_blank");
+      document.getElementById("r2sSessionOutput").textContent =
+        "Recorder opened in new tab. Session: " + r2sState.sessionId +
+        "\nInteract with Fake ERP, then click Stop in the overlay to finish.";
+    });
+
     document.getElementById("r2sCaptureEvents").addEventListener("click", async () => {
-      if (!r2sState.sessionId) { document.getElementById("r2sSessionOutput").textContent = "Create a session first (Step 1)."; return; }
+      if (!r2sState.sessionId) { document.getElementById("r2sSessionOutput").textContent = "Create a session first."; return; }
       const sid = r2sState.sessionId;
-      const baseUrl = document.getElementById("r2sTargetUrl").value.trim() || "http://localhost:8000/fake-erp";
       const events = [
-        { event_type: "navigate", url: baseUrl + "/sales/orders", selector: null },
-        { event_type: "fill", url: null, selector: "[data-testid='order-search']", input_value: "SO-VALID", element_label: "Search orders" },
-        { event_type: "click", url: null, selector: "[data-testid='open-order-SO-VALID']", element_text: "SO-VALID" },
-        { event_type: "click", url: null, selector: "[data-testid='formula-tab']", element_text: "Formula" },
-        { event_type: "click", url: null, selector: "[data-testid='review-formula']", element_text: "Review Formula" },
+        { event_type: "page_load", url: FAKE_ERP_BASE + "/sales/orders", selector: null },
+        { event_type: "fill", selector: "[data-testid='order-search']", input_value: "SO-VALID", element_label: "Search orders" },
+        { event_type: "click", selector: "[data-testid='open-order-SO-VALID']", element_text: "SO-VALID" },
+        { event_type: "click", selector: "[data-testid='formula-tab']", element_text: "Formula" },
+        { event_type: "click", selector: "[data-testid='review-formula']", element_text: "Review Formula" },
       ];
       let last = {};
       for (const ev of events) {
@@ -3504,7 +3535,8 @@ selectors captured: none</pre>
         });
         last = await r.json();
       }
-      document.getElementById("r2sSessionOutput").textContent = "Captured " + events.length + " events. Last: " + jsonText(last);
+      document.getElementById("r2sSessionOutput").textContent =
+        "Injected " + events.length + " demo events. Last: " + jsonText(last);
     });
 
     document.getElementById("r2sFinishSession").addEventListener("click", async () => {
@@ -3516,10 +3548,16 @@ selectors captured: none</pre>
 
     document.getElementById("r2sGenerateDraft").addEventListener("click", async () => {
       if (!r2sState.sessionId) { document.getElementById("r2sDraftOutput").textContent = "Create and finish a session first."; return; }
+      // Auto-check session status and finish if still recording
+      const statusR = await fetch(`/v1/record-to-skill/sessions/${r2sState.sessionId}`);
+      const statusBody = await statusR.json();
+      if (statusBody.status === "recording") {
+        await fetch(`/v1/record-to-skill/sessions/${r2sState.sessionId}/finish`, { method: "POST" });
+      }
       const r = await fetch(`/v1/record-to-skill/sessions/${r2sState.sessionId}/generate-draft`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Formula Review UI Skill", description: "Auto-generated from Sprint 20 recording" }),
+        body: JSON.stringify({ name: "Browser Recorded Formula Review", description: "Auto-generated from real browser recording" }),
       });
       const body = await r.json();
       if (body.draft_id) r2sState.draftId = body.draft_id;
@@ -3536,11 +3574,10 @@ selectors captured: none</pre>
 
     document.getElementById("r2sReplay").addEventListener("click", async () => {
       if (!r2sState.compiledSkillId) { document.getElementById("r2sReplayOutput").textContent = "Compile a skill first (Step 5)."; return; }
-      const baseUrl = document.getElementById("r2sTargetUrl").value.trim() || "http://localhost:8000/fake-erp";
       const r = await fetch(`/v1/record-to-skill/compiled-skills/${r2sState.compiledSkillId}/replay`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target_base_url: baseUrl }),
+        body: JSON.stringify({ target_base_url: FAKE_ERP_BASE }),
       });
       const body = await r.json();
       if (body.replay_id) r2sState.replayId = body.replay_id;

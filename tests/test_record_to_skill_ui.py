@@ -11,8 +11,9 @@ def test_demo_dashboard_contains_sprint20_section():
     r = client.get("/demo")
     assert r.status_code == 200
     body = r.text
-    assert "Record-to-Skill End-to-End Loop" in body
-    assert "Sprint 20" in body
+    # Sprint 21 expanded the section title to include Real Browser Recorder
+    assert "Record-to-Skill" in body
+    assert "Sprint 20" in body or "Sprint 21" in body
 
 
 def test_demo_dashboard_has_record_to_skill_buttons():

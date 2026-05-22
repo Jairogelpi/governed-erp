@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse
 
 from erpguard.adapters.fake import FakeERPAdapter
 from erpguard.canonical.objects import SalesOrder, SalesOrderLine
+from erpguard.product.ui_recorder_script import build_recorder_script
 
 
 router = APIRouter(prefix="/fake-erp", tags=["fake-erp"])
@@ -95,19 +96,24 @@ def _first_line(order: SalesOrder) -> SalesOrderLine | None:
     return order.lines[0] if order.lines else None
 
 
-def _recording_url(path: str, recording_id: str | None, **params: str | None) -> str:
+def _recording_url(path: str, recording_id: str | None, rsid: str | None = None, **params: str | None) -> str:
     query: dict[str, str] = {key: value for key, value in params.items() if value is not None}
     if recording_id:
         query["recording_id"] = recording_id
+    if rsid:
+        query["rsid"] = rsid
     if not query:
         return path
     return f"{path}?{urlencode(query)}"
 
 
-def _recording_hidden_input(recording_id: str | None) -> str:
-    if not recording_id:
-        return ""
-    return f'<input type="hidden" name="recording_id" value="{html.escape(recording_id)}">'
+def _recording_hidden_input(recording_id: str | None, rsid: str | None = None) -> str:
+    parts = []
+    if recording_id:
+        parts.append(f'<input type="hidden" name="recording_id" value="{html.escape(recording_id)}">')
+    if rsid:
+        parts.append(f'<input type="hidden" name="rsid" value="{html.escape(rsid)}">')
+    return "".join(parts)
 
 
 def _recording_script(recording_id: str | None) -> str:
@@ -223,10 +229,17 @@ def _recording_script(recording_id: str | None) -> str:
     """
 
 
+def _r2s_recorder_script(rsid: str | None) -> str:
+    if not rsid:
+        return ""
+    return build_recorder_script(rsid)
+
+
 @router.get("/sales/orders", response_class=HTMLResponse)
 def sales_orders_page(
   q: str | None = Query(default=None, alias="q"),
   recording_id: str | None = Query(default=None),
+  rsid: str | None = Query(default=None),
 ) -> HTMLResponse:
     orders = _known_orders()
     if q:
@@ -248,7 +261,10 @@ def sales_orders_page(
               <td>{html.escape(order.customer.name if order.customer else '-')}</td>
               <td>{html.escape(order.state.value)}</td>
               <td>{len(order.lines)}</td>
-              <td><a class="button" data-testid="open-order-{html.escape(order.reference)}" href="{_recording_url(f'/fake-erp/sales/orders/{html.escape(order.reference)}', recording_id)}">Open order</a></td>
+              <td><a class="button"
+                     data-testid="open-order-{html.escape(order.reference)}"
+                     aria-label="Open order {html.escape(order.reference)}"
+                     href="{_recording_url(f'/fake-erp/sales/orders/{html.escape(order.reference)}', recording_id, rsid)}">Open order</a></td>
             </tr>
             """
         )
@@ -256,19 +272,25 @@ def sales_orders_page(
     body = f"""
       <h1>Fake ERP Sales Orders</h1>
       <p class="muted">Local demo surface for Record-to-Skill and Formula Guard scenarios.</p>
-      <form class="toolbar" method="get" action="/fake-erp/sales/orders">
+      <form class="toolbar" method="get" action="/fake-erp/sales/orders" role="search" aria-label="Search sales orders">
         <label for="order-search">Search order</label>
-        <input id="order-search" data-testid="order-search" type="search" name="q" value="{html.escape(q or '')}" placeholder="Search order">
-        {_recording_hidden_input(recording_id)}
+        <input id="order-search"
+               data-testid="order-search"
+               type="search"
+               name="q"
+               value="{html.escape(q or '')}"
+               placeholder="Search order"
+               aria-label="Search orders">
+        {_recording_hidden_input(recording_id, rsid)}
       </form>
-      <table>
+      <table role="grid" aria-label="Sales orders list">
         <thead>
           <tr>
-            <th>Reference</th>
-            <th>Customer</th>
-            <th>State</th>
-            <th>Lines</th>
-            <th>Action</th>
+            <th scope="col">Reference</th>
+            <th scope="col">Customer</th>
+            <th scope="col">State</th>
+            <th scope="col">Lines</th>
+            <th scope="col">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -276,12 +298,17 @@ def sales_orders_page(
         </tbody>
       </table>
       {_recording_script(recording_id)}
+      {_r2s_recorder_script(rsid)}
     """
     return _layout("Fake ERP Sales Orders", body)
 
 
 @router.get("/sales/orders/{order_id}", response_class=HTMLResponse)
-def sales_order_detail(order_id: str, recording_id: str | None = Query(default=None)) -> HTMLResponse:
+def sales_order_detail(
+    order_id: str,
+    recording_id: str | None = Query(default=None),
+    rsid: str | None = Query(default=None),
+) -> HTMLResponse:
     order = _find_order(order_id)
     line = _first_line(order)
     status_text = "No order lines available" if line is None else "Formula ready for review"
@@ -299,22 +326,22 @@ def sales_order_detail(order_id: str, recording_id: str | None = Query(default=N
     )
 
     body = f"""
-      <h1>{html.escape(order.reference)}</h1>
+      <h1 data-testid="order-detail-title">{html.escape(order.reference)}</h1>
       <div class="grid">
-        <div class="metric"><strong>Customer</strong><div>{html.escape(order.customer.name if order.customer else '-')}</div></div>
-        <div class="metric"><strong>State</strong><div>{html.escape(order.state.value)}</div></div>
-        <div class="metric"><strong>Order lines</strong><div>{len(order.lines)}</div></div>
+        <div class="metric" data-testid="order-customer"><strong>Customer</strong><div>{html.escape(order.customer.name if order.customer else '-')}</div></div>
+        <div class="metric" data-testid="order-state"><strong>State</strong><div>{html.escape(order.state.value)}</div></div>
+        <div class="metric" data-testid="order-line-count"><strong>Order lines</strong><div>{len(order.lines)}</div></div>
       </div>
       <div class="card">
         <h2>Order lines</h2>
-        <table>
+        <table role="grid" aria-label="Order lines">
           <thead>
             <tr>
-              <th>Product</th>
-              <th>Quantity</th>
-              <th>Capacity ml</th>
-              <th>Unit price</th>
-              <th>Subtotal</th>
+              <th scope="col">Product</th>
+              <th scope="col">Quantity</th>
+              <th scope="col">Capacity ml</th>
+              <th scope="col">Unit price</th>
+              <th scope="col">Subtotal</th>
             </tr>
           </thead>
           <tbody>
@@ -322,20 +349,28 @@ def sales_order_detail(order_id: str, recording_id: str | None = Query(default=N
           </tbody>
         </table>
       </div>
-      <div class="card status" data-testid="order-status-result">
+      <div class="card status" data-testid="order-status-result" aria-label="Order status result">
         <strong>Status / Result</strong>
         <div>{html.escape(status_text)}</div>
       </div>
       <p class="toolbar">
-        <a class="button secondary" data-testid="formula-tab" href="{_recording_url(f'/fake-erp/sales/orders/{html.escape(order.reference)}/formula', recording_id)}">Formula tab</a>
+        <a class="button secondary"
+           data-testid="formula-tab"
+           aria-label="Formula tab"
+           href="{_recording_url(f'/fake-erp/sales/orders/{html.escape(order.reference)}/formula', recording_id, rsid)}">Formula tab</a>
       </p>
       {_recording_script(recording_id)}
+      {_r2s_recorder_script(rsid)}
     """
     return _layout(f"Fake ERP Order {order.reference}", body)
 
 
 @router.get("/sales/orders/{order_id}/formula", response_class=HTMLResponse)
-def sales_order_formula(order_id: str, recording_id: str | None = Query(default=None)) -> HTMLResponse:
+def sales_order_formula(
+    order_id: str,
+    recording_id: str | None = Query(default=None),
+    rsid: str | None = Query(default=None),
+) -> HTMLResponse:
     order = _find_order(order_id)
     line = _first_line(order)
 
@@ -383,8 +418,12 @@ def sales_order_formula(order_id: str, recording_id: str | None = Query(default=
         {formula_details}
       </div>
       <p class="toolbar">
-        <button data-testid="review-formula" type="button">Review formula</button>
+        <button data-testid="review-formula"
+                aria-label="Review formula"
+                name="review-formula"
+                type="button">Review formula</button>
       </p>
       {_recording_script(recording_id)}
+      {_r2s_recorder_script(rsid)}
     """
     return _layout(f"Fake ERP Formula {order.reference}", body)
