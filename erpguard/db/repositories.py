@@ -75,6 +75,9 @@ from erpguard.db.models import (
     UISkillVersionLifecycleEvent,
     ActiveSkillRun,
     ActiveSkillRunEvent,
+    SkillSchedule,
+    SkillScheduleEvent,
+    SkillRunQueueEntry,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -2876,3 +2879,214 @@ def list_active_skill_run_events(session: Session, run_id: str) -> list[ActiveSk
         .order_by(ActiveSkillRunEvent.created_at.asc())
         .all()
     )
+
+
+# Sprint 25 — Scheduled Skill Runs & Run Queue Safety
+
+def create_skill_schedule(
+    session: Session,
+    *,
+    version_id: str,
+    skill_id: str,
+    name: str,
+    interval_seconds: int,
+    min_interval_seconds: int = 60,
+    dedup_window_seconds: int = 30,
+    target_base_url: str,
+    inputs_json: str = "{}",
+    created_by: str = "manual_operator",
+) -> SkillSchedule:
+    row = SkillSchedule(
+        id=f"sch_{uuid4().hex[:16]}",
+        version_id=version_id,
+        skill_id=skill_id,
+        name=name,
+        interval_seconds=interval_seconds,
+        min_interval_seconds=min_interval_seconds,
+        dedup_window_seconds=dedup_window_seconds,
+        status="draft",
+        target_base_url=target_base_url,
+        inputs_json=inputs_json,
+        created_by=created_by,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_skill_schedule(session: Session, schedule_id: str) -> SkillSchedule | None:
+    return session.get(SkillSchedule, schedule_id)
+
+
+def list_skill_schedules_for_skill(session: Session, skill_id: str) -> list[SkillSchedule]:
+    return list(
+        session.query(SkillSchedule)
+        .filter(SkillSchedule.skill_id == skill_id)
+        .order_by(SkillSchedule.created_at.asc())
+        .all()
+    )
+
+
+def list_due_active_skill_schedules(session: Session, now) -> list[SkillSchedule]:
+    return list(
+        session.query(SkillSchedule)
+        .filter(
+            SkillSchedule.status == "active",
+            SkillSchedule.next_run_at.is_not(None),
+            SkillSchedule.next_run_at <= now,
+        )
+        .order_by(SkillSchedule.next_run_at.asc())
+        .all()
+    )
+
+
+_UNSET = object()
+
+
+def update_skill_schedule(
+    session: Session,
+    schedule_id: str,
+    *,
+    status: str | None = None,
+    next_run_at=_UNSET,
+    last_run_at=_UNSET,
+    last_run_id: str | None = None,
+    inputs_json: str | None = None,
+    tick_lock_token=_UNSET,
+    tick_lock_until=_UNSET,
+) -> SkillSchedule | None:
+    row = session.get(SkillSchedule, schedule_id)
+    if row is None:
+        return None
+    if status is not None:
+        row.status = status
+    if next_run_at is not _UNSET:
+        row.next_run_at = next_run_at
+    if last_run_at is not _UNSET:
+        row.last_run_at = last_run_at
+    if last_run_id is not None:
+        row.last_run_id = last_run_id
+    if inputs_json is not None:
+        row.inputs_json = inputs_json
+    if tick_lock_token is not _UNSET:
+        row.tick_lock_token = tick_lock_token
+    if tick_lock_until is not _UNSET:
+        row.tick_lock_until = tick_lock_until
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def add_skill_schedule_event(
+    session: Session,
+    *,
+    schedule_id: str,
+    event_type: str,
+    status: str = "info",
+    detail: str = "",
+    payload_json: str = "{}",
+) -> SkillScheduleEvent:
+    row = SkillScheduleEvent(
+        id=f"sch_ev_{uuid4().hex[:16]}",
+        schedule_id=schedule_id,
+        event_type=event_type,
+        status=status,
+        detail=detail,
+        payload_json=payload_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_skill_schedule_events(session: Session, schedule_id: str) -> list[SkillScheduleEvent]:
+    return list(
+        session.query(SkillScheduleEvent)
+        .filter(SkillScheduleEvent.schedule_id == schedule_id)
+        .order_by(SkillScheduleEvent.created_at.asc())
+        .all()
+    )
+
+
+def create_skill_run_queue_entry(
+    session: Session,
+    *,
+    schedule_id: str,
+    version_id: str,
+    skill_id: str,
+    inputs_json: str,
+    target_base_url: str,
+    status: str = "queued",
+    detail: str = "",
+) -> SkillRunQueueEntry:
+    row = SkillRunQueueEntry(
+        id=f"q_{uuid4().hex[:16]}",
+        schedule_id=schedule_id,
+        version_id=version_id,
+        skill_id=skill_id,
+        status=status,
+        inputs_json=inputs_json,
+        target_base_url=target_base_url,
+        detail=detail,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_skill_run_queue_entry(session: Session, entry_id: str) -> SkillRunQueueEntry | None:
+    return session.get(SkillRunQueueEntry, entry_id)
+
+
+def list_skill_run_queue_entries_for_schedule(session: Session, schedule_id: str) -> list[SkillRunQueueEntry]:
+    return list(
+        session.query(SkillRunQueueEntry)
+        .filter(SkillRunQueueEntry.schedule_id == schedule_id)
+        .order_by(SkillRunQueueEntry.enqueued_at.desc())
+        .all()
+    )
+
+
+def list_recent_queue_entries_for_schedule(
+    session: Session, schedule_id: str, since,
+) -> list[SkillRunQueueEntry]:
+    return list(
+        session.query(SkillRunQueueEntry)
+        .filter(
+            SkillRunQueueEntry.schedule_id == schedule_id,
+            SkillRunQueueEntry.enqueued_at >= since,
+        )
+        .order_by(SkillRunQueueEntry.enqueued_at.desc())
+        .all()
+    )
+
+
+def update_skill_run_queue_entry(
+    session: Session,
+    entry_id: str,
+    *,
+    status: str | None = None,
+    run_id: str | None = None,
+    detail: str | None = None,
+    dispatched_at=None,
+    finished_at=None,
+) -> SkillRunQueueEntry | None:
+    row = session.get(SkillRunQueueEntry, entry_id)
+    if row is None:
+        return None
+    if status is not None:
+        row.status = status
+    if run_id is not None:
+        row.run_id = run_id
+    if detail is not None:
+        row.detail = detail
+    if dispatched_at is not None:
+        row.dispatched_at = dispatched_at
+    if finished_at is not None:
+        row.finished_at = finished_at
+    session.commit()
+    session.refresh(row)
+    return row

@@ -890,6 +890,45 @@ selectors captured: none</pre>
         <pre id="asrListOutput">No list yet.</pre>
       </div>
 
+      <!-- Sprint 25 — Scheduled Skill Runs & Run Queue Safety -->
+      <div class="card full">
+        <h2>Scheduled Skill Runs</h2>
+        <p>
+          Sprint 25 — Safe scheduling for <strong>active</strong> immutable skill versions.
+          <strong>Manual tick only</strong> — no autonomous scheduler, no cron daemon, no
+          background worker, no distributed queue. Each tick evaluates due schedules,
+          deduplicates queue entries, acquires execution lock, runs through the active
+          runner (Sprint 24), and audits every step.
+        </p>
+        <p class="tiny">
+          Requires an active version (Sprint 23) to schedule. Minimum interval enforced at 60s.
+        </p>
+
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <input id="schVersionId" placeholder="ui_skv_... (active version id)" style="width:280px" />
+          <button id="schCreate" data-testid="demo-sch-create">Create Schedule (60s)</button>
+          <button id="schActivate" data-testid="demo-sch-activate">Activate</button>
+          <button id="schPause" data-testid="demo-sch-pause">Pause</button>
+          <button id="schResume" data-testid="demo-sch-resume">Resume</button>
+          <button id="schDisable" data-testid="demo-sch-disable">Disable</button>
+        </div>
+
+        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button id="schTick" data-testid="demo-sch-tick" style="background:#275d63; border-color:#275d63;">Tick scheduler</button>
+          <button id="schGet" data-testid="demo-sch-get">Get Schedule</button>
+          <button id="schEvents" data-testid="demo-sch-events">Events</button>
+          <button id="schQueue" data-testid="demo-sch-queue">Queue</button>
+          <button id="schListBySkill" data-testid="demo-sch-list">List for Skill</button>
+        </div>
+
+        <pre id="schScheduleOutput">No schedule yet.</pre>
+        <pre id="schTransitionOutput">No transition yet.</pre>
+        <pre id="schTickOutput">No tick yet.</pre>
+        <pre id="schEventsOutput">No events yet.</pre>
+        <pre id="schQueueOutput">No queue entries yet.</pre>
+        <pre id="schListOutput">No list yet.</pre>
+      </div>
+
       <div class="card full">
         <h2>Safe Skill Review &amp; Compilation</h2>
         <p>
@@ -3858,6 +3897,81 @@ selectors captured: none</pre>
       if (!asrState.skillId) { document.getElementById("asrListOutput").textContent = "Run a skill first."; return; }
       const r = await fetch(`/v1/skills/${asrState.skillId}/active-runs`);
       document.getElementById("asrListOutput").textContent = jsonText(await r.json());
+    });
+
+    // Sprint 25 — Scheduled Skill Runs & Run Queue Safety
+    const schState = { scheduleId: null, skillId: null };
+
+    document.getElementById("schCreate").addEventListener("click", async () => {
+      const vid = document.getElementById("schVersionId").value.trim() || svState.versionId;
+      if (!vid) { document.getElementById("schScheduleOutput").textContent = "Enter an active version id first."; return; }
+      const r = await fetch(`/v1/skills/versions/${vid}/schedules`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Demo schedule (60s interval)",
+          interval_seconds: 60,
+          min_interval_seconds: 60,
+          dedup_window_seconds: 30,
+          target_base_url: FAKE_ERP_BASE,
+          inputs: {},
+          created_by: "demo_operator",
+        }),
+      });
+      const body = await r.json();
+      if (body.schedule_id) {
+        schState.scheduleId = body.schedule_id;
+        schState.skillId = body.skill_id;
+      }
+      document.getElementById("schScheduleOutput").textContent = jsonText(body);
+    });
+
+    async function schTransition(action, outputId) {
+      if (!schState.scheduleId) { document.getElementById(outputId).textContent = "Create a schedule first."; return; }
+      const r = await fetch(`/v1/skills/schedules/${schState.scheduleId}/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actor: "demo_operator", reason: "from /demo" }),
+      });
+      document.getElementById(outputId).textContent = jsonText(await r.json());
+    }
+
+    document.getElementById("schActivate").addEventListener("click", () => schTransition("activate", "schTransitionOutput"));
+    document.getElementById("schPause").addEventListener("click", () => schTransition("pause", "schTransitionOutput"));
+    document.getElementById("schResume").addEventListener("click", () => schTransition("resume", "schTransitionOutput"));
+    document.getElementById("schDisable").addEventListener("click", () => schTransition("disable", "schTransitionOutput"));
+
+    document.getElementById("schTick").addEventListener("click", async () => {
+      const r = await fetch("/v1/skills/schedules/tick", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      document.getElementById("schTickOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("schGet").addEventListener("click", async () => {
+      if (!schState.scheduleId) { document.getElementById("schScheduleOutput").textContent = "Create a schedule first."; return; }
+      const r = await fetch(`/v1/skills/schedules/${schState.scheduleId}`);
+      document.getElementById("schScheduleOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("schEvents").addEventListener("click", async () => {
+      if (!schState.scheduleId) { document.getElementById("schEventsOutput").textContent = "Create a schedule first."; return; }
+      const r = await fetch(`/v1/skills/schedules/${schState.scheduleId}/events`);
+      document.getElementById("schEventsOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("schQueue").addEventListener("click", async () => {
+      if (!schState.scheduleId) { document.getElementById("schQueueOutput").textContent = "Create a schedule first."; return; }
+      const r = await fetch(`/v1/skills/schedules/${schState.scheduleId}/queue`);
+      document.getElementById("schQueueOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("schListBySkill").addEventListener("click", async () => {
+      if (!schState.skillId) { document.getElementById("schListOutput").textContent = "Create a schedule first."; return; }
+      const r = await fetch(`/v1/skills/${schState.skillId}/schedules`);
+      document.getElementById("schListOutput").textContent = jsonText(await r.json());
     });
   </script>
 </body>

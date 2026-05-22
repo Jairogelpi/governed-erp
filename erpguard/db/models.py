@@ -1116,3 +1116,59 @@ class ActiveSkillRunEvent(Base):
     detail: Mapped[str] = mapped_column(Text, nullable=False, default="")
     payload_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 25 — Scheduled Skill Runs & Run Queue Safety
+
+class SkillSchedule(Base):
+    __tablename__ = "skill_schedules"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    interval_seconds: Mapped[int] = mapped_column(Integer, nullable=False)
+    min_interval_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=60)
+    dedup_window_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=30)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="draft")
+    target_base_url: Mapped[str] = mapped_column(Text, nullable=False)
+    inputs_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    next_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_run_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tick_lock_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tick_lock_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_by: Mapped[str] = mapped_column(Text, nullable=False, default="manual_operator")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
+    )
+
+
+class SkillScheduleEvent(Base):
+    __tablename__ = "skill_schedule_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    schedule_id: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="info")
+    detail: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    payload_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class SkillRunQueueEntry(Base):
+    __tablename__ = "skill_run_queue_entries"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    schedule_id: Mapped[str] = mapped_column(Text, nullable=False)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="queued")
+    inputs_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    target_base_url: Mapped[str] = mapped_column(Text, nullable=False)
+    run_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    detail: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    enqueued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    dispatched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

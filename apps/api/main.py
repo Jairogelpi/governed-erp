@@ -26,6 +26,7 @@ from apps.api.routes.recordings import router as recordings_router
 from apps.api.routes.record_to_skill import router as record_to_skill_router
 from apps.api.routes.skill_versioning import router as skill_versioning_router
 from apps.api.routes.active_skill_runner import router as active_skill_runner_router
+from apps.api.routes.skill_schedules import router as skill_schedules_router
 from apps.api.routes.preflight import router as preflight_router
 from apps.api.routes.odoo import router as odoo_router
 from apps.api.routes.skills import router as skills_router
@@ -60,6 +61,7 @@ app.include_router(google_calendar_oauth_router)
 app.include_router(record_to_skill_router)
 app.include_router(skill_versioning_router)
 app.include_router(active_skill_runner_router)
+app.include_router(skill_schedules_router)
 app.include_router(audit_router)
 app.include_router(skills_router)
 app.include_router(fake_erp_router)
