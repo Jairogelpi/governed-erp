@@ -920,3 +920,95 @@ class ExternalConnectorAuditEvent(Base):
     actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 20 — Record-to-Skill End-to-End Loop
+
+class UIRecordingSession(Base):
+    __tablename__ = "ui_recording_sessions"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    target_base_url: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="recording")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
+    )
+
+
+class UIRecordingEvent(Base):
+    __tablename__ = "ui_recording_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    event_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    selector: Mapped[str | None] = mapped_column(Text, nullable=True)
+    element_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    element_label: Mapped[str | None] = mapped_column(Text, nullable=True)
+    input_value: Mapped[str | None] = mapped_column(Text, nullable=True)
+    metadata_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class UISkillDraft(Base):
+    __tablename__ = "ui_skill_drafts"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    steps_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    selector_map_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    guard_names_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="draft")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class UICompiledSkill(Base):
+    __tablename__ = "ui_compiled_skills"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    draft_id: Mapped[str] = mapped_column(Text, nullable=False)
+    session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    runtime_type: Mapped[str] = mapped_column(Text, nullable=False, default="deterministic_ui")
+    steps_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    guard_names_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    llm_required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="compiled")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class UIReplayRun(Base):
+    __tablename__ = "ui_replay_runs"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    compiled_skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    target_base_url: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="running")
+    step_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    steps_passed: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    steps_failed: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    result_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class UIReplayStepAudit(Base):
+    __tablename__ = "ui_replay_step_audits"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    replay_run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    step_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    step_id: Mapped[str] = mapped_column(Text, nullable=False)
+    step_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    before_state_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    after_state_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    evidence_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

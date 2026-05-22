@@ -756,6 +756,35 @@ selectors captured: none</pre>
         <pre id="oauthRevokeOutput">Token not revoked yet.</pre>
       </div>
 
+      <!-- Sprint 20 — Record-to-Skill End-to-End Loop -->
+      <div class="card full">
+        <h2>Record-to-Skill End-to-End Loop</h2>
+        <p>
+          Sprint 20 — Teach once, compile into a safe skill, replay deterministically, audit every step.
+          No LLM at replay time. Only against Fake ERP. Full step evidence stored per run.
+        </p>
+        <p class="tiny">Flow: Create Session → Capture Events → Finish Session → Generate Draft → Compile UI Skill → Replay → Audit → Report</p>
+
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <input id="r2sTargetUrl" placeholder="http://localhost:8000/fake-erp" style="width:320px" />
+          <button id="r2sCreateSession">1. Create Session</button>
+          <button id="r2sCaptureEvents">2. Capture Events</button>
+          <button id="r2sFinishSession">3. Finish Session</button>
+          <button id="r2sGenerateDraft">4. Generate Draft</button>
+          <button id="r2sCompileSkill">5. Compile UI Skill</button>
+          <button id="r2sReplay">6. Replay</button>
+          <button id="r2sAudit">7. Audit</button>
+          <button id="r2sReport">8. Report</button>
+        </div>
+
+        <pre id="r2sSessionOutput">No session yet.</pre>
+        <pre id="r2sDraftOutput">No draft yet.</pre>
+        <pre id="r2sCompileOutput">No compiled skill yet.</pre>
+        <pre id="r2sReplayOutput">No replay yet.</pre>
+        <pre id="r2sAuditOutput">No audit yet.</pre>
+        <pre id="r2sReportOutput">No report yet.</pre>
+      </div>
+
       <div class="card full">
         <h2>Safe Skill Review &amp; Compilation</h2>
         <p>
@@ -3438,6 +3467,96 @@ selectors captured: none</pre>
         body: JSON.stringify({ actor: { id: "demo_user" } }),
       });
       oauthRevokeOutput.textContent = jsonText(await r.json());
+    });
+
+    // Sprint 20 — Record-to-Skill End-to-End Loop
+    const r2sState = { sessionId: null, draftId: null, compiledSkillId: null, replayId: null };
+
+    document.getElementById("r2sCreateSession").addEventListener("click", async () => {
+      const baseUrl = document.getElementById("r2sTargetUrl").value.trim() || "http://localhost:8000/fake-erp";
+      const r = await fetch("/v1/record-to-skill/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Demo Formula Review Flow", description: "Sprint 20 demo recording", target_base_url: baseUrl }),
+      });
+      const body = await r.json();
+      if (body.session_id) r2sState.sessionId = body.session_id;
+      document.getElementById("r2sSessionOutput").textContent = jsonText(body);
+    });
+
+    document.getElementById("r2sCaptureEvents").addEventListener("click", async () => {
+      if (!r2sState.sessionId) { document.getElementById("r2sSessionOutput").textContent = "Create a session first (Step 1)."; return; }
+      const sid = r2sState.sessionId;
+      const baseUrl = document.getElementById("r2sTargetUrl").value.trim() || "http://localhost:8000/fake-erp";
+      const events = [
+        { event_type: "navigate", url: baseUrl + "/sales/orders", selector: null },
+        { event_type: "fill", url: null, selector: "[data-testid='order-search']", input_value: "SO-VALID", element_label: "Search orders" },
+        { event_type: "click", url: null, selector: "[data-testid='open-order-SO-VALID']", element_text: "SO-VALID" },
+        { event_type: "click", url: null, selector: "[data-testid='formula-tab']", element_text: "Formula" },
+        { event_type: "click", url: null, selector: "[data-testid='review-formula']", element_text: "Review Formula" },
+      ];
+      let last = {};
+      for (const ev of events) {
+        const r = await fetch(`/v1/record-to-skill/sessions/${sid}/events`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(ev),
+        });
+        last = await r.json();
+      }
+      document.getElementById("r2sSessionOutput").textContent = "Captured " + events.length + " events. Last: " + jsonText(last);
+    });
+
+    document.getElementById("r2sFinishSession").addEventListener("click", async () => {
+      if (!r2sState.sessionId) { document.getElementById("r2sSessionOutput").textContent = "Create a session first."; return; }
+      const r = await fetch(`/v1/record-to-skill/sessions/${r2sState.sessionId}/finish`, { method: "POST" });
+      const body = await r.json();
+      document.getElementById("r2sSessionOutput").textContent = jsonText(body);
+    });
+
+    document.getElementById("r2sGenerateDraft").addEventListener("click", async () => {
+      if (!r2sState.sessionId) { document.getElementById("r2sDraftOutput").textContent = "Create and finish a session first."; return; }
+      const r = await fetch(`/v1/record-to-skill/sessions/${r2sState.sessionId}/generate-draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Formula Review UI Skill", description: "Auto-generated from Sprint 20 recording" }),
+      });
+      const body = await r.json();
+      if (body.draft_id) r2sState.draftId = body.draft_id;
+      document.getElementById("r2sDraftOutput").textContent = jsonText(body);
+    });
+
+    document.getElementById("r2sCompileSkill").addEventListener("click", async () => {
+      if (!r2sState.draftId) { document.getElementById("r2sCompileOutput").textContent = "Generate a draft first (Step 4)."; return; }
+      const r = await fetch(`/v1/record-to-skill/drafts/${r2sState.draftId}/compile-ui-skill`, { method: "POST" });
+      const body = await r.json();
+      if (body.compiled_skill_id) r2sState.compiledSkillId = body.compiled_skill_id;
+      document.getElementById("r2sCompileOutput").textContent = jsonText(body);
+    });
+
+    document.getElementById("r2sReplay").addEventListener("click", async () => {
+      if (!r2sState.compiledSkillId) { document.getElementById("r2sReplayOutput").textContent = "Compile a skill first (Step 5)."; return; }
+      const baseUrl = document.getElementById("r2sTargetUrl").value.trim() || "http://localhost:8000/fake-erp";
+      const r = await fetch(`/v1/record-to-skill/compiled-skills/${r2sState.compiledSkillId}/replay`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_base_url: baseUrl }),
+      });
+      const body = await r.json();
+      if (body.replay_id) r2sState.replayId = body.replay_id;
+      document.getElementById("r2sReplayOutput").textContent = jsonText(body);
+    });
+
+    document.getElementById("r2sAudit").addEventListener("click", async () => {
+      if (!r2sState.replayId) { document.getElementById("r2sAuditOutput").textContent = "Run a replay first (Step 6)."; return; }
+      const r = await fetch(`/v1/record-to-skill/replays/${r2sState.replayId}/audit`);
+      document.getElementById("r2sAuditOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("r2sReport").addEventListener("click", async () => {
+      if (!r2sState.replayId) { document.getElementById("r2sReportOutput").textContent = "Run a replay first (Step 6)."; return; }
+      const r = await fetch(`/v1/record-to-skill/replays/${r2sState.replayId}/report`);
+      document.getElementById("r2sReportOutput").textContent = jsonText(await r.json());
     });
   </script>
 </body>

@@ -23,6 +23,7 @@ from apps.api.routes.external_connectors import router as external_connectors_ro
 from apps.api.routes.google_calendar_oauth import router as google_calendar_oauth_router
 from apps.api.routes.skill_compilation import router as skill_compilation_router
 from apps.api.routes.recordings import router as recordings_router
+from apps.api.routes.record_to_skill import router as record_to_skill_router
 from apps.api.routes.preflight import router as preflight_router
 from apps.api.routes.odoo import router as odoo_router
 from apps.api.routes.skills import router as skills_router
@@ -54,6 +55,7 @@ app.include_router(agent_builder_router)
 app.include_router(connector_auth_router)
 app.include_router(external_connectors_router)
 app.include_router(google_calendar_oauth_router)
+app.include_router(record_to_skill_router)
 app.include_router(audit_router)
 app.include_router(skills_router)
 app.include_router(fake_erp_router)

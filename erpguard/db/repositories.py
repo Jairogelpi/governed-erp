@@ -63,6 +63,12 @@ from erpguard.db.models import (
     WriteReadinessAssessment,
     WriteReadinessCertification,
     WriteRollbackPlan,
+    UIRecordingSession,
+    UIRecordingEvent,
+    UISkillDraft,
+    UICompiledSkill,
+    UIReplayRun,
+    UIReplayStepAudit,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -2338,3 +2344,233 @@ def revoke_oauth_token_record(session: Session, profile_id: str) -> OAuthTokenRe
     session.commit()
     session.refresh(row)
     return row
+
+
+# Sprint 20 — Record-to-Skill End-to-End Loop
+
+def create_ui_recording_session(
+    session: Session,
+    *,
+    name: str,
+    description: str | None = None,
+    target_base_url: str,
+) -> UIRecordingSession:
+    row = UIRecordingSession(
+        id=f"ui_session_{uuid4().hex[:16]}",
+        name=name,
+        description=description,
+        target_base_url=target_base_url,
+        status="recording",
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_ui_recording_session(session: Session, session_id: str) -> UIRecordingSession | None:
+    return session.get(UIRecordingSession, session_id)
+
+
+def finish_ui_recording_session(session: Session, session_id: str) -> UIRecordingSession | None:
+    row = session.get(UIRecordingSession, session_id)
+    if row is None:
+        return None
+    row.status = "finished"
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def add_ui_recording_event(
+    session: Session,
+    *,
+    session_id: str,
+    event_type: str,
+    url: str | None = None,
+    selector: str | None = None,
+    element_text: str | None = None,
+    element_label: str | None = None,
+    input_value: str | None = None,
+    metadata_json: str = "{}",
+) -> UIRecordingEvent:
+    count = (
+        session.query(UIRecordingEvent)
+        .filter(UIRecordingEvent.session_id == session_id)
+        .count()
+    )
+    row = UIRecordingEvent(
+        id=f"ui_ev_{uuid4().hex[:16]}",
+        session_id=session_id,
+        event_index=count,
+        event_type=event_type,
+        url=url,
+        selector=selector,
+        element_text=element_text,
+        element_label=element_label,
+        input_value=input_value,
+        metadata_json=metadata_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_ui_recording_events(session: Session, session_id: str) -> list[UIRecordingEvent]:
+    return list(
+        session.query(UIRecordingEvent)
+        .filter(UIRecordingEvent.session_id == session_id)
+        .order_by(UIRecordingEvent.event_index.asc())
+        .all()
+    )
+
+
+def create_ui_skill_draft(
+    session: Session,
+    *,
+    session_id: str,
+    name: str,
+    description: str | None = None,
+    steps_json: str = "[]",
+    selector_map_json: str = "{}",
+    guard_names_json: str = "[]",
+) -> UISkillDraft:
+    row = UISkillDraft(
+        id=f"ui_draft_{uuid4().hex[:16]}",
+        session_id=session_id,
+        name=name,
+        description=description,
+        steps_json=steps_json,
+        selector_map_json=selector_map_json,
+        guard_names_json=guard_names_json,
+        status="draft",
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_ui_skill_draft(session: Session, draft_id: str) -> UISkillDraft | None:
+    return session.get(UISkillDraft, draft_id)
+
+
+def create_ui_compiled_skill(
+    session: Session,
+    *,
+    draft_id: str,
+    session_id: str,
+    name: str,
+    steps_json: str = "[]",
+    guard_names_json: str = "[]",
+) -> UICompiledSkill:
+    row = UICompiledSkill(
+        id=f"ui_skill_{uuid4().hex[:16]}",
+        draft_id=draft_id,
+        session_id=session_id,
+        name=name,
+        runtime_type="deterministic_ui",
+        steps_json=steps_json,
+        guard_names_json=guard_names_json,
+        llm_required=False,
+        status="compiled",
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_ui_compiled_skill(session: Session, compiled_skill_id: str) -> UICompiledSkill | None:
+    return session.get(UICompiledSkill, compiled_skill_id)
+
+
+def create_ui_replay_run(
+    session: Session,
+    *,
+    compiled_skill_id: str,
+    target_base_url: str,
+    step_count: int = 0,
+) -> UIReplayRun:
+    row = UIReplayRun(
+        id=f"ui_replay_{uuid4().hex[:16]}",
+        compiled_skill_id=compiled_skill_id,
+        target_base_url=target_base_url,
+        status="running",
+        step_count=step_count,
+        steps_passed=0,
+        steps_failed=0,
+        result_json="{}",
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_ui_replay_run(session: Session, replay_id: str) -> UIReplayRun | None:
+    return session.get(UIReplayRun, replay_id)
+
+
+def finish_ui_replay_run(
+    session: Session,
+    replay_id: str,
+    *,
+    status: str,
+    steps_passed: int,
+    steps_failed: int,
+    result_json: str,
+) -> UIReplayRun | None:
+    from datetime import datetime, timezone
+    row = session.get(UIReplayRun, replay_id)
+    if row is None:
+        return None
+    row.status = status
+    row.steps_passed = steps_passed
+    row.steps_failed = steps_failed
+    row.result_json = result_json
+    row.finished_at = datetime.now(timezone.utc)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def add_ui_replay_step_audit(
+    session: Session,
+    *,
+    replay_run_id: str,
+    step_index: int,
+    step_id: str,
+    step_type: str,
+    status: str,
+    before_state_json: str = "{}",
+    after_state_json: str = "{}",
+    evidence_json: str = "{}",
+    error_text: str | None = None,
+) -> UIReplayStepAudit:
+    row = UIReplayStepAudit(
+        id=f"ui_audit_{uuid4().hex[:16]}",
+        replay_run_id=replay_run_id,
+        step_index=step_index,
+        step_id=step_id,
+        step_type=step_type,
+        status=status,
+        before_state_json=before_state_json,
+        after_state_json=after_state_json,
+        evidence_json=evidence_json,
+        error_text=error_text,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_ui_replay_step_audits(session: Session, replay_run_id: str) -> list[UIReplayStepAudit]:
+    return list(
+        session.query(UIReplayStepAudit)
+        .filter(UIReplayStepAudit.replay_run_id == replay_run_id)
+        .order_by(UIReplayStepAudit.step_index.asc())
+        .all()
+    )
