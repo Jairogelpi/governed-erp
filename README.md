@@ -2,6 +2,25 @@
 
 ERPGuard is a semantic safety layer for ERP operations. This repository is currently in Phase 1: the Odoo Preflight Core backend foundation.
 
+## Release Candidate v0.13.0-rc1 — Validated & Accepted
+
+ERPGuard v0.13.0-rc1 is validated and accepted (Sprint 27). The full operator
+demo runs end-to-end from a clean state in under 5 minutes. All 12 safety
+invariants enforced. 1162+ tests passing.
+
+RC validation docs:
+
+- [docs/release/07_rc_validation_rehearsal.md](docs/release/07_rc_validation_rehearsal.md)
+- [docs/release/08_rc_gap_log.md](docs/release/08_rc_gap_log.md)
+- [docs/release/09_rc_acceptance_report.md](docs/release/09_rc_acceptance_report.md)
+
+Standalone validation script:
+
+```bash
+uvicorn apps.api.main:app --port 8000 &
+python scripts/validate_rc_demo.py --base-url http://127.0.0.1:8000
+```
+
 ## Release Candidate v0.13.0-rc1 — Operator Demo & Evidence Pack
 
 ERPGuard v0.13.0-rc1 closes the Record-to-Skill loop (Sprints 20–26) and packages it as a reproducible operator demo with a full release evidence pack.
