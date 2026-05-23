@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from erpguard.canonical.enums import ERPType, InvariantSeverity, InvariantStatus
 from erpguard.core.results import PreflightResult
 from erpguard.db.models import (
+    AdvisoryProposal,
+    AdvisorySession,
     AuditEvent,
     AgentBuilderEvent,
     AgentBuilderSession,
@@ -3131,5 +3133,93 @@ def list_operator_evidence_packs(session: Session) -> list[OperatorEvidencePack]
     return list(
         session.query(OperatorEvidencePack)
         .order_by(OperatorEvidencePack.created_at.desc())
+        .all()
+    )
+
+
+# Sprint 28 — Conversational Agent Builder Advisory Mode
+
+def create_advisory_session(session: Session, created_by_actor_json: str) -> AdvisorySession:
+    row = AdvisorySession(
+        id=f"advisory_{uuid4().hex}",
+        status="created",
+        request_text="",
+        created_by_actor_json=created_by_actor_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_advisory_session(session: Session, session_id: str) -> AdvisorySession | None:
+    return session.get(AdvisorySession, session_id)
+
+
+def update_advisory_session(session: Session, session_id: str, **updates) -> AdvisorySession | None:
+    row = session.get(AdvisorySession, session_id)
+    if row is None:
+        return None
+    for key, value in updates.items():
+        setattr(row, key, value)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def create_advisory_proposal(
+    session: Session,
+    session_id: str,
+    request_text: str,
+    intent_json: str = "{}",
+    process_category: str = "unknown",
+    entity_mappings_json: str = "[]",
+    workflow_json: str = "{}",
+    guards_json: str = "{}",
+    risk_summary_json: str = "{}",
+    clarification_questions_json: str = "[]",
+    revision_number: int = 1,
+    status: str = "draft",
+) -> AdvisoryProposal:
+    row = AdvisoryProposal(
+        id=f"proposal_{uuid4().hex}",
+        session_id=session_id,
+        request_text=request_text,
+        intent_json=intent_json,
+        process_category=process_category,
+        entity_mappings_json=entity_mappings_json,
+        workflow_json=workflow_json,
+        guards_json=guards_json,
+        risk_summary_json=risk_summary_json,
+        clarification_questions_json=clarification_questions_json,
+        revision_number=revision_number,
+        status=status,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_advisory_proposal(session: Session, proposal_id: str) -> AdvisoryProposal | None:
+    return session.get(AdvisoryProposal, proposal_id)
+
+
+def update_advisory_proposal(session: Session, proposal_id: str, **updates) -> AdvisoryProposal | None:
+    row = session.get(AdvisoryProposal, proposal_id)
+    if row is None:
+        return None
+    for key, value in updates.items():
+        setattr(row, key, value)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_advisory_proposals_for_session(session: Session, session_id: str) -> list[AdvisoryProposal]:
+    return list(
+        session.query(AdvisoryProposal)
+        .filter(AdvisoryProposal.session_id == session_id)
+        .order_by(AdvisoryProposal.created_at.asc())
         .all()
     )

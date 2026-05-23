@@ -629,6 +629,36 @@ selectors captured: none</pre>
         <pre id="agentBuilderPreviewOutput">No workflow preview yet.</pre>
         <pre id="agentBuilderDraftOutput">No builder draft saved yet.</pre>
       </div>
+
+      <div class="card full">
+        <h2>Conversational Agent Builder</h2>
+        <p>
+          Sprint 28 — Advisory Mode. Describe an ERP automation in plain language.
+          The agent analyses intent, classifies the ERP process, suggests field mappings,
+          proposes a safe workflow and guards, summarises risks, and asks clarifying questions.
+          <strong>Advisory only — no execution, no ERP writes, no browser control.</strong>
+        </p>
+        <div class="toolbar">
+          <button id="cabCreateSession">1. Create Advisory Session</button>
+          <button id="cabPropose">2. Generate Proposal</button>
+          <button id="cabRevise">3. Revise Proposal</button>
+          <button id="cabSafety">4. Safety Summary</button>
+        </div>
+        <label style="display:block;margin:8px 0 4px">
+          Natural-language automation request
+          <textarea id="cabRequestText" rows="3" style="width:100%;font-family:monospace;font-size:0.9rem;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--panel)"
+          >Check every sales order that is still in draft state and send an email notification to the sales manager daily at 8 AM</textarea>
+        </label>
+        <label style="display:block;margin:8px 0 4px">
+          Revised request (for step 3)
+          <textarea id="cabReviseText" rows="2" style="width:100%;font-family:monospace;font-size:0.9rem;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--panel)"
+          >List all draft sales orders and send a daily email report to the sales manager every morning at 8 AM</textarea>
+        </label>
+        <pre id="cabSessionOutput">No advisory session yet.</pre>
+        <pre id="cabProposalOutput">No proposal yet.</pre>
+        <pre id="cabSafetyOutput">No safety summary yet.</pre>
+      </div>
+
       <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
@@ -4060,6 +4090,68 @@ selectors captured: none</pre>
       if (!epState.packId) { document.getElementById("epFinalOutput").textContent = "Assemble a pack first."; return; }
       const r = await fetch(`${currentBaseUrl()}/v1/operator/evidence-packs/${epState.packId}/final-report`);
       document.getElementById("epFinalOutput").textContent = jsonText(await r.json());
+    });
+
+    // ── Conversational Agent Builder (Sprint 28) ──────────────────────────────
+    const cabState = { sessionId: null, proposalId: null };
+
+    document.getElementById("cabCreateSession").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/agent-builder/advisory/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ created_by: { type: "demo_operator", id: "demo" } }),
+      });
+      const body = await r.json();
+      if (!r.ok) {
+        document.getElementById("cabSessionOutput").textContent = `Session failed: ${body?.error?.message || "unknown"}`;
+        return;
+      }
+      cabState.sessionId = body.session_id;
+      document.getElementById("cabSessionOutput").textContent = jsonText(body);
+    });
+
+    document.getElementById("cabPropose").addEventListener("click", async () => {
+      if (!cabState.sessionId) {
+        document.getElementById("cabProposalOutput").textContent = "Create an advisory session first.";
+        return;
+      }
+      const requestText = document.getElementById("cabRequestText").value.trim();
+      const r = await fetch(`${currentBaseUrl()}/v1/agent-builder/advisory/sessions/${cabState.sessionId}/propose`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ request_text: requestText }),
+      });
+      const body = await r.json();
+      if (!r.ok) {
+        document.getElementById("cabProposalOutput").textContent = `Propose failed: ${body?.error?.message || "unknown"}`;
+        return;
+      }
+      cabState.proposalId = body.proposal_id;
+      document.getElementById("cabProposalOutput").textContent = jsonText(body);
+    });
+
+    document.getElementById("cabRevise").addEventListener("click", async () => {
+      if (!cabState.proposalId) {
+        document.getElementById("cabProposalOutput").textContent = "Generate a proposal first.";
+        return;
+      }
+      const updatedRequest = document.getElementById("cabReviseText").value.trim();
+      const r = await fetch(`${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/revise`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ updated_request: updatedRequest }),
+      });
+      const body = await r.json();
+      document.getElementById("cabProposalOutput").textContent = jsonText(body);
+    });
+
+    document.getElementById("cabSafety").addEventListener("click", async () => {
+      if (!cabState.proposalId) {
+        document.getElementById("cabSafetyOutput").textContent = "Generate a proposal first.";
+        return;
+      }
+      const r = await fetch(`${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/safety`);
+      document.getElementById("cabSafetyOutput").textContent = jsonText(await r.json());
     });
   </script>
 </body>

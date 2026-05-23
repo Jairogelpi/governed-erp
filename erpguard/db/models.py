@@ -1192,3 +1192,38 @@ class OperatorEvidencePack(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
     )
+
+
+# Sprint 28 — Conversational Agent Builder Advisory Mode
+
+
+class AdvisorySession(Base):
+    __tablename__ = "advisory_sessions"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    request_text: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    latest_proposal_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_by_actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
+    )
+
+
+class AdvisoryProposal(Base):
+    __tablename__ = "advisory_proposals"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    request_text: Mapped[str] = mapped_column(Text, nullable=False)
+    intent_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    process_category: Mapped[str] = mapped_column(Text, nullable=False, default="unknown")
+    entity_mappings_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    workflow_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    guards_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    risk_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    clarification_questions_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    revision_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="draft")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
