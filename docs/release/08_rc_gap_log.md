@@ -50,6 +50,17 @@ the final report.
 
 ---
 
+### OBS-003 — Full test suite must not run with a live server on the same SQLite DB
+
+**Step:** N/A (test infrastructure)  
+**Observation:** `test_skill_schedule_tick.py::test_tick_updates_next_run_at_after_dispatch`
+fails intermittently when a uvicorn server using the same `erpguard.db` file is running
+concurrently. SQLite serialises writes; under concurrent load the tick's
+`update_skill_schedule` commit can be delayed past the test assertion window.  
+**Impact:** None in CI (server not running). Non-blocking for TFM demo.  
+**Workaround:** Stop the server before running `python -m pytest`.  
+**Action:** Documented. No code change needed — the test logic is correct.
+
 ## Previous gaps (resolved in earlier sprints)
 
 | Sprint | Gap | Resolution |
