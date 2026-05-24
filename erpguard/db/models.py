@@ -1274,3 +1274,18 @@ class ClarificationAuditEvent(Base):
     event_type: Mapped[str] = mapped_column(Text, nullable=False)
     detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 31 — Agent Draft Review Bridge to ERPGuard Pipeline
+
+
+class AgentDraftBridgeEvent(Base):
+    __tablename__ = "agent_draft_bridge_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    draft_id: Mapped[str] = mapped_column(Text, nullable=False)
+    proposal_id: Mapped[str] = mapped_column(Text, nullable=False)
+    step: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

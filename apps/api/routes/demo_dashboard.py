@@ -695,6 +695,24 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Conversational Agent Builder — Draft Review Bridge</h2>
+        <p>
+          Sprint 31 — Bridge a clarified agent draft into the ERPGuard review/validation pipeline.
+          <strong>No execution. No activation. No scheduling. Draft stays dry_run_only. Advisory only.</strong>
+        </p>
+        <div class="toolbar">
+          <button id="bridgeEligibility">15. Check Eligibility</button>
+          <button id="bridgeClarificationGate">16. Clarification Gate</button>
+          <button id="bridgeReview">17. Bridge to Review</button>
+          <button id="bridgeValidate">18. Validate Draft</button>
+          <button id="bridgeCompilePlan">19. Compile Plan</button>
+          <button id="bridgeReport">20. Bridge Report</button>
+          <button id="bridgeAudit">21. Bridge Audit</button>
+        </div>
+        <pre id="bridgeOutput">No bridge data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -4290,6 +4308,70 @@ selectors captured: none</pre>
       if (!cabState.proposalId) { clarOut().textContent = "Generate a proposal first."; return; }
       const r = await fetch(`${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/clarification-audit`);
       clarOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 31 — Draft Review Bridge ──────────────────────────────────────
+    const bridgeOut = () => document.getElementById("bridgeOutput");
+
+    document.getElementById("bridgeEligibility").addEventListener("click", async () => {
+      if (!cabState.draftId) { bridgeOut().textContent = "Create a draft first (step 6)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/bridge/eligibility`,
+        { method: "POST" }
+      );
+      bridgeOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("bridgeClarificationGate").addEventListener("click", async () => {
+      if (!cabState.draftId) { bridgeOut().textContent = "Create a draft first (step 6)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/bridge/clarification-gate`,
+        { method: "POST" }
+      );
+      bridgeOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("bridgeReview").addEventListener("click", async () => {
+      if (!cabState.draftId) { bridgeOut().textContent = "Create a draft first (step 6)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/bridge/review`,
+        { method: "POST" }
+      );
+      bridgeOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("bridgeValidate").addEventListener("click", async () => {
+      if (!cabState.draftId) { bridgeOut().textContent = "Create a draft first (step 6)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/bridge/validate`,
+        { method: "POST" }
+      );
+      bridgeOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("bridgeCompilePlan").addEventListener("click", async () => {
+      if (!cabState.draftId) { bridgeOut().textContent = "Create a draft first (step 6)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/bridge/compile-plan`,
+        { method: "POST" }
+      );
+      bridgeOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("bridgeReport").addEventListener("click", async () => {
+      if (!cabState.draftId) { bridgeOut().textContent = "Create a draft first (step 6)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/bridge/report`
+      );
+      bridgeOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("bridgeAudit").addEventListener("click", async () => {
+      if (!cabState.draftId) { bridgeOut().textContent = "Create a draft first (step 6)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/bridge/audit`
+      );
+      bridgeOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>

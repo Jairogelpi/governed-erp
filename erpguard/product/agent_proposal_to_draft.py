@@ -49,6 +49,9 @@ def transform_proposal_to_draft(proposal: dict) -> DraftTransformResult:
         "risk_summary": proposal.get("risk_summary", {}),
         "entity_mappings": proposal.get("entity_mappings", []),
         "clarification_questions": proposal.get("clarification_questions", []),
+        # Top-level safety fields so DraftValidatorService can read them directly
+        "write_actions": False,
+        "runtime_mode": _DRAFT_RUNTIME_MODE,
         "safety": {
             "runtime_mode": _DRAFT_RUNTIME_MODE,
             "write_actions": False,

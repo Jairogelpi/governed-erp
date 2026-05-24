@@ -9,6 +9,7 @@ from erpguard.core.results import PreflightResult
 from erpguard.db.models import (
     AdvisoryProposal,
     AdvisorySession,
+    AgentDraftBridgeEvent,
     AgentProposalDraftLink,
     ClarificationAnswer,
     MappingConfirmation,
@@ -3386,5 +3387,40 @@ def list_clarification_audit_events_for_proposal(
         session.query(ClarificationAuditEvent)
         .filter(ClarificationAuditEvent.proposal_id == proposal_id)
         .order_by(ClarificationAuditEvent.created_at.asc())
+        .all()
+    )
+
+
+# Sprint 31 — Agent Draft Review Bridge to ERPGuard Pipeline
+
+def create_agent_draft_bridge_event(
+    session: Session,
+    draft_id: str,
+    proposal_id: str,
+    step: str,
+    status: str,
+    detail_json: str = "{}",
+) -> AgentDraftBridgeEvent:
+    row = AgentDraftBridgeEvent(
+        id=f"bridge_evt_{uuid4().hex[:16]}",
+        draft_id=draft_id,
+        proposal_id=proposal_id,
+        step=step,
+        status=status,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_agent_draft_bridge_events_for_draft(
+    session: Session, draft_id: str
+) -> list[AgentDraftBridgeEvent]:
+    return list(
+        session.query(AgentDraftBridgeEvent)
+        .filter(AgentDraftBridgeEvent.draft_id == draft_id)
+        .order_by(AgentDraftBridgeEvent.created_at.asc())
         .all()
     )
