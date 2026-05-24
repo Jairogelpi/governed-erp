@@ -10,6 +10,9 @@ from erpguard.db.models import (
     AdvisoryProposal,
     AdvisorySession,
     AgentProposalDraftLink,
+    ClarificationAnswer,
+    MappingConfirmation,
+    ClarificationAuditEvent,
     AuditEvent,
     AgentBuilderEvent,
     AgentBuilderSession,
@@ -3265,4 +3268,123 @@ def get_agent_proposal_draft_link_by_draft(
         .filter(AgentProposalDraftLink.draft_id == draft_id)
         .order_by(AgentProposalDraftLink.created_at.desc())
         .first()
+    )
+
+
+# Sprint 30 — Agent Clarification Loop & Mapping Confirmation
+
+def create_clarification_answer(
+    session: Session,
+    proposal_id: str,
+    question_id: str,
+    answer_text: str,
+) -> ClarificationAnswer:
+    row = ClarificationAnswer(
+        id=f"clarif_ans_{uuid4().hex[:16]}",
+        proposal_id=proposal_id,
+        question_id=question_id,
+        answer_text=answer_text,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_clarification_answers_for_proposal(
+    session: Session, proposal_id: str
+) -> list[ClarificationAnswer]:
+    return list(
+        session.query(ClarificationAnswer)
+        .filter(ClarificationAnswer.proposal_id == proposal_id)
+        .order_by(ClarificationAnswer.created_at.asc())
+        .all()
+    )
+
+
+def get_latest_clarification_answer_for_question(
+    session: Session, proposal_id: str, question_id: str
+) -> ClarificationAnswer | None:
+    return (
+        session.query(ClarificationAnswer)
+        .filter(
+            ClarificationAnswer.proposal_id == proposal_id,
+            ClarificationAnswer.question_id == question_id,
+        )
+        .order_by(ClarificationAnswer.created_at.desc())
+        .first()
+    )
+
+
+def create_mapping_confirmation(
+    session: Session,
+    proposal_id: str,
+    mapping_key: str,
+    action: str,
+    reason: str | None = None,
+) -> MappingConfirmation:
+    row = MappingConfirmation(
+        id=f"map_conf_{uuid4().hex[:16]}",
+        proposal_id=proposal_id,
+        mapping_key=mapping_key,
+        action=action,
+        reason=reason,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_mapping_confirmations_for_proposal(
+    session: Session, proposal_id: str
+) -> list[MappingConfirmation]:
+    return list(
+        session.query(MappingConfirmation)
+        .filter(MappingConfirmation.proposal_id == proposal_id)
+        .order_by(MappingConfirmation.created_at.asc())
+        .all()
+    )
+
+
+def get_latest_mapping_confirmation_for_key(
+    session: Session, proposal_id: str, mapping_key: str
+) -> MappingConfirmation | None:
+    return (
+        session.query(MappingConfirmation)
+        .filter(
+            MappingConfirmation.proposal_id == proposal_id,
+            MappingConfirmation.mapping_key == mapping_key,
+        )
+        .order_by(MappingConfirmation.created_at.desc())
+        .first()
+    )
+
+
+def create_clarification_audit_event(
+    session: Session,
+    proposal_id: str,
+    event_type: str,
+    detail_json: str = "{}",
+) -> ClarificationAuditEvent:
+    row = ClarificationAuditEvent(
+        id=f"clarif_audit_{uuid4().hex[:16]}",
+        proposal_id=proposal_id,
+        event_type=event_type,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_clarification_audit_events_for_proposal(
+    session: Session, proposal_id: str
+) -> list[ClarificationAuditEvent]:
+    return list(
+        session.query(ClarificationAuditEvent)
+        .filter(ClarificationAuditEvent.proposal_id == proposal_id)
+        .order_by(ClarificationAuditEvent.created_at.asc())
+        .all()
     )

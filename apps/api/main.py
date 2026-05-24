@@ -20,6 +20,7 @@ from apps.api.routes.marketplace import router as marketplace_router
 from apps.api.routes.agent_builder import router as agent_builder_router
 from apps.api.routes.agent_builder_advisory import router as agent_builder_advisory_router
 from apps.api.routes.agent_proposal_drafts import router as agent_proposal_drafts_router
+from apps.api.routes.agent_clarifications import router as agent_clarifications_router
 from apps.api.routes.connector_auth import router as connector_auth_router
 from apps.api.routes.external_connectors import router as external_connectors_router
 from apps.api.routes.google_calendar_oauth import router as google_calendar_oauth_router
@@ -60,6 +61,7 @@ app.include_router(marketplace_router)
 app.include_router(agent_builder_router)
 app.include_router(agent_builder_advisory_router)
 app.include_router(agent_proposal_drafts_router)
+app.include_router(agent_clarifications_router)
 app.include_router(connector_auth_router)
 app.include_router(external_connectors_router)
 app.include_router(google_calendar_oauth_router)

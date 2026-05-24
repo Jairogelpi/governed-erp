@@ -665,6 +665,36 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Conversational Agent Builder — Clarification Loop</h2>
+        <p>
+          Sprint 30 — Answer pending questions, confirm/reject field mappings, recompute completeness,
+          refresh draft metadata. <strong>Metadata only. Draft remains dry_run_only. No execution.</strong>
+        </p>
+        <div class="toolbar">
+          <button id="cabClarifications">8. List Clarifications</button>
+          <button id="cabSubmitAnswer">9. Submit Answer</button>
+          <button id="cabConfirmMapping">10. Confirm Mapping</button>
+          <button id="cabRejectMapping">11. Reject Mapping</button>
+          <button id="cabClarificationStatus">12. Clarification Status</button>
+          <button id="cabRefreshDraft">13. Refresh Draft</button>
+          <button id="cabClarificationAudit">14. Clarification Audit</button>
+        </div>
+        <label style="display:block;margin:8px 0 4px">
+          Question ID (for step 9, e.g. q1)
+          <input id="cabQuestionId" value="q1" style="font-family:monospace" />
+        </label>
+        <label style="display:block;margin:8px 0 4px">
+          Answer text (for step 9)
+          <input id="cabAnswerText" value="Scheduled, every morning at 8 AM" style="width:60%;font-family:monospace" />
+        </label>
+        <label style="display:block;margin:8px 0 4px">
+          Mapping key (for steps 10/11, e.g. state)
+          <input id="cabMappingKey" value="state" style="font-family:monospace" />
+        </label>
+        <pre id="cabClarificationOutput">No clarification data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -4198,6 +4228,68 @@ selectors captured: none</pre>
         `${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/draft-link`
       );
       document.getElementById("cabDraftOutput").textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 30 — Clarification Loop ────────────────────────────────────────
+    const clarOut = () => document.getElementById("cabClarificationOutput");
+
+    document.getElementById("cabClarifications").addEventListener("click", async () => {
+      if (!cabState.proposalId) { clarOut().textContent = "Generate a proposal first."; return; }
+      const r = await fetch(`${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/clarifications`);
+      clarOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("cabSubmitAnswer").addEventListener("click", async () => {
+      if (!cabState.proposalId) { clarOut().textContent = "Generate a proposal first."; return; }
+      const qId = document.getElementById("cabQuestionId").value.trim();
+      const ans = document.getElementById("cabAnswerText").value.trim();
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/clarifications/answers`,
+        { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ answers: [{ question_id: qId, answer_text: ans }] }) }
+      );
+      clarOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("cabConfirmMapping").addEventListener("click", async () => {
+      if (!cabState.proposalId) { clarOut().textContent = "Generate a proposal first."; return; }
+      const key = document.getElementById("cabMappingKey").value.trim();
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/mappings/${key}/confirm`,
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reason: "Verified correct" }) }
+      );
+      clarOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("cabRejectMapping").addEventListener("click", async () => {
+      if (!cabState.proposalId) { clarOut().textContent = "Generate a proposal first."; return; }
+      const key = document.getElementById("cabMappingKey").value.trim();
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/mappings/${key}/reject`,
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reason: "Incorrect field" }) }
+      );
+      clarOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("cabClarificationStatus").addEventListener("click", async () => {
+      if (!cabState.proposalId) { clarOut().textContent = "Generate a proposal first."; return; }
+      const r = await fetch(`${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/clarification-status`);
+      clarOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("cabRefreshDraft").addEventListener("click", async () => {
+      if (!cabState.draftId) { clarOut().textContent = "Create a draft first (step 6)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/refresh-from-clarifications`,
+        { method: "POST" }
+      );
+      clarOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("cabClarificationAudit").addEventListener("click", async () => {
+      if (!cabState.proposalId) { clarOut().textContent = "Generate a proposal first."; return; }
+      const r = await fetch(`${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/clarification-audit`);
+      clarOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>
