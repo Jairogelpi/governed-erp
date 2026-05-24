@@ -229,3 +229,15 @@
 - All analysis is deterministic and rule-based. No LLM calls, no ERP writes, no browser automation, no MCP execution, no skill activation. Every proposal carries `is_advisory_only=true` and `can_execute=false`. Safety invariants enforced at API level.
 - Ran `python -m pytest`; result: all tests passed, 0 failed.
 - Explicitly did not add LLM runtime, direct ERP writes, browser control, MCP tool execution, automatic skill activation, R3/R4 operations, free-form tool execution, or any new execution power.
+- Started Sprint 29 Agent Proposal to AutomationDraft from GitHub issue #25. Connects the Sprint 28 advisory agent proposal layer to the existing ERPGuard review/validation/compilation/approval pipeline.
+- Added DB model `AgentProposalDraftLink` to `erpguard/db/models.py` (bidirectional link between advisory proposal and AutomationDraft).
+- Added repository functions `create_agent_proposal_draft_link`, `get_agent_proposal_draft_link_by_proposal`, `get_agent_proposal_draft_link_by_draft` to `erpguard/db/repositories.py`.
+- Added 6 product modules: `agent_proposal_eligibility.py` (checks proposal eligibility before draft creation), `agent_mapping_completeness.py` (validates field mapping coverage), `agent_proposal_to_draft.py` (transforms advisory proposal into AutomationDraft-compatible structure — always dry_run_only / write_actions=false / pending_review), `agent_draft_safety_policy.py` (enforces 10 safety invariants before persisting), `agent_draft_preview.py` (non-persisted preview combining eligibility + completeness + transform + safety), `agent_draft_service.py` (orchestrates preview / create / link / reverse-lookup).
+- Reused existing `AutomationDraft` table and `create_automation_draft` repository; advisory-origin drafts use sentinel values for opportunity_id/scan_id/snapshot_id and link back via `AgentProposalDraftLink`.
+- Added `apps/api/schemas/agent_proposal_drafts.py` and `apps/api/routes/agent_proposal_drafts.py` exposing 4 endpoints: `POST .../proposals/{id}/draft-preview`, `POST .../proposals/{id}/create-draft`, `GET .../proposals/{id}/draft-link`, `GET .../drafts/{id}/source-proposal`.
+- Registered `agent_proposal_drafts_router` in `apps/api/main.py`.
+- Extended `/demo` Conversational Agent Builder section with Draft Preview, Create Draft, and Draft Link buttons.
+- Added 7 test files (49 tests): `test_agent_proposal_eligibility.py`, `test_agent_mapping_completeness.py`, `test_agent_proposal_to_draft.py`, `test_agent_draft_safety_policy.py`, `test_agent_draft_preview.py`, `test_agent_draft_service.py`, `test_agent_proposal_drafts_api.py`.
+- Hard invariants enforced: draft always has runtime_mode=dry_run_only, write_actions=False, requires_human_review=True, requires_approval=True, can_execute=False, is_advisory_only=True. Duplicate draft creation blocked (422). No auto-compile, no activation, no ERP writes.
+- Ran `python -m pytest`; result: all tests passed, 0 failed.
+- Explicitly did not execute drafts, auto-compile, activate skills, add ERP writes, add browser automation, add MCP execution, add R3/R4 operations, or add LLM runtime.

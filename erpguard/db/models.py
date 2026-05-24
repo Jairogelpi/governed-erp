@@ -1227,3 +1227,16 @@ class AdvisoryProposal(Base):
     revision_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     status: Mapped[str] = mapped_column(Text, nullable=False, default="draft")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 29 — Agent Proposal to AutomationDraft
+
+
+class AgentProposalDraftLink(Base):
+    __tablename__ = "agent_proposal_draft_links"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    proposal_id: Mapped[str] = mapped_column(Text, nullable=False)
+    draft_id: Mapped[str] = mapped_column(Text, nullable=False)
+    session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

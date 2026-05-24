@@ -9,6 +9,7 @@ from erpguard.core.results import PreflightResult
 from erpguard.db.models import (
     AdvisoryProposal,
     AdvisorySession,
+    AgentProposalDraftLink,
     AuditEvent,
     AgentBuilderEvent,
     AgentBuilderSession,
@@ -3222,4 +3223,46 @@ def list_advisory_proposals_for_session(session: Session, session_id: str) -> li
         .filter(AdvisoryProposal.session_id == session_id)
         .order_by(AdvisoryProposal.created_at.asc())
         .all()
+    )
+
+
+# Sprint 29 — Agent Proposal to AutomationDraft
+
+def create_agent_proposal_draft_link(
+    session: Session,
+    proposal_id: str,
+    draft_id: str,
+    session_id: str,
+) -> AgentProposalDraftLink:
+    link = AgentProposalDraftLink(
+        id=f"pdlink_{uuid4().hex[:16]}",
+        proposal_id=proposal_id,
+        draft_id=draft_id,
+        session_id=session_id,
+    )
+    session.add(link)
+    session.commit()
+    session.refresh(link)
+    return link
+
+
+def get_agent_proposal_draft_link_by_proposal(
+    session: Session, proposal_id: str
+) -> AgentProposalDraftLink | None:
+    return (
+        session.query(AgentProposalDraftLink)
+        .filter(AgentProposalDraftLink.proposal_id == proposal_id)
+        .order_by(AgentProposalDraftLink.created_at.desc())
+        .first()
+    )
+
+
+def get_agent_proposal_draft_link_by_draft(
+    session: Session, draft_id: str
+) -> AgentProposalDraftLink | None:
+    return (
+        session.query(AgentProposalDraftLink)
+        .filter(AgentProposalDraftLink.draft_id == draft_id)
+        .order_by(AgentProposalDraftLink.created_at.desc())
+        .first()
     )

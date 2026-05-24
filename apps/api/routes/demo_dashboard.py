@@ -643,6 +643,9 @@ selectors captured: none</pre>
           <button id="cabPropose">2. Generate Proposal</button>
           <button id="cabRevise">3. Revise Proposal</button>
           <button id="cabSafety">4. Safety Summary</button>
+          <button id="cabDraftPreview">5. Draft Preview</button>
+          <button id="cabCreateDraft">6. Create Draft</button>
+          <button id="cabDraftLink">7. Draft Link</button>
         </div>
         <label style="display:block;margin:8px 0 4px">
           Natural-language automation request
@@ -657,6 +660,8 @@ selectors captured: none</pre>
         <pre id="cabSessionOutput">No advisory session yet.</pre>
         <pre id="cabProposalOutput">No proposal yet.</pre>
         <pre id="cabSafetyOutput">No safety summary yet.</pre>
+        <pre id="cabDraftPreviewOutput">No draft preview yet.</pre>
+        <pre id="cabDraftOutput">No draft created yet.</pre>
       </div>
 
       <div class="card full">
@@ -4093,7 +4098,7 @@ selectors captured: none</pre>
     });
 
     // ── Conversational Agent Builder (Sprint 28) ──────────────────────────────
-    const cabState = { sessionId: null, proposalId: null };
+    const cabState = { sessionId: null, proposalId: null, draftId: null };
 
     document.getElementById("cabCreateSession").addEventListener("click", async () => {
       const r = await fetch(`${currentBaseUrl()}/v1/agent-builder/advisory/sessions`, {
@@ -4152,6 +4157,47 @@ selectors captured: none</pre>
       }
       const r = await fetch(`${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/safety`);
       document.getElementById("cabSafetyOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("cabDraftPreview").addEventListener("click", async () => {
+      if (!cabState.proposalId) {
+        document.getElementById("cabDraftPreviewOutput").textContent = "Generate a proposal first.";
+        return;
+      }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/draft-preview`,
+        { method: "POST" }
+      );
+      document.getElementById("cabDraftPreviewOutput").textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("cabCreateDraft").addEventListener("click", async () => {
+      if (!cabState.proposalId) {
+        document.getElementById("cabDraftOutput").textContent = "Generate a proposal first.";
+        return;
+      }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/create-draft`,
+        { method: "POST" }
+      );
+      const body = await r.json();
+      if (!r.ok) {
+        document.getElementById("cabDraftOutput").textContent = `Draft creation failed: ${body?.error?.message || "unknown"}`;
+        return;
+      }
+      cabState.draftId = body.draft_id;
+      document.getElementById("cabDraftOutput").textContent = jsonText(body);
+    });
+
+    document.getElementById("cabDraftLink").addEventListener("click", async () => {
+      if (!cabState.proposalId) {
+        document.getElementById("cabDraftOutput").textContent = "Generate a proposal first.";
+        return;
+      }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/proposals/${cabState.proposalId}/draft-link`
+      );
+      document.getElementById("cabDraftOutput").textContent = jsonText(await r.json());
     });
   </script>
 </body>
