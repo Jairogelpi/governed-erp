@@ -10,6 +10,8 @@ from erpguard.db.models import (
     AdvisoryProposal,
     AdvisorySession,
     AgentDraftBridgeEvent,
+    AgentDraftHandoffEvent,
+    AgentDraftHandoffPacket,
     AgentProposalDraftLink,
     ClarificationAnswer,
     MappingConfirmation,
@@ -3423,4 +3425,70 @@ def list_agent_draft_bridge_events_for_draft(
         .filter(AgentDraftBridgeEvent.draft_id == draft_id)
         .order_by(AgentDraftBridgeEvent.created_at.asc())
         .all()
+    )
+
+
+# Sprint 32 — Agent Draft Dry-Run Proof & Approval Handoff
+
+def create_agent_draft_handoff_event(
+    session: Session,
+    draft_id: str,
+    proposal_id: str,
+    step: str,
+    status: str,
+    detail_json: str = "{}",
+) -> AgentDraftHandoffEvent:
+    row = AgentDraftHandoffEvent(
+        id=f"handoff_evt_{uuid4().hex[:16]}",
+        draft_id=draft_id,
+        proposal_id=proposal_id,
+        step=step,
+        status=status,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_agent_draft_handoff_events_for_draft(
+    session: Session, draft_id: str
+) -> list[AgentDraftHandoffEvent]:
+    return list(
+        session.query(AgentDraftHandoffEvent)
+        .filter(AgentDraftHandoffEvent.draft_id == draft_id)
+        .order_by(AgentDraftHandoffEvent.created_at.asc())
+        .all()
+    )
+
+
+def create_agent_draft_handoff_packet(
+    session: Session,
+    draft_id: str,
+    proposal_id: str,
+    packet_json: str,
+    status: str = "pending_human_review",
+) -> AgentDraftHandoffPacket:
+    row = AgentDraftHandoffPacket(
+        id=f"handoff_pkt_{uuid4().hex[:16]}",
+        draft_id=draft_id,
+        proposal_id=proposal_id,
+        status=status,
+        packet_json=packet_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_latest_agent_draft_handoff_packet(
+    session: Session, draft_id: str
+) -> AgentDraftHandoffPacket | None:
+    return (
+        session.query(AgentDraftHandoffPacket)
+        .filter(AgentDraftHandoffPacket.draft_id == draft_id)
+        .order_by(AgentDraftHandoffPacket.created_at.desc())
+        .first()
     )

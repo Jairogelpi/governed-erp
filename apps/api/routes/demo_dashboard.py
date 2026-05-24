@@ -713,6 +713,22 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Conversational Agent Builder — Approval Handoff</h2>
+        <p>
+          Sprint 32 — Dry-run proof plan, evidence bundle, approval readiness, and handoff packet.
+          <strong>No execution. No approval decision. No activation. Advisory only.</strong>
+        </p>
+        <div class="toolbar">
+          <button id="handoffProofPlan">22. Proof Plan</button>
+          <button id="handoffEvidence">23. Evidence Bundle</button>
+          <button id="handoffReadiness">24. Approval Readiness</button>
+          <button id="handoffPacket">25. Handoff Packet</button>
+          <button id="handoffAudit">26. Handoff Audit</button>
+        </div>
+        <pre id="handoffOutput">No handoff data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -4372,6 +4388,51 @@ selectors captured: none</pre>
         `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/bridge/audit`
       );
       bridgeOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 32 — Approval Handoff ─────────────────────────────────────────
+    const handoffOut = () => document.getElementById("handoffOutput");
+
+    document.getElementById("handoffProofPlan").addEventListener("click", async () => {
+      if (!cabState.draftId) { handoffOut().textContent = "Create a draft first (step 6)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/handoff/proof-plan`,
+        { method: "POST" }
+      );
+      handoffOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("handoffEvidence").addEventListener("click", async () => {
+      if (!cabState.draftId) { handoffOut().textContent = "Create a draft first (step 6)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/handoff/evidence`
+      );
+      handoffOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("handoffReadiness").addEventListener("click", async () => {
+      if (!cabState.draftId) { handoffOut().textContent = "Create a draft first (step 6)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/handoff/readiness`
+      );
+      handoffOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("handoffPacket").addEventListener("click", async () => {
+      if (!cabState.draftId) { handoffOut().textContent = "Create a draft first (step 6)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/handoff/packet`,
+        { method: "POST" }
+      );
+      handoffOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("handoffAudit").addEventListener("click", async () => {
+      if (!cabState.draftId) { handoffOut().textContent = "Create a draft first (step 6)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/handoff/audit`
+      );
+      handoffOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>

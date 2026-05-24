@@ -1289,3 +1289,29 @@ class AgentDraftBridgeEvent(Base):
     status: Mapped[str] = mapped_column(Text, nullable=False)
     detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 32 — Agent Draft Dry-Run Proof & Approval Handoff
+
+
+class AgentDraftHandoffEvent(Base):
+    __tablename__ = "agent_draft_handoff_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    draft_id: Mapped[str] = mapped_column(Text, nullable=False)
+    proposal_id: Mapped[str] = mapped_column(Text, nullable=False)
+    step: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class AgentDraftHandoffPacket(Base):
+    __tablename__ = "agent_draft_handoff_packets"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    draft_id: Mapped[str] = mapped_column(Text, nullable=False)
+    proposal_id: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="pending_human_review")
+    packet_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
