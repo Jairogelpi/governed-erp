@@ -50,16 +50,38 @@ the final report.
 
 ---
 
-### OBS-003 — Full test suite must not run with a live server on the same SQLite DB
+### OBS-003 — SQLite write lock contention between tests (QueuePool stale connections)
 
 **Step:** N/A (test infrastructure)  
-**Observation:** `test_skill_schedule_tick.py::test_tick_updates_next_run_at_after_dispatch`
-fails intermittently when a uvicorn server using the same `erpguard.db` file is running
-concurrently. SQLite serialises writes; under concurrent load the tick's
-`update_skill_schedule` commit can be delayed past the test assertion window.  
-**Impact:** None in CI (server not running). Non-blocking for TFM demo.  
-**Workaround:** Stop the server before running `python -m pytest`.  
-**Action:** Documented. No code change needed — the test logic is correct.
+**Observation:** Several scheduler and replay tests failed intermittently with
+`sqlite3.OperationalError: database is locked` during `session.commit()`.
+The original note blamed a concurrent uvicorn server, but the actual root cause
+is the SQLAlchemy `QueuePool` (default for file-based SQLite engines): after
+`session.close()`, the pool returns the connection to its internal cache without
+physically closing the underlying `sqlite3` connection. The next test opens a new
+`SessionLocal()` which gets a fresh physical connection from the OS; that
+connection tries to acquire an exclusive write lock but SQLite refuses because the
+pooled connection from the previous test still holds a shared/deferred lock on the
+same file.
+
+Affected tests:
+- `test_skill_schedule_tick.py::test_tick_dispatches_due_active_schedule`
+- `test_skill_schedule_tick.py::test_tick_dedups_within_window`
+- `test_skill_schedule_tick.py::test_tick_updates_next_run_at_after_dispatch`
+- `test_skill_schedule_tick.py::test_tick_creates_queue_entries`
+- `test_rc_validation_contract.py::test_scheduler_tick_returns_200`
+- `test_ui_replay_audit_service.py::test_audit_entries_match_step_count`
+
+**Root cause:** `QueuePool` with file SQLite keeps physical connections open between
+tests, causing OS-level write-lock conflicts between consecutive test sessions.
+
+**Fix (Sprint 33):** `erpguard/db/session.py` now uses `NullPool` for file SQLite
+so `session.close()` physically closes the underlying `sqlite3` connection and
+releases all OS-level locks immediately. `PRAGMA journal_mode=WAL` and
+`PRAGMA busy_timeout=30000` are also set on each new connection for additional
+concurrency robustness.
+
+**Status:** Fixed in commit for Sprint 33.
 
 ## Previous gaps (resolved in earlier sprints)
 

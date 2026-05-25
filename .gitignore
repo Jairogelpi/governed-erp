@@ -4,4 +4,9 @@ __pycache__/
 .pytest_cache/
 *.pyc
 *.db
+*.db-journal
+*.db-wal
+*.db-shm
 .claude/
+# Local Pi runtime state
+.atl/
