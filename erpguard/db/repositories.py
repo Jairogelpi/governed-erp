@@ -3638,3 +3638,86 @@ def list_agent_candidate_approval_events_for_version(
         .order_by(AgentCandidateApprovalEvent.created_at.asc())
         .all()
     )
+
+
+# Sprint 36 — Agent Candidate Human Decision & Activation Gate Bridge
+
+def create_agent_candidate_decision(
+    session: Session,
+    *,
+    version_id: str,
+    decision: str,
+    actor: str,
+    rationale: str = "",
+    detail_json: str = "{}",
+) -> "AgentCandidateDecision":
+    from erpguard.db.models import AgentCandidateDecision
+    row = AgentCandidateDecision(
+        id=f"acd_{uuid4().hex[:16]}",
+        version_id=version_id,
+        decision=decision,
+        actor=actor,
+        rationale=rationale,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_agent_candidate_decisions_for_version(
+    session: Session, version_id: str
+) -> list["AgentCandidateDecision"]:
+    from erpguard.db.models import AgentCandidateDecision
+    return (
+        session.query(AgentCandidateDecision)
+        .filter(AgentCandidateDecision.version_id == version_id)
+        .order_by(AgentCandidateDecision.created_at.asc())
+        .all()
+    )
+
+
+def get_latest_agent_candidate_decision(
+    session: Session, version_id: str
+) -> "AgentCandidateDecision | None":
+    from erpguard.db.models import AgentCandidateDecision
+    return (
+        session.query(AgentCandidateDecision)
+        .filter(AgentCandidateDecision.version_id == version_id)
+        .order_by(AgentCandidateDecision.created_at.desc())
+        .first()
+    )
+
+
+def create_agent_candidate_decision_event(
+    session: Session,
+    version_id: str,
+    step: str,
+    status: str,
+    detail_json: str = "{}",
+) -> "AgentCandidateDecisionEvent":
+    from erpguard.db.models import AgentCandidateDecisionEvent
+    row = AgentCandidateDecisionEvent(
+        id=f"acde_{uuid4().hex[:16]}",
+        version_id=version_id,
+        step=step,
+        status=status,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_agent_candidate_decision_events_for_version(
+    session: Session, version_id: str
+) -> list["AgentCandidateDecisionEvent"]:
+    from erpguard.db.models import AgentCandidateDecisionEvent
+    return (
+        session.query(AgentCandidateDecisionEvent)
+        .filter(AgentCandidateDecisionEvent.version_id == version_id)
+        .order_by(AgentCandidateDecisionEvent.created_at.asc())
+        .all()
+    )

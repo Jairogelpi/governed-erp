@@ -763,6 +763,22 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Conversational Agent Builder — Human Decision &amp; Activation Gate</h2>
+        <p>
+          Sprint 36 — Record human decision (approve/reject/request_changes) and evaluate activation gate.
+          <strong>No automatic activation. No execution. No ERP writes. Advisory only.</strong>
+        </p>
+        <div class="toolbar">
+          <button id="submitDecision">39. Submit Decision</button>
+          <button id="decisionHistory">40. Decision History</button>
+          <button id="activationGate">41. Activation Gate</button>
+          <button id="governanceSummary">42. Governance Summary</button>
+          <button id="decisionAudit">43. Decision Audit</button>
+        </div>
+        <pre id="decisionOutput">No decision data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -4580,6 +4596,61 @@ selectors captured: none</pre>
         `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/approval-audit`
       );
       approvalOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 36 — Human Decision & Activation Gate ──────────────────────────
+    const decisionOut = () => document.getElementById("decisionOutput");
+
+    document.getElementById("submitDecision").addEventListener("click", async () => {
+      if (!cabState.versionId) { decisionOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const decision = prompt("Decision (approve / reject / request_changes):", "approve");
+      if (!decision) return;
+      const actor = prompt("Actor (your username):", "human_reviewer");
+      if (!actor) return;
+      const rationale = prompt("Rationale (optional):", "");
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/decision`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ decision, actor, rationale: rationale || "" }),
+        }
+      );
+      const body = await r.json();
+      if (body.decision_id) cabState.decisionId = body.decision_id;
+      decisionOut().textContent = jsonText(body);
+    });
+
+    document.getElementById("decisionHistory").addEventListener("click", async () => {
+      if (!cabState.versionId) { decisionOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/decision-history`
+      );
+      decisionOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("activationGate").addEventListener("click", async () => {
+      if (!cabState.versionId) { decisionOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/activation-gate`
+      );
+      decisionOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("governanceSummary").addEventListener("click", async () => {
+      if (!cabState.versionId) { decisionOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/governance-summary`
+      );
+      decisionOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("decisionAudit").addEventListener("click", async () => {
+      if (!cabState.versionId) { decisionOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/decision-audit`
+      );
+      decisionOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>
