@@ -831,6 +831,25 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Semantic Skill Discovery &amp; Recommendations</h2>
+        <p>
+          Sprint 40 — Search the governed skill registry, find similar workflows,
+          understand governance gaps, and receive safe next-step recommendations.
+          <strong>Advisory only. No execution. No ERP writes.</strong>
+        </p>
+        <div class="toolbar">
+          <label>Search query <input id="discoveryQuery" type="text" value="formula" style="width:160px"/></label>
+          <button id="discoverySearch">59. Search Skills</button>
+          <button id="discoverySimilar">60. Similar Skills</button>
+          <button id="discoveryLifecycle">61. Lifecycle Summary</button>
+          <button id="discoveryGaps">62. Governance Gaps</button>
+          <button id="discoveryRecs">63. Recommendations</button>
+          <button id="discoveryReuse">64. Reuse Suggestions</button>
+        </div>
+        <pre id="discoveryOutput">No discovery data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -4851,6 +4870,62 @@ selectors captured: none</pre>
         `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/run-preview/audit`
       );
       runPreviewOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 40 — Semantic Skill Discovery ───────────────────────────────────
+    const discoveryOut = () => document.getElementById("discoveryOutput");
+    const discoveryQuery = () => document.getElementById("discoveryQuery").value.trim() || "formula";
+
+    document.getElementById("discoverySearch").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/agent-builder/discovery/search`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({query: discoveryQuery(), limit: 10}),
+      });
+      discoveryOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("discoverySimilar").addEventListener("click", async () => {
+      if (!cabState.versionId) { discoveryOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(`${currentBaseUrl()}/v1/agent-builder/discovery/similar-skills`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({version_id: cabState.versionId, limit: 5}),
+      });
+      discoveryOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("discoveryLifecycle").addEventListener("click", async () => {
+      if (!cabState.versionId) { discoveryOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/discovery/skills/${cabState.versionId}/lifecycle-summary`
+      );
+      discoveryOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("discoveryGaps").addEventListener("click", async () => {
+      if (!cabState.versionId) { discoveryOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/discovery/skills/${cabState.versionId}/governance-gaps`
+      );
+      discoveryOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("discoveryRecs").addEventListener("click", async () => {
+      if (!cabState.versionId) { discoveryOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/discovery/skills/${cabState.versionId}/recommendations`
+      );
+      discoveryOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("discoveryReuse").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/agent-builder/discovery/reuse-suggestions`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({query: discoveryQuery(), version_id: cabState.versionId || null, limit: 5}),
+      });
+      discoveryOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>

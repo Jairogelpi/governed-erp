@@ -2792,6 +2792,24 @@ def list_ui_skill_version_lifecycle_events(session: Session, version_id: str) ->
     )
 
 
+def list_all_ui_skill_version_records(
+    session: Session,
+    *,
+    status_filter: str | None = None,
+    runtime_type_filter: str | None = None,
+    active_only: bool = False,
+    limit: int = 200,
+) -> list[UISkillVersionRecord]:
+    q = session.query(UISkillVersionRecord)
+    if status_filter:
+        q = q.filter(UISkillVersionRecord.status == status_filter)
+    if runtime_type_filter:
+        q = q.filter(UISkillVersionRecord.runtime_type == runtime_type_filter)
+    if active_only:
+        q = q.filter(UISkillVersionRecord.is_active.is_(True))
+    return list(q.order_by(UISkillVersionRecord.created_at.desc()).limit(limit).all())
+
+
 # Sprint 24 — Active Skill Runner & Manual Runs
 
 def create_active_skill_run(
