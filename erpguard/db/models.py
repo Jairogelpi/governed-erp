@@ -1389,3 +1389,29 @@ class AgentCandidateDecisionEvent(Base):
     status: Mapped[str] = mapped_column(Text, nullable=False)
     detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 37 — Explicit Agent Candidate Activation Request
+
+class AgentCandidateActivationRequest(Base):
+    __tablename__ = "agent_candidate_activation_requests"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    requested_by: Mapped[str] = mapped_column(Text, nullable=False)
+    rationale: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    request_status: Mapped[str] = mapped_column(Text, nullable=False, default="pending_review")
+    detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class AgentCandidateActivationRequestEvent(Base):
+    __tablename__ = "agent_candidate_activation_request_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    step: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

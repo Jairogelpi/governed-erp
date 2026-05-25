@@ -3721,3 +3721,75 @@ def list_agent_candidate_decision_events_for_version(
         .order_by(AgentCandidateDecisionEvent.created_at.asc())
         .all()
     )
+
+
+# Sprint 37 — Explicit Agent Candidate Activation Request
+
+def create_agent_candidate_activation_request(
+    session: Session,
+    *,
+    version_id: str,
+    skill_id: str,
+    requested_by: str,
+    rationale: str = "",
+    detail_json: str = "{}",
+) -> "AgentCandidateActivationRequest":
+    from erpguard.db.models import AgentCandidateActivationRequest
+    row = AgentCandidateActivationRequest(
+        id=f"acar_{uuid4().hex[:16]}",
+        version_id=version_id,
+        skill_id=skill_id,
+        requested_by=requested_by,
+        rationale=rationale,
+        request_status="pending_review",
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_agent_candidate_activation_request_by_version(
+    session: Session, version_id: str
+) -> "AgentCandidateActivationRequest | None":
+    from erpguard.db.models import AgentCandidateActivationRequest
+    return (
+        session.query(AgentCandidateActivationRequest)
+        .filter(AgentCandidateActivationRequest.version_id == version_id)
+        .order_by(AgentCandidateActivationRequest.created_at.desc())
+        .first()
+    )
+
+
+def create_agent_candidate_activation_request_event(
+    session: Session,
+    version_id: str,
+    step: str,
+    status: str,
+    detail_json: str = "{}",
+) -> "AgentCandidateActivationRequestEvent":
+    from erpguard.db.models import AgentCandidateActivationRequestEvent
+    row = AgentCandidateActivationRequestEvent(
+        id=f"acare_{uuid4().hex[:16]}",
+        version_id=version_id,
+        step=step,
+        status=status,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_agent_candidate_activation_request_events_for_version(
+    session: Session, version_id: str
+) -> list["AgentCandidateActivationRequestEvent"]:
+    from erpguard.db.models import AgentCandidateActivationRequestEvent
+    return (
+        session.query(AgentCandidateActivationRequestEvent)
+        .filter(AgentCandidateActivationRequestEvent.version_id == version_id)
+        .order_by(AgentCandidateActivationRequestEvent.created_at.asc())
+        .all()
+    )
