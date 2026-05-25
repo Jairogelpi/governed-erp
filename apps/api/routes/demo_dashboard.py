@@ -729,6 +729,23 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Conversational Agent Builder — Version Handoff</h2>
+        <p>
+          Sprint 34 — Convert approved handoff packet into a governed candidate skill version.
+          <strong>Candidate only. Not approved. Not active. Not executed. Advisory only.</strong>
+        </p>
+        <div class="toolbar">
+          <button id="versionEligibility">27. Version Eligibility</button>
+          <button id="candidatePreview">28. Candidate Preview</button>
+          <button id="createCandidateVersion">29. Create Candidate</button>
+          <button id="attachEvidence">30. Attach Evidence</button>
+          <button id="candidateReadiness">31. Candidate Readiness</button>
+          <button id="versionAudit">32. Version Audit</button>
+        </div>
+        <pre id="versionOutput">No version handoff data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -4424,7 +4441,9 @@ selectors captured: none</pre>
         `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/handoff/packet`,
         { method: "POST" }
       );
-      handoffOut().textContent = jsonText(await r.json());
+      const body = await r.json();
+      if (body.packet_id) cabState.packetId = body.packet_id;
+      handoffOut().textContent = jsonText(body);
     });
 
     document.getElementById("handoffAudit").addEventListener("click", async () => {
@@ -4433,6 +4452,62 @@ selectors captured: none</pre>
         `${currentBaseUrl()}/v1/agent-builder/advisory/drafts/${cabState.draftId}/handoff/audit`
       );
       handoffOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 34 — Version Handoff ─────────────────────────────────────────
+    const versionOut = () => document.getElementById("versionOutput");
+
+    document.getElementById("versionEligibility").addEventListener("click", async () => {
+      if (!cabState.packetId) { versionOut().textContent = "Create a handoff packet first (step 25)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/handoff-packets/${cabState.packetId}/version-eligibility`
+      );
+      versionOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("candidatePreview").addEventListener("click", async () => {
+      if (!cabState.packetId) { versionOut().textContent = "Create a handoff packet first (step 25)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/handoff-packets/${cabState.packetId}/candidate-preview`,
+        { method: "POST" }
+      );
+      versionOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("createCandidateVersion").addEventListener("click", async () => {
+      if (!cabState.packetId) { versionOut().textContent = "Create a handoff packet first (step 25)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/handoff-packets/${cabState.packetId}/create-candidate-version`,
+        { method: "POST" }
+      );
+      const body = await r.json();
+      if (body.version_id) cabState.versionId = body.version_id;
+      versionOut().textContent = jsonText(body);
+    });
+
+    document.getElementById("attachEvidence").addEventListener("click", async () => {
+      if (!cabState.packetId) { versionOut().textContent = "Create a handoff packet first (step 25)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/handoff-packets/${cabState.packetId}/attach-evidence`,
+        { method: "POST" }
+      );
+      versionOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("candidateReadiness").addEventListener("click", async () => {
+      if (!cabState.packetId) { versionOut().textContent = "Create a handoff packet first (step 25)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/handoff-packets/${cabState.packetId}/candidate-readiness`
+      );
+      versionOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("versionAudit").addEventListener("click", async () => {
+      if (!cabState.packetId) { versionOut().textContent = "Create a handoff packet first (step 25)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/handoff-packets/${cabState.packetId}/version-audit`
+      );
+      versionOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>

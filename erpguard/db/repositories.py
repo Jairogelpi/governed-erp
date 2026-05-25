@@ -2686,6 +2686,8 @@ def create_ui_skill_version_record(
     steps_json: str = "[]",
     guard_names_json: str = "[]",
     replay_run_id: str | None = None,
+    runtime_type: str = "deterministic_ui",
+    llm_required: bool = False,
 ) -> UISkillVersionRecord:
     version_number = (
         session.query(UISkillVersionRecord)
@@ -2703,8 +2705,8 @@ def create_ui_skill_version_record(
         guard_names_json=guard_names_json,
         replay_run_id=replay_run_id,
         promotion_readiness_json="{}",
-        llm_required=False,
-        runtime_type="deterministic_ui",
+        llm_required=llm_required,
+        runtime_type=runtime_type,
         is_active=False,
     )
     session.add(row)
@@ -3491,4 +3493,80 @@ def get_latest_agent_draft_handoff_packet(
         .filter(AgentDraftHandoffPacket.draft_id == draft_id)
         .order_by(AgentDraftHandoffPacket.created_at.desc())
         .first()
+    )
+
+
+def get_agent_draft_handoff_packet_by_id(
+    session: Session, packet_id: str
+) -> AgentDraftHandoffPacket | None:
+    return session.get(AgentDraftHandoffPacket, packet_id)
+
+
+# Sprint 34 — Agent-to-Skill Versioning Handoff
+
+def create_agent_handoff_version_link(
+    session: Session,
+    *,
+    packet_id: str,
+    draft_id: str,
+    proposal_id: str,
+    version_id: str,
+    skill_id: str,
+) -> "AgentHandoffVersionLink":
+    from erpguard.db.models import AgentHandoffVersionLink
+    row = AgentHandoffVersionLink(
+        id=f"ahvl_{uuid4().hex[:16]}",
+        packet_id=packet_id,
+        draft_id=draft_id,
+        proposal_id=proposal_id,
+        version_id=version_id,
+        skill_id=skill_id,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_agent_handoff_version_link_by_packet(
+    session: Session, packet_id: str
+) -> "AgentHandoffVersionLink | None":
+    from erpguard.db.models import AgentHandoffVersionLink
+    return (
+        session.query(AgentHandoffVersionLink)
+        .filter(AgentHandoffVersionLink.packet_id == packet_id)
+        .first()
+    )
+
+
+def create_agent_handoff_version_event(
+    session: Session,
+    packet_id: str,
+    step: str,
+    status: str,
+    detail_json: str = "{}",
+) -> "AgentHandoffVersionEvent":
+    from erpguard.db.models import AgentHandoffVersionEvent
+    row = AgentHandoffVersionEvent(
+        id=f"ahve_{uuid4().hex[:16]}",
+        packet_id=packet_id,
+        step=step,
+        status=status,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_agent_handoff_version_events_for_packet(
+    session: Session, packet_id: str
+) -> list["AgentHandoffVersionEvent"]:
+    from erpguard.db.models import AgentHandoffVersionEvent
+    return (
+        session.query(AgentHandoffVersionEvent)
+        .filter(AgentHandoffVersionEvent.packet_id == packet_id)
+        .order_by(AgentHandoffVersionEvent.created_at.asc())
+        .all()
     )

@@ -1315,3 +1315,28 @@ class AgentDraftHandoffPacket(Base):
     status: Mapped[str] = mapped_column(Text, nullable=False, default="pending_human_review")
     packet_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 34 — Agent-to-Skill Versioning Handoff
+
+class AgentHandoffVersionLink(Base):
+    __tablename__ = "agent_handoff_version_links"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    packet_id: Mapped[str] = mapped_column(Text, nullable=False)
+    draft_id: Mapped[str] = mapped_column(Text, nullable=False)
+    proposal_id: Mapped[str] = mapped_column(Text, nullable=False)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class AgentHandoffVersionEvent(Base):
+    __tablename__ = "agent_handoff_version_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    packet_id: Mapped[str] = mapped_column(Text, nullable=False)
+    step: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
