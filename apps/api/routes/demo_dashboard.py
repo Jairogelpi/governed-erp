@@ -813,6 +813,24 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Conversational Agent Builder — Manual Run Preview</h2>
+        <p>
+          Sprint 39 — Preview a manual run for an active agent skill version.
+          Validates the active runner, builds an execution plan, checks gates, and returns
+          <code>execution_ready</code>. No actions are executed.
+          <strong>No execution. No ERP writes. No browser. Advisory only.</strong>
+        </p>
+        <div class="toolbar">
+          <button id="runPreviewEligibility">54. Run Preview Eligibility</button>
+          <button id="buildRunPlan">55. Build Run Plan</button>
+          <button id="executionGate">56. Execution Gate</button>
+          <button id="runPreview">57. Full Run Preview</button>
+          <button id="runPreviewAudit">58. Preview Audit</button>
+        </div>
+        <pre id="runPreviewOutput">No run preview data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -4788,6 +4806,51 @@ selectors captured: none</pre>
         `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/activation/summary`
       );
       activationOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 39 — Manual Run Preview ────────────────────────────────────────
+    const runPreviewOut = () => document.getElementById("runPreviewOutput");
+
+    document.getElementById("runPreviewEligibility").addEventListener("click", async () => {
+      if (!cabState.versionId) { runPreviewOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/run-preview/eligibility`
+      );
+      runPreviewOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("buildRunPlan").addEventListener("click", async () => {
+      if (!cabState.versionId) { runPreviewOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/run-preview/plan`,
+        { method: "POST" }
+      );
+      runPreviewOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("executionGate").addEventListener("click", async () => {
+      if (!cabState.versionId) { runPreviewOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/run-preview/execution-gate`
+      );
+      runPreviewOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("runPreview").addEventListener("click", async () => {
+      if (!cabState.versionId) { runPreviewOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/run-preview`,
+        { method: "POST" }
+      );
+      runPreviewOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("runPreviewAudit").addEventListener("click", async () => {
+      if (!cabState.versionId) { runPreviewOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/run-preview/audit`
+      );
+      runPreviewOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>

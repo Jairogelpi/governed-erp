@@ -3831,3 +3831,41 @@ def list_agent_candidate_activation_events_for_version(
         .order_by(AgentCandidateActivationEvent.created_at.asc())
         .all()
     )
+
+
+# Sprint 39 — Explicit Active Agent Skill Manual Run Preview
+
+def create_agent_skill_run_preview_event(
+    session: Session,
+    *,
+    version_id: str,
+    skill_id: str,
+    step: str,
+    status: str,
+    detail_json: str = "{}",
+) -> "AgentSkillRunPreviewEvent":
+    from erpguard.db.models import AgentSkillRunPreviewEvent
+    row = AgentSkillRunPreviewEvent(
+        id=f"asrpe_{uuid4().hex[:16]}",
+        version_id=version_id,
+        skill_id=skill_id,
+        step=step,
+        status=status,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_agent_skill_run_preview_events_for_version(
+    session: Session, version_id: str
+) -> list["AgentSkillRunPreviewEvent"]:
+    from erpguard.db.models import AgentSkillRunPreviewEvent
+    return (
+        session.query(AgentSkillRunPreviewEvent)
+        .filter(AgentSkillRunPreviewEvent.version_id == version_id)
+        .order_by(AgentSkillRunPreviewEvent.created_at.asc())
+        .all()
+    )

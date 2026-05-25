@@ -28,6 +28,7 @@ from apps.api.routes.agent_candidate_approval import router as agent_candidate_a
 from apps.api.routes.agent_candidate_decision import router as agent_candidate_decision_router
 from apps.api.routes.agent_candidate_activation_request import router as agent_candidate_activation_request_router
 from apps.api.routes.agent_candidate_activation import router as agent_candidate_activation_router
+from apps.api.routes.agent_skill_run_preview import router as agent_skill_run_preview_router
 from apps.api.routes.connector_auth import router as connector_auth_router
 from apps.api.routes.external_connectors import router as external_connectors_router
 from apps.api.routes.google_calendar_oauth import router as google_calendar_oauth_router
@@ -76,6 +77,7 @@ app.include_router(agent_candidate_approval_router)
 app.include_router(agent_candidate_decision_router)
 app.include_router(agent_candidate_activation_request_router)
 app.include_router(agent_candidate_activation_router)
+app.include_router(agent_skill_run_preview_router)
 app.include_router(connector_auth_router)
 app.include_router(external_connectors_router)
 app.include_router(google_calendar_oauth_router)
