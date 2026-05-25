@@ -24,6 +24,7 @@ from apps.api.routes.agent_clarifications import router as agent_clarifications_
 from apps.api.routes.agent_draft_bridge import router as agent_draft_bridge_router
 from apps.api.routes.agent_draft_handoff import router as agent_draft_handoff_router
 from apps.api.routes.agent_handoff_versioning import router as agent_handoff_versioning_router
+from apps.api.routes.agent_candidate_approval import router as agent_candidate_approval_router
 from apps.api.routes.connector_auth import router as connector_auth_router
 from apps.api.routes.external_connectors import router as external_connectors_router
 from apps.api.routes.google_calendar_oauth import router as google_calendar_oauth_router
@@ -68,6 +69,7 @@ app.include_router(agent_clarifications_router)
 app.include_router(agent_draft_bridge_router)
 app.include_router(agent_draft_handoff_router)
 app.include_router(agent_handoff_versioning_router)
+app.include_router(agent_candidate_approval_router)
 app.include_router(connector_auth_router)
 app.include_router(external_connectors_router)
 app.include_router(google_calendar_oauth_router)

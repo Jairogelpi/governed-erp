@@ -3570,3 +3570,71 @@ def list_agent_handoff_version_events_for_packet(
         .order_by(AgentHandoffVersionEvent.created_at.asc())
         .all()
     )
+
+
+# Sprint 35 — Agent Candidate Promotion Readiness & Human Approval Bridge
+
+def create_agent_candidate_approval_packet(
+    session: Session,
+    *,
+    version_id: str,
+    skill_id: str,
+    packet_json: str = "{}",
+) -> "AgentCandidateApprovalPacket":
+    from erpguard.db.models import AgentCandidateApprovalPacket
+    row = AgentCandidateApprovalPacket(
+        id=f"acap_{uuid4().hex[:16]}",
+        version_id=version_id,
+        skill_id=skill_id,
+        packet_json=packet_json,
+        status="pending_human_review",
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_agent_candidate_approval_packet_by_version(
+    session: Session, version_id: str
+) -> "AgentCandidateApprovalPacket | None":
+    from erpguard.db.models import AgentCandidateApprovalPacket
+    return (
+        session.query(AgentCandidateApprovalPacket)
+        .filter(AgentCandidateApprovalPacket.version_id == version_id)
+        .order_by(AgentCandidateApprovalPacket.created_at.desc())
+        .first()
+    )
+
+
+def create_agent_candidate_approval_event(
+    session: Session,
+    version_id: str,
+    step: str,
+    status: str,
+    detail_json: str = "{}",
+) -> "AgentCandidateApprovalEvent":
+    from erpguard.db.models import AgentCandidateApprovalEvent
+    row = AgentCandidateApprovalEvent(
+        id=f"acae_{uuid4().hex[:16]}",
+        version_id=version_id,
+        step=step,
+        status=status,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_agent_candidate_approval_events_for_version(
+    session: Session, version_id: str
+) -> list["AgentCandidateApprovalEvent"]:
+    from erpguard.db.models import AgentCandidateApprovalEvent
+    return (
+        session.query(AgentCandidateApprovalEvent)
+        .filter(AgentCandidateApprovalEvent.version_id == version_id)
+        .order_by(AgentCandidateApprovalEvent.created_at.asc())
+        .all()
+    )

@@ -1340,3 +1340,27 @@ class AgentHandoffVersionEvent(Base):
     status: Mapped[str] = mapped_column(Text, nullable=False)
     detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 35 — Agent Candidate Promotion Readiness & Human Approval Bridge
+
+class AgentCandidateApprovalPacket(Base):
+    __tablename__ = "agent_candidate_approval_packets"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    packet_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="pending_human_review")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class AgentCandidateApprovalEvent(Base):
+    __tablename__ = "agent_candidate_approval_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    step: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

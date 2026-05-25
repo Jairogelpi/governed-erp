@@ -746,6 +746,23 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Conversational Agent Builder — Candidate Approval Bridge</h2>
+        <p>
+          Sprint 35 — Connects the agent-sourced candidate to the human approval workflow.
+          <strong>Candidate only. No auto-approve. No activation. No execution. Advisory only.</strong>
+        </p>
+        <div class="toolbar">
+          <button id="promotionReadiness">33. Promotion Readiness</button>
+          <button id="evidenceCompleteness">34. Evidence Completeness</button>
+          <button id="riskSummary">35. Risk Summary</button>
+          <button id="approvalPacket">36. Approval Packet</button>
+          <button id="approvalRequest">37. Approval Request</button>
+          <button id="approvalAudit">38. Approval Audit</button>
+        </div>
+        <pre id="approvalOutput">No approval bridge data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -4508,6 +4525,61 @@ selectors captured: none</pre>
         `${currentBaseUrl()}/v1/agent-builder/advisory/handoff-packets/${cabState.packetId}/version-audit`
       );
       versionOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 35 — Candidate Approval Bridge ────────────────────────────────
+    const approvalOut = () => document.getElementById("approvalOutput");
+
+    document.getElementById("promotionReadiness").addEventListener("click", async () => {
+      if (!cabState.versionId) { approvalOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/promotion-readiness`
+      );
+      approvalOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("evidenceCompleteness").addEventListener("click", async () => {
+      if (!cabState.versionId) { approvalOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/evidence-completeness`
+      );
+      approvalOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("riskSummary").addEventListener("click", async () => {
+      if (!cabState.versionId) { approvalOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/risk-summary`
+      );
+      approvalOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("approvalPacket").addEventListener("click", async () => {
+      if (!cabState.versionId) { approvalOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/approval-packet`,
+        { method: "POST" }
+      );
+      const body = await r.json();
+      if (body.approval_packet_id) cabState.approvalPacketId = body.approval_packet_id;
+      approvalOut().textContent = jsonText(body);
+    });
+
+    document.getElementById("approvalRequest").addEventListener("click", async () => {
+      if (!cabState.versionId) { approvalOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/approval-request`,
+        { method: "POST" }
+      );
+      approvalOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("approvalAudit").addEventListener("click", async () => {
+      if (!cabState.versionId) { approvalOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/approval-audit`
+      );
+      approvalOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>
