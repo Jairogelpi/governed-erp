@@ -850,6 +850,26 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Conversational Operator Console</h2>
+        <p>
+          Sprint 41 — Ask in natural language: which skills are active, what's similar to this,
+          what's missing before activation, what's the next safe step.
+          Rule-based intent detection, no LLM runtime.
+          <strong>Advisory only. No execution. No ERP writes.</strong>
+        </p>
+        <div class="toolbar">
+          <button id="consoleCreateSession">65. Start Console Session</button>
+          <button id="consoleListIntents">66. List Supported Intents</button>
+        </div>
+        <div class="toolbar">
+          <label>Query <input id="consoleQuery" type="text" value="¿Qué skills tengo activas?" style="width:300px"/></label>
+          <button id="consoleAsk">67. Ask</button>
+          <button id="consoleHistory">68. Query History</button>
+        </div>
+        <pre id="consoleOutput">No console data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -4926,6 +4946,43 @@ selectors captured: none</pre>
         body: JSON.stringify({query: discoveryQuery(), version_id: cabState.versionId || null, limit: 5}),
       });
       discoveryOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 41 — Conversational Operator Console ────────────────────────────
+    const consoleOut = () => document.getElementById("consoleOutput");
+    let consoleSessionId = null;
+
+    document.getElementById("consoleCreateSession").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator/console/sessions`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({actor: "operator"}),
+      });
+      const body = await r.json();
+      consoleSessionId = body.session_id;
+      consoleOut().textContent = jsonText(body);
+    });
+
+    document.getElementById("consoleListIntents").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator/console/intents`);
+      consoleOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("consoleAsk").addEventListener("click", async () => {
+      if (!consoleSessionId) { consoleOut().textContent = "Start a console session first (65)."; return; }
+      const query = document.getElementById("consoleQuery").value.trim() || "¿Qué skills tengo activas?";
+      const r = await fetch(`${currentBaseUrl()}/v1/operator/console/query`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({query, session_id: consoleSessionId, version_id: cabState.versionId || null}),
+      });
+      consoleOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("consoleHistory").addEventListener("click", async () => {
+      if (!consoleSessionId) { consoleOut().textContent = "Start a console session first (65)."; return; }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator/console/sessions/${consoleSessionId}/history`);
+      consoleOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>

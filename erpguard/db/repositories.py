@@ -88,6 +88,8 @@ from erpguard.db.models import (
     SkillScheduleEvent,
     SkillRunQueueEntry,
     OperatorEvidencePack,
+    OperatorConsoleSession,
+    OperatorConsoleQuery,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -3885,5 +3887,57 @@ def list_agent_skill_run_preview_events_for_version(
         session.query(AgentSkillRunPreviewEvent)
         .filter(AgentSkillRunPreviewEvent.version_id == version_id)
         .order_by(AgentSkillRunPreviewEvent.created_at.asc())
+        .all()
+    )
+
+
+# Sprint 41 - Conversational Operator Console
+
+def create_operator_console_session(session: Session, *, actor: str = "operator") -> OperatorConsoleSession:
+    from uuid import uuid4
+    row = OperatorConsoleSession(id=f"ocses_{uuid4().hex[:16]}", actor=actor)
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_operator_console_session(session: Session, session_id: str) -> OperatorConsoleSession | None:
+    return session.get(OperatorConsoleSession, session_id)
+
+
+def create_operator_console_query(
+    session: Session,
+    *,
+    session_id: str,
+    query_text: str,
+    detected_intent: str = "unknown",
+    intent_confidence: float = 0.0,
+    version_id_context: str | None = None,
+    response_summary: str = "",
+    result_type: str = "",
+) -> OperatorConsoleQuery:
+    from uuid import uuid4
+    row = OperatorConsoleQuery(
+        id=f"ocqry_{uuid4().hex[:16]}",
+        session_id=session_id,
+        query_text=query_text,
+        detected_intent=detected_intent,
+        intent_confidence=intent_confidence,
+        version_id_context=version_id_context,
+        response_summary=response_summary,
+        result_type=result_type,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_operator_console_queries(session: Session, session_id: str) -> list[OperatorConsoleQuery]:
+    return list(
+        session.query(OperatorConsoleQuery)
+        .filter(OperatorConsoleQuery.session_id == session_id)
+        .order_by(OperatorConsoleQuery.created_at.asc())
         .all()
     )

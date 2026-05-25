@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Integer, Text
+from sqlalchemy import Boolean, DateTime, Float, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from erpguard.db.base import Base
@@ -1442,4 +1442,28 @@ class AgentSkillRunPreviewEvent(Base):
     step: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(Text, nullable=False)
     detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 41 — Conversational Operator Console
+
+class OperatorConsoleSession(Base):
+    __tablename__ = "operator_console_sessions"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    actor: Mapped[str] = mapped_column(Text, nullable=False, default="operator")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class OperatorConsoleQuery(Base):
+    __tablename__ = "operator_console_queries"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    query_text: Mapped[str] = mapped_column(Text, nullable=False)
+    detected_intent: Mapped[str] = mapped_column(Text, nullable=False, default="unknown")
+    intent_confidence: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    version_id_context: Mapped[str | None] = mapped_column(Text, nullable=True)
+    response_summary: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    result_type: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
