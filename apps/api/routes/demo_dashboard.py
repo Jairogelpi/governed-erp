@@ -796,6 +796,23 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Conversational Agent Builder — Explicit Candidate Activation</h2>
+        <p>
+          Sprint 38 — Activate a governed candidate version after explicit request and final gate.
+          Activation marks the version as active-governed. It does not execute it.
+          <strong>No execution. No scheduling. No ERP writes. Advisory only.</strong>
+        </p>
+        <div class="toolbar">
+          <button id="activationReadiness">49. Activation Eligibility</button>
+          <button id="activateCandidate">50. Activate Candidate</button>
+          <button id="activationStatus">51. Activation Status</button>
+          <button id="activationAudit">52. Activation Audit</button>
+          <button id="postActivationSummary">53. Post-Activation Summary</button>
+        </div>
+        <pre id="activationOutput">No activation data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -4721,6 +4738,56 @@ selectors captured: none</pre>
         `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/activation-request/audit`
       );
       activationReqOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 38 — Explicit Candidate Activation ─────────────────────────────
+    const activationOut = () => document.getElementById("activationOutput");
+
+    document.getElementById("activationReadiness").addEventListener("click", async () => {
+      if (!cabState.versionId) { activationOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/activation/eligibility`
+      );
+      activationOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("activateCandidate").addEventListener("click", async () => {
+      if (!cabState.versionId) { activationOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const actor = prompt("Actor (operator username):", "governance_operator");
+      if (!actor) return;
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/activation/activate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ actor }),
+        }
+      );
+      activationOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("activationStatus").addEventListener("click", async () => {
+      if (!cabState.versionId) { activationOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/activation/status`
+      );
+      activationOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("activationAudit").addEventListener("click", async () => {
+      if (!cabState.versionId) { activationOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/activation/audit`
+      );
+      activationOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("postActivationSummary").addEventListener("click", async () => {
+      if (!cabState.versionId) { activationOut().textContent = "Create a candidate version first (step 29)."; return; }
+      const r = await fetch(
+        `${currentBaseUrl()}/v1/agent-builder/advisory/candidates/${cabState.versionId}/activation/summary`
+      );
+      activationOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>

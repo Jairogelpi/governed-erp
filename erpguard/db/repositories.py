@@ -3793,3 +3793,41 @@ def list_agent_candidate_activation_request_events_for_version(
         .order_by(AgentCandidateActivationRequestEvent.created_at.asc())
         .all()
     )
+
+
+# Sprint 38 — Explicit Candidate Activation Without Execution
+
+def create_agent_candidate_activation_event(
+    session: Session,
+    *,
+    version_id: str,
+    skill_id: str,
+    step: str,
+    status: str,
+    detail_json: str = "{}",
+) -> "AgentCandidateActivationEvent":
+    from erpguard.db.models import AgentCandidateActivationEvent
+    row = AgentCandidateActivationEvent(
+        id=f"acav_{uuid4().hex[:16]}",
+        version_id=version_id,
+        skill_id=skill_id,
+        step=step,
+        status=status,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_agent_candidate_activation_events_for_version(
+    session: Session, version_id: str
+) -> list["AgentCandidateActivationEvent"]:
+    from erpguard.db.models import AgentCandidateActivationEvent
+    return (
+        session.query(AgentCandidateActivationEvent)
+        .filter(AgentCandidateActivationEvent.version_id == version_id)
+        .order_by(AgentCandidateActivationEvent.created_at.asc())
+        .all()
+    )

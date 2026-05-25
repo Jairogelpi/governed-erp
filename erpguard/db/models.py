@@ -1415,3 +1415,17 @@ class AgentCandidateActivationRequestEvent(Base):
     status: Mapped[str] = mapped_column(Text, nullable=False)
     detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 38 — Explicit Candidate Activation Without Execution
+
+class AgentCandidateActivationEvent(Base):
+    __tablename__ = "agent_candidate_activation_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    step: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
