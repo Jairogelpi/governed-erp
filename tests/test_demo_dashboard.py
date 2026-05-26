@@ -18,6 +18,7 @@ def test_demo_dashboard_returns_html_and_links_full_demo():
     assert "Run History / Audit Timeline v0.5" in html
     assert "Approval Gate / Safe Action Plan v0.6" in html
     assert "Approval Decision Simulation v0.7" in html
+    assert "Confirmed Read-Only Action Dispatcher" in html
     assert "Business Analysis & Opportunity Scanner" in html
     assert "Create non-executable draft" in html
     assert "/v1/demo/full-record-to-skill-flow" in html

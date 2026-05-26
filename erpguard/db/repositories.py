@@ -93,6 +93,8 @@ from erpguard.db.models import (
     OperatorActionPlanEvent,
     ActionPlanStepToken,
     ActionDispatchEligibilityEvent,
+    ActionDispatchResultRecord,
+    ActionDispatchExecutionAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -4085,6 +4087,121 @@ def list_recent_dispatch_eligibility_events(
     return list(
         session.query(ActionDispatchEligibilityEvent)
         .order_by(ActionDispatchEligibilityEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_action_dispatch_result_record(
+    session: Session,
+    *,
+    dispatch_id: str,
+    action_key: str,
+    status: str,
+    handler_type: str,
+    endpoint_hint: str,
+    method_hint: str,
+    token_id: str | None,
+    version_id: str | None,
+    parameters_json: str,
+    result_payload_json: str,
+    result_summary: str,
+    blocking_reasons_json: str,
+    token_confirmed: bool,
+    eligibility_passed: bool,
+    dispatch_performed: bool,
+    erp_writes_performed: bool,
+    browser_control_performed: bool,
+    mcp_execution_performed: bool,
+    llm_runtime_used: bool,
+    system_state_mutated: bool,
+    skill_mutated: bool,
+    activation_performed: bool,
+    scheduling_performed: bool,
+    audit_recorded: bool,
+) -> ActionDispatchResultRecord:
+    row = ActionDispatchResultRecord(
+        id=dispatch_id,
+        action_key=action_key,
+        status=status,
+        handler_type=handler_type,
+        endpoint_hint=endpoint_hint,
+        method_hint=method_hint,
+        token_id=token_id,
+        version_id=version_id,
+        parameters_json=parameters_json,
+        result_payload_json=result_payload_json,
+        result_summary=result_summary,
+        blocking_reasons_json=blocking_reasons_json,
+        token_confirmed=token_confirmed,
+        eligibility_passed=eligibility_passed,
+        dispatch_performed=dispatch_performed,
+        erp_writes_performed=erp_writes_performed,
+        browser_control_performed=browser_control_performed,
+        mcp_execution_performed=mcp_execution_performed,
+        llm_runtime_used=llm_runtime_used,
+        system_state_mutated=system_state_mutated,
+        skill_mutated=skill_mutated,
+        activation_performed=activation_performed,
+        scheduling_performed=scheduling_performed,
+        audit_recorded=audit_recorded,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_action_dispatch_result_record(
+    session: Session, dispatch_id: str
+) -> ActionDispatchResultRecord | None:
+    return (
+        session.query(ActionDispatchResultRecord)
+        .filter(ActionDispatchResultRecord.id == dispatch_id)
+        .first()
+    )
+
+
+def create_action_dispatch_execution_audit_event(
+    session: Session,
+    *,
+    event_id: str,
+    dispatch_id: str,
+    action_key: str,
+    event_type: str,
+    status: str,
+    handler_type: str,
+    endpoint_hint: str,
+    method_hint: str,
+    token_id: str | None,
+    version_id: str | None,
+    detail_json: str,
+) -> ActionDispatchExecutionAuditEvent:
+    row = ActionDispatchExecutionAuditEvent(
+        id=event_id,
+        dispatch_id=dispatch_id,
+        action_key=action_key,
+        event_type=event_type,
+        status=status,
+        handler_type=handler_type,
+        endpoint_hint=endpoint_hint,
+        method_hint=method_hint,
+        token_id=token_id,
+        version_id=version_id,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_recent_action_dispatch_execution_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[ActionDispatchExecutionAuditEvent]:
+    return list(
+        session.query(ActionDispatchExecutionAuditEvent)
+        .order_by(ActionDispatchExecutionAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )

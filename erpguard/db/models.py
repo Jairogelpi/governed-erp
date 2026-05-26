@@ -1511,3 +1511,50 @@ class ActionDispatchEligibilityEvent(Base):
     blocked_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     policy_name: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class ActionDispatchResultRecord(Base):
+    __tablename__ = "action_dispatch_result_records"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    action_key: Mapped[str] = mapped_column(Text, nullable=False, default="unknown")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="blocked")
+    handler_type: Mapped[str] = mapped_column(Text, nullable=False, default="internal_read_only")
+    endpoint_hint: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    method_hint: Mapped[str] = mapped_column(Text, nullable=False, default="GET")
+    token_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    version_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    parameters_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    result_payload_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    result_summary: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    token_confirmed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    eligibility_passed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    dispatch_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    erp_writes_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    browser_control_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    mcp_execution_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    llm_runtime_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    system_state_mutated: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    skill_mutated: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    activation_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    scheduling_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    audit_recorded: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class ActionDispatchExecutionAuditEvent(Base):
+    __tablename__ = "action_dispatch_execution_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    dispatch_id: Mapped[str] = mapped_column(Text, nullable=False)
+    action_key: Mapped[str] = mapped_column(Text, nullable=False, default="unknown")
+    event_type: Mapped[str] = mapped_column(Text, nullable=False, default="requested")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="blocked")
+    handler_type: Mapped[str] = mapped_column(Text, nullable=False, default="internal_read_only")
+    endpoint_hint: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    method_hint: Mapped[str] = mapped_column(Text, nullable=False, default="GET")
+    token_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    version_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

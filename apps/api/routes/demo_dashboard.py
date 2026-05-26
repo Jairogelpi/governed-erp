@@ -943,6 +943,36 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Confirmed Read-Only Action Dispatcher</h2>
+        <p>
+          Sprint 45 dispatches only internal read-only handlers. It does not execute endpoints,
+          mutate skills, write ERP data, control browsers, call MCP tools or activate candidates.
+        </p>
+        <div class="toolbar">
+          <label>Plan ID <input id="dispatchExecutePlanId" type="text" value="aplan_dispatch_demo" style="width:220px"/></label>
+          <label>Step # <input id="dispatchExecuteStepNumber" type="number" value="1" style="width:70px"/></label>
+          <label>Action key <input id="dispatchExecuteActionKey" type="text" value="search_skills" style="width:180px"/></label>
+        </div>
+        <div class="toolbar">
+          <label>Endpoint hint <input id="dispatchExecuteEndpointHint" type="text" value="GET /v1/agent-builder/discovery/search" style="width:320px"/></label>
+          <label>Method hint <input id="dispatchExecuteMethodHint" type="text" value="GET" style="width:90px"/></label>
+          <label>Token ID <input id="dispatchExecuteTokenId" type="text" placeholder="tok_…" style="width:220px"/></label>
+        </div>
+        <div class="toolbar">
+          <label>Version ID <input id="dispatchExecuteVersionId" type="text" placeholder="ver_…" style="width:180px"/></label>
+          <label>Parameters JSON <input id="dispatchExecuteParameters" type="text" value='{"query":"formula"}' style="width:420px"/></label>
+        </div>
+        <div class="toolbar">
+          <button id="dispatchExecuteRun">78. Dispatch read-only action</button>
+          <label>Dispatch ID <input id="dispatchExecuteDispatchId" type="text" placeholder="disp_…" style="width:220px"/></label>
+          <button id="dispatchExecuteResult">79. Get dispatch result</button>
+          <button id="dispatchExecuteAudit">80. Dispatch execution audit</button>
+          <button id="dispatchExecuteActions">81. Dispatchable actions</button>
+        </div>
+        <pre id="dispatchExecuteOutput">No confirmed dispatch data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -5148,6 +5178,57 @@ selectors captured: none</pre>
     document.getElementById("dispatchAudit").addEventListener("click", async () => {
       const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/dispatch-audit`);
       dispatchOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 45 — Confirmed Read-Only Action Dispatcher ─────────────────────
+    const dispatchExecuteOut = () => document.getElementById("dispatchExecuteOutput");
+
+    function parseDispatchParameters() {
+      const raw = document.getElementById("dispatchExecuteParameters").value.trim();
+      if (!raw) return {};
+      return JSON.parse(raw);
+    }
+
+    document.getElementById("dispatchExecuteRun").addEventListener("click", async () => {
+      try {
+        const body = {
+          plan_id: document.getElementById("dispatchExecutePlanId").value.trim() || "aplan_dispatch_demo",
+          step_number: parseInt(document.getElementById("dispatchExecuteStepNumber").value) || 1,
+          action_key: document.getElementById("dispatchExecuteActionKey").value.trim(),
+          endpoint_hint: document.getElementById("dispatchExecuteEndpointHint").value.trim(),
+          method_hint: document.getElementById("dispatchExecuteMethodHint").value.trim() || "GET",
+          token_id: document.getElementById("dispatchExecuteTokenId").value.trim(),
+          version_id: document.getElementById("dispatchExecuteVersionId").value.trim() || null,
+          parameters: parseDispatchParameters(),
+        };
+        const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/dispatch`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(body),
+        });
+        const data = await r.json();
+        dispatchExecuteOut().textContent = jsonText(data);
+        if (data.dispatch_id) document.getElementById("dispatchExecuteDispatchId").value = data.dispatch_id;
+      } catch (err) {
+        dispatchExecuteOut().textContent = `Invalid parameters JSON: ${err.message}`;
+      }
+    });
+
+    document.getElementById("dispatchExecuteResult").addEventListener("click", async () => {
+      const dispatchId = document.getElementById("dispatchExecuteDispatchId").value.trim();
+      if (!dispatchId) { dispatchExecuteOut().textContent = "Enter a dispatch ID first."; return; }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/dispatch-results/${dispatchId}`);
+      dispatchExecuteOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("dispatchExecuteAudit").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/dispatch-execution-audit`);
+      dispatchExecuteOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("dispatchExecuteActions").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/dispatchable-actions`);
+      dispatchExecuteOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>

@@ -259,6 +259,21 @@ Simulated: an approval gate that plans the critical `confirm_sales_order` action
 
 Not implemented: real Odoo UI automation, real ERP writes, a full approval workflow, browser-extension capture, MCP, or an LLM-driven builder.
 
+## Confirmed Read-Only Action Dispatcher
+
+Sprint 45 adds the first real operator dispatch path, but only for internal read-only handlers. The server requires a confirmed token, re-checks dispatch eligibility immediately before execution, selects the handler by `action_key`, persists the dispatch result, and records execution audit evidence.
+
+Dispatch endpoints:
+
+- `POST /v1/operator-console/action-plan/dispatch`
+- `GET /v1/operator-console/action-plan/dispatch-results/{dispatch_id}`
+- `GET /v1/operator-console/action-plan/dispatch-execution-audit`
+- `GET /v1/operator-console/action-plan/dispatchable-actions`
+
+Sprint 45 dispatches only these internal advisory actions: `check_governance_gaps`, `search_skills`, `reuse_suggestions`, `inspect_lifecycle`, and `recommend_next_step`.
+
+Sprint 45 explicitly does not execute endpoint hints, call Odoo, write ERP data, control browsers, call MCP tools, use LLM runtime replay, mutate skill or lifecycle state, activate candidates, record approval decisions, create activation requests, or chain into other actions automatically.
+
 The flow is intentionally small and defensible: record -> readiness -> compile -> inspect -> run -> audit -> safe plan -> simulated decision.
 
 The core product evidence lives in the runtime features and frozen JSON artifacts, while the last two stages are simulation layers that demonstrate safety boundaries.

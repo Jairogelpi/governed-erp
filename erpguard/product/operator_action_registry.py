@@ -97,6 +97,15 @@ _REGISTRY: dict[str, ActionRegistryEntry] = {e.action_key: e for e in [
         requires_confirmed_token=False,
         safety_tier="read_only",
     ),
+    ActionRegistryEntry(
+        action_key="recommend_next_step",
+        display_name="Recommend Next Step",
+        description="Return ordered advisory next-step recommendations for a version.",
+        endpoint_template="GET /v1/agent-builder/discovery/recommendations/{version_id}",
+        method="GET",
+        requires_confirmed_token=False,
+        safety_tier="read_only",
+    ),
 ]}
 
 
@@ -115,6 +124,8 @@ _NORMALIZATION_RULES: list[tuple[str, str, str]] = [
     ("GET", "gaps", "check_governance_gaps"),
     ("", "lifecycle-summary", "inspect_lifecycle"),
     ("", "lifecycle", "inspect_lifecycle"),
+    ("", "recommendations", "recommend_next_step"),
+    ("", "next-step", "recommend_next_step"),
     ("", "discovery/reuse", "reuse_suggestions"),
     ("", "reuse", "reuse_suggestions"),
     ("", "discovery/search", "search_skills"),
