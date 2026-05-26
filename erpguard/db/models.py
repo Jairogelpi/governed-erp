@@ -1497,3 +1497,17 @@ class ActionPlanStepToken(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class ActionDispatchEligibilityEvent(Base):
+    __tablename__ = "action_dispatch_eligibility_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    action_key: Mapped[str] = mapped_column(Text, nullable=False, default="unknown")
+    endpoint_hint: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    token_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    version_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    eligible: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    blocked_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    policy_name: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

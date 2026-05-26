@@ -918,6 +918,31 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Action Dispatch Eligibility Registry</h2>
+        <p>
+          Sprint 44 — Before any operator action can be dispatched, the step must normalize
+          to a known action key, pass registry validation, satisfy safety policy, and have
+          a confirmed token when required. This endpoint returns eligibility only —
+          <strong>no action is executed.</strong>
+          Advisory only. No execution. No ERP writes.
+        </p>
+        <div class="toolbar">
+          <label>Endpoint hint <input id="dispatchEndpoint" type="text" value="POST /v1/agent-candidate-activation/{v}" style="width:340px"/></label>
+          <label>Method <input id="dispatchMethod" type="text" value="POST" style="width:60px"/></label>
+        </div>
+        <div class="toolbar">
+          <label>Token ID (optional) <input id="dispatchTokenId" type="text" placeholder="tok_…" style="width:240px"/></label>
+          <label>Version ID (optional) <input id="dispatchVersionId" type="text" placeholder="ver_…" style="width:160px"/></label>
+        </div>
+        <div class="toolbar">
+          <button id="dispatchRegistry">75. View Action Registry</button>
+          <button id="dispatchEligibility">76. Check Dispatch Eligibility</button>
+          <button id="dispatchAudit">77. Dispatch Audit</button>
+        </div>
+        <pre id="dispatchOutput">No dispatch data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -5095,6 +5120,34 @@ selectors captured: none</pre>
         body: JSON.stringify({token_id: tid}),
       });
       tokenOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 44 — Action Dispatch Eligibility Registry ──────────────────────
+    const dispatchOut = () => document.getElementById("dispatchOutput");
+
+    document.getElementById("dispatchRegistry").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-registry`);
+      dispatchOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("dispatchEligibility").addEventListener("click", async () => {
+      const body = {
+        endpoint_hint: document.getElementById("dispatchEndpoint").value.trim(),
+        method_hint: document.getElementById("dispatchMethod").value.trim() || "GET",
+        token_id: document.getElementById("dispatchTokenId").value.trim() || null,
+        version_id: document.getElementById("dispatchVersionId").value.trim() || null,
+      };
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/dispatch-eligibility`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(body),
+      });
+      dispatchOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("dispatchAudit").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/dispatch-audit`);
+      dispatchOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>

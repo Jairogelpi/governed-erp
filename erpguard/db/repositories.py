@@ -92,6 +92,7 @@ from erpguard.db.models import (
     OperatorConsoleQuery,
     OperatorActionPlanEvent,
     ActionPlanStepToken,
+    ActionDispatchEligibilityEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -4049,3 +4050,41 @@ def expire_action_plan_step_tokens(session: Session, now) -> int:
     if rows:
         session.commit()
     return len(rows)
+
+def create_action_dispatch_eligibility_event(
+    session: Session,
+    *,
+    event_id: str,
+    action_key: str,
+    endpoint_hint: str,
+    token_id: str | None,
+    version_id: str | None,
+    eligible: bool,
+    blocked_reason: str | None,
+    policy_name: str | None,
+) -> ActionDispatchEligibilityEvent:
+    row = ActionDispatchEligibilityEvent(
+        id=event_id,
+        action_key=action_key,
+        endpoint_hint=endpoint_hint,
+        token_id=token_id,
+        version_id=version_id,
+        eligible=eligible,
+        blocked_reason=blocked_reason,
+        policy_name=policy_name,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_recent_dispatch_eligibility_events(
+    session: Session, *, limit: int = 50
+) -> list[ActionDispatchEligibilityEvent]:
+    return list(
+        session.query(ActionDispatchEligibilityEvent)
+        .order_by(ActionDispatchEligibilityEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
