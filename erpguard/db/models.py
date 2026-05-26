@@ -1479,3 +1479,21 @@ class OperatorActionPlanEvent(Base):
     step_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     blocking_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class ActionPlanStepToken(Base):
+    __tablename__ = "action_plan_step_tokens"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    plan_id: Mapped[str] = mapped_column(Text, nullable=False)
+    step_number: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    step_title: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    endpoint_hint: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    method_hint: Mapped[str] = mapped_column(Text, nullable=False, default="GET")
+    severity: Mapped[str] = mapped_column(Text, nullable=False, default="required")
+    risk_level: Mapped[str] = mapped_column(Text, nullable=False, default="low")
+    risk_summary: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="pending")
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

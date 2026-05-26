@@ -91,6 +91,7 @@ from erpguard.db.models import (
     OperatorConsoleSession,
     OperatorConsoleQuery,
     OperatorActionPlanEvent,
+    ActionPlanStepToken,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -3985,3 +3986,66 @@ def list_recent_operator_action_plan_events(
         .limit(limit)
         .all()
     )
+
+def create_action_plan_step_token(
+    session: Session,
+    *,
+    token_id: str,
+    plan_id: str,
+    step_number: int,
+    step_title: str,
+    endpoint_hint: str,
+    method_hint: str,
+    severity: str,
+    risk_level: str,
+    risk_summary: str,
+    expires_at,
+) -> ActionPlanStepToken:
+    row = ActionPlanStepToken(
+        id=token_id,
+        plan_id=plan_id,
+        step_number=step_number,
+        step_title=step_title,
+        endpoint_hint=endpoint_hint,
+        method_hint=method_hint,
+        severity=severity,
+        risk_level=risk_level,
+        risk_summary=risk_summary,
+        status="pending",
+        expires_at=expires_at,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_action_plan_step_token(session: Session, token_id: str) -> ActionPlanStepToken | None:
+    return session.query(ActionPlanStepToken).filter(ActionPlanStepToken.id == token_id).first()
+
+
+def confirm_action_plan_step_token(
+    session: Session, token_id: str, confirmed_at
+) -> ActionPlanStepToken | None:
+    row = get_action_plan_step_token(session, token_id)
+    if row is None:
+        return None
+    row.status = "confirmed"
+    row.confirmed_at = confirmed_at
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def expire_action_plan_step_tokens(session: Session, now) -> int:
+    rows = (
+        session.query(ActionPlanStepToken)
+        .filter(ActionPlanStepToken.status == "pending")
+        .filter(ActionPlanStepToken.expires_at <= now)
+        .all()
+    )
+    for row in rows:
+        row.status = "expired"
+    if rows:
+        session.commit()
+    return len(rows)

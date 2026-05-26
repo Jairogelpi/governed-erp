@@ -890,6 +890,34 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Action Plan Step Preview &amp; Confirmation Tokens</h2>
+        <p>
+          Sprint 43 — Preview a specific plan step to receive a risk summary and a
+          time-limited confirmation token (5 min TTL). Operator must explicitly confirm
+          the token to record acknowledgement. No step is executed — token confirmation
+          is an audit record only.
+          <strong>Advisory only. No execution. No ERP writes.</strong>
+        </p>
+        <div class="toolbar">
+          <label>Plan ID <input id="tokenPlanId" type="text" placeholder="aplan_…" style="width:220px"/></label>
+          <label>Step # <input id="tokenStepNum" type="number" value="1" style="width:60px"/></label>
+          <label>Title <input id="tokenStepTitle" type="text" value="Verify version exists" style="width:200px"/></label>
+        </div>
+        <div class="toolbar">
+          <label>Endpoint hint <input id="tokenEndpoint" type="text" value="GET /v1/agent-builder/versions/{v}" style="width:300px"/></label>
+          <label>Method <input id="tokenMethod" type="text" value="GET" style="width:60px"/></label>
+          <label>Severity <input id="tokenSeverity" type="text" value="blocking" style="width:90px"/></label>
+        </div>
+        <div class="toolbar">
+          <button id="tokenPreview">72. Preview Step</button>
+          <label>Token ID <input id="tokenId" type="text" placeholder="tok_…" style="width:260px"/></label>
+          <button id="tokenStatus">73. Check Token Status</button>
+          <button id="tokenConfirm">74. Confirm Token</button>
+        </div>
+        <pre id="tokenOutput">No token data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -5027,6 +5055,46 @@ selectors captured: none</pre>
     document.getElementById("plannerPlanTypes").addEventListener("click", async () => {
       const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/plan-types`);
       plannerOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 43 — Step Preview & Confirmation Tokens ────────────────────────
+    const tokenOut = () => document.getElementById("tokenOutput");
+
+    document.getElementById("tokenPreview").addEventListener("click", async () => {
+      const body = {
+        plan_id: document.getElementById("tokenPlanId").value.trim() || "aplan_demo",
+        step_number: parseInt(document.getElementById("tokenStepNum").value) || 1,
+        step_title: document.getElementById("tokenStepTitle").value.trim() || "Step",
+        endpoint_hint: document.getElementById("tokenEndpoint").value.trim(),
+        method_hint: document.getElementById("tokenMethod").value.trim() || "GET",
+        severity: document.getElementById("tokenSeverity").value.trim() || "required",
+      };
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/step-preview`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(body),
+      });
+      const data = await r.json();
+      tokenOut().textContent = jsonText(data);
+      if (data.token_id) document.getElementById("tokenId").value = data.token_id;
+    });
+
+    document.getElementById("tokenStatus").addEventListener("click", async () => {
+      const tid = document.getElementById("tokenId").value.trim();
+      if (!tid) { tokenOut().textContent = "Enter a token ID first."; return; }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/step-preview/${tid}`);
+      tokenOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("tokenConfirm").addEventListener("click", async () => {
+      const tid = document.getElementById("tokenId").value.trim();
+      if (!tid) { tokenOut().textContent = "Enter a token ID first."; return; }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/step-confirm`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({token_id: tid}),
+      });
+      tokenOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>
