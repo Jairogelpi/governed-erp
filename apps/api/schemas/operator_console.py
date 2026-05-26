@@ -72,3 +72,33 @@ class ConsoleHistoryResponse(BaseModel):
     will_execute: bool = False
     can_execute: bool = False
     is_advisory_only: bool = True
+
+
+# Sprint 41B - spec-compatible alias schemas
+
+class AskRequest(BaseModel):
+    question: str
+    actor: str = "operator"
+    version_id: str | None = None
+    session_id: str | None = None
+
+
+class GlobalAuditEntry(BaseModel):
+    query_id: str
+    session_id: str
+    query_text: str
+    detected_intent: str
+    intent_confidence: float
+    response_summary: str
+    result_type: str
+    version_id_context: str | None
+    created_at: Any
+
+
+class GlobalAuditResponse(BaseModel):
+    entries: list[GlobalAuditEntry]
+    entry_count: int
+    session_id: str | None
+    will_execute: bool = False
+    can_execute: bool = False
+    is_advisory_only: bool = True

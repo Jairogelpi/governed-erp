@@ -1,17 +1,21 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from apps.api.schemas.operator_console import (
+    AskRequest,
     ConsoleHistoryResponse,
     ConsoleQueryRequest,
     ConsoleQueryResponse,
     ConsoleSessionRequest,
     ConsoleSessionResponse,
+    GlobalAuditEntry,
+    GlobalAuditResponse,
     HistoryEntrySchema,
     IntentsResponse,
     SupportedIntentSchema,
 )
+from erpguard.db.repositories import list_recent_operator_console_queries
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.product.operator_console import run_console_query
 from erpguard.product.operator_console_intent_classifier import list_supported_intents
@@ -97,6 +101,95 @@ def session_history(session_id: str):
                 for e in r.entries
             ],
             entry_count=r.entry_count,
+        )
+    finally:
+        db.close()
+
+
+# Sprint 41B - spec-compatible alias router
+alias_router = APIRouter(
+    prefix="/v1/operator-console",
+    tags=["operator-console-alias"],
+)
+
+
+@alias_router.post("/ask", response_model=ConsoleQueryResponse)
+def alias_ask(body: AskRequest):
+    init_db()
+    db = SessionLocal()
+    try:
+        if body.session_id:
+            session_id = body.session_id
+        else:
+            r = start_console_session(body.actor, db)
+            session_id = r.session_id
+        result = run_console_query(
+            body.question,
+            session_id,
+            db,
+            version_id=body.version_id,
+        )
+        return ConsoleQueryResponse(
+            query=result.query,
+            session_id=result.session_id,
+            query_id=result.query_id,
+            detected_intent=result.detected_intent,
+            intent_confidence=result.intent_confidence,
+            matched_keywords=result.matched_keywords,
+            response_message=result.response_message,
+            result_type=result.result_type,
+            results=result.results,
+            version_id_context=result.version_id_context,
+            follow_up_suggestions=result.follow_up_suggestions,
+        )
+    finally:
+        db.close()
+
+
+@alias_router.get("/audit")
+def alias_audit(
+    session_id: str | None = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=200),
+):
+    init_db()
+    db = SessionLocal()
+    try:
+        if session_id:
+            r = get_session_history(session_id, db)
+            return ConsoleHistoryResponse(
+                session_id=r.session_id,
+                entries=[
+                    HistoryEntrySchema(
+                        query_id=e.query_id,
+                        query_text=e.query_text,
+                        detected_intent=e.detected_intent,
+                        intent_confidence=e.intent_confidence,
+                        response_summary=e.response_summary,
+                        result_type=e.result_type,
+                        created_at=e.created_at,
+                    )
+                    for e in r.entries
+                ],
+                entry_count=r.entry_count,
+            )
+        rows = list_recent_operator_console_queries(db, limit=limit)
+        return GlobalAuditResponse(
+            entries=[
+                GlobalAuditEntry(
+                    query_id=q.id,
+                    session_id=q.session_id,
+                    query_text=q.query_text,
+                    detected_intent=q.detected_intent,
+                    intent_confidence=q.intent_confidence,
+                    response_summary=q.response_summary,
+                    result_type=q.result_type,
+                    version_id_context=q.version_id_context,
+                    created_at=q.created_at,
+                )
+                for q in rows
+            ],
+            entry_count=len(rows),
+            session_id=None,
         )
     finally:
         db.close()

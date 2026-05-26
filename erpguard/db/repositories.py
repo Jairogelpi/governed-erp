@@ -3941,3 +3941,12 @@ def list_operator_console_queries(session: Session, session_id: str) -> list[Ope
         .order_by(OperatorConsoleQuery.created_at.asc())
         .all()
     )
+
+
+def list_recent_operator_console_queries(session: Session, *, limit: int = 50) -> list[OperatorConsoleQuery]:
+    return list(
+        session.query(OperatorConsoleQuery)
+        .order_by(OperatorConsoleQuery.created_at.desc())
+        .limit(limit)
+        .all()
+    )
