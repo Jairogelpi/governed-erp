@@ -1,4 +1,4 @@
-"""Sprint 45 — Confirmed read-only action dispatcher API tests."""
+"""Sprint 45/46 — Confirmed action dispatcher API tests."""
 from __future__ import annotations
 
 import json
@@ -112,16 +112,21 @@ def test_dispatch_execution_audit_endpoint_returns_events():
     assert "entries" in data
 
 
-def test_dispatchable_actions_endpoint_returns_sprint45_allowlist():
+def test_dispatchable_actions_endpoint_returns_sprint46_allowlist():
     r = client.get(f"{BASE}/dispatchable-actions")
     assert r.status_code == 200
-    assert set(r.json()["actions"]) == {
-        "check_governance_gaps",
-        "search_skills",
-        "reuse_suggestions",
-        "inspect_lifecycle",
-        "recommend_next_step",
-    }
+    actions = set(r.json()["actions"])
+    # Read-only actions
+    assert "check_governance_gaps" in actions
+    assert "search_skills" in actions
+    assert "reuse_suggestions" in actions
+    assert "inspect_lifecycle" in actions
+    assert "recommend_next_step" in actions
+    assert "run_preview" in actions
+    # Governance mutation actions
+    assert "record_human_decision" in actions
+    assert "create_activation_request" in actions
+    assert "activate_candidate" in actions
 
 
 def test_missing_token_blocks_via_api():
@@ -186,7 +191,8 @@ def test_expired_token_blocks_via_api():
     assert r.json()["status"] == "blocked"
 
 
-def test_not_allowed_action_blocks_via_api():
+def test_activate_candidate_without_version_blocks_via_api():
+    """activate_candidate with no version_id must still block (version not found)."""
     token_id = _confirmed_token("POST /v1/agent-candidate-activation/ver_1", "POST")
     r = client.post(f"{BASE}/dispatch", json={
         "plan_id": "aplan_api_dispatch",
@@ -198,4 +204,6 @@ def test_not_allowed_action_blocks_via_api():
         "parameters": {},
     })
     assert r.status_code == 200
-    assert r.json()["status"] == "blocked"
+    data = r.json()
+    assert data["status"] == "blocked"
+    assert data["handler_type"] == "internal_governance_mutation"

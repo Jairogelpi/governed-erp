@@ -14,6 +14,10 @@ from erpguard.product.operator_action_dispatch_result import (
     OperatorActionDispatchResult,
     persist_dispatch_result,
 )
+from erpguard.product.operator_action_governance_mutation_handlers import (
+    list_governance_mutation_actions,
+    run_internal_governance_mutation_handler,
+)
 from erpguard.product.operator_action_registry import get_action_entry
 from erpguard.product.operator_step_confirmation import get_token_status
 
@@ -34,6 +38,7 @@ def _persist_blocked(
     *,
     request: DispatchRequest,
     reason: str,
+    handler_type: str = "internal_read_only",
     session,
     eligibility_passed: bool = False,
     token_confirmed: bool = False,
@@ -44,7 +49,7 @@ def _persist_blocked(
         action_key=request.action_key,
         event_type="blocked",
         status="blocked",
-        handler_type="internal_read_only",
+        handler_type=handler_type,
         endpoint_hint=request.endpoint_hint,
         method_hint=request.method_hint,
         token_id=request.token_id,
@@ -63,7 +68,7 @@ def _persist_blocked(
         action_key=request.action_key,
         status="blocked",
         dispatch_performed=False,
-        handler_type="internal_read_only",
+        handler_type=handler_type,
         token_confirmed=token_confirmed,
         eligibility_passed=eligibility_passed,
         result_payload={},
@@ -79,7 +84,7 @@ def _persist_blocked(
     )
 
 
-def dispatch_confirmed_read_only_action(
+def dispatch_confirmed_action(
     request: DispatchRequest,
     *,
     session,
@@ -90,17 +95,24 @@ def dispatch_confirmed_read_only_action(
             request=request,
             reason=(
                 f"Action key '{request.action_key}' is not registered. "
-                "Sprint 45 dispatch accepts only explicitly registered allowlist actions."
+                "Only explicitly registered allowlist actions may be dispatched."
             ),
             session=session,
         )
 
-    if request.action_key not in list_dispatchable_actions():
+    read_only_keys = list_dispatchable_actions()
+    mutation_keys = list_governance_mutation_actions()
+
+    if request.action_key in read_only_keys:
+        handler_type = "internal_read_only"
+    elif request.action_key in mutation_keys:
+        handler_type = "internal_governance_mutation"
+    else:
         return _persist_blocked(
             request=request,
             reason=(
-                f"Action '{request.action_key}' is not allowed in Sprint 45. "
-                "Only internal read-only advisory handlers may be dispatched."
+                f"Action '{request.action_key}' is not available in the dispatch registry. "
+                "Check the action key and sprint allowlist."
             ),
             session=session,
         )
@@ -110,6 +122,7 @@ def dispatch_confirmed_read_only_action(
         return _persist_blocked(
             request=request,
             reason="Confirmed token required for dispatch. Token was not found.",
+            handler_type=handler_type,
             session=session,
         )
     if token.status != "confirmed":
@@ -118,6 +131,7 @@ def dispatch_confirmed_read_only_action(
             reason=(
                 f"Confirmed token required for dispatch. Token status is '{token.status}'."
             ),
+            handler_type=handler_type,
             session=session,
         )
 
@@ -133,6 +147,7 @@ def dispatch_confirmed_read_only_action(
         return _persist_blocked(
             request=request,
             reason=eligibility.blocked_reason or "Dispatch eligibility failed.",
+            handler_type=handler_type,
             session=session,
             eligibility_passed=False,
             token_confirmed=True,
@@ -144,7 +159,7 @@ def dispatch_confirmed_read_only_action(
         action_key=request.action_key,
         event_type="requested",
         status="accepted",
-        handler_type="internal_read_only",
+        handler_type=handler_type,
         endpoint_hint=request.endpoint_hint,
         method_hint=request.method_hint,
         token_id=request.token_id,
@@ -158,19 +173,33 @@ def dispatch_confirmed_read_only_action(
         session=session,
     )
 
+    parameters = {
+        **request.parameters,
+        "version_id": request.version_id or request.parameters.get("version_id"),
+    }
+
     try:
-        handler_result = run_internal_read_only_handler(
-            request.action_key,
-            {**request.parameters, "version_id": request.version_id or request.parameters.get("version_id")},
-            session,
-        )
+        if handler_type == "internal_read_only":
+            handler_result = run_internal_read_only_handler(
+                request.action_key, parameters, session
+            )
+            system_state_mutated = False
+            skill_mutated = False
+            activation_performed = False
+        else:
+            handler_result = run_internal_governance_mutation_handler(
+                request.action_key, parameters, session
+            )
+            system_state_mutated = handler_result.system_state_mutated
+            skill_mutated = handler_result.skill_mutated
+            activation_performed = handler_result.activation_performed
     except ValueError as exc:
         persist_dispatch_execution_event(
             dispatch_id=dispatch_id,
             action_key=request.action_key,
             event_type="blocked",
             status="blocked",
-            handler_type="internal_read_only",
+            handler_type=handler_type,
             endpoint_hint=request.endpoint_hint,
             method_hint=request.method_hint,
             token_id=request.token_id,
@@ -183,12 +212,12 @@ def dispatch_confirmed_read_only_action(
             },
             session=session,
         )
-        create_result = persist_dispatch_result(
+        return persist_dispatch_result(
             dispatch_id=dispatch_id,
             action_key=request.action_key,
             status="blocked",
             dispatch_performed=False,
-            handler_type="internal_read_only",
+            handler_type=handler_type,
             token_confirmed=True,
             eligibility_passed=True,
             result_payload={},
@@ -202,7 +231,6 @@ def dispatch_confirmed_read_only_action(
             audit_recorded=True,
             session=session,
         )
-        return create_result
 
     result = persist_dispatch_result(
         dispatch_id=dispatch_id,
@@ -221,6 +249,9 @@ def dispatch_confirmed_read_only_action(
         version_id=request.version_id,
         parameters=request.parameters,
         audit_recorded=True,
+        system_state_mutated=system_state_mutated,
+        skill_mutated=skill_mutated,
+        activation_performed=activation_performed,
         session=session,
     )
     persist_dispatch_execution_event(
@@ -243,3 +274,7 @@ def dispatch_confirmed_read_only_action(
         session=session,
     )
     return result
+
+
+# Alias for backward compatibility with Sprint 45 callers
+dispatch_confirmed_read_only_action = dispatch_confirmed_action

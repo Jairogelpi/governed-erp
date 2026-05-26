@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from erpguard.product.agent_skill_run_preview import get_run_preview
 from erpguard.product.governance_gap_explainer import explain_governance_gaps
 from erpguard.product.operator_next_step_recommender import recommend_next_steps
 from erpguard.product.semantic_skill_discovery import search_skills
@@ -199,12 +200,39 @@ def _handle_recommend_next_step(parameters: dict[str, Any], session) -> Internal
     )
 
 
+def _handle_run_preview(parameters: dict[str, Any], session) -> InternalReadOnlyHandlerResult:
+    version_id = _require_version_id("run_preview", parameters)
+    result = get_run_preview(version_id, session)
+    if result.blocking_reason:
+        raise ValueError(result.blocking_reason)
+    payload = {
+        "version_id": result.version_id,
+        "skill_id": result.skill_id,
+        "preview_ready": result.preview_ready,
+        "eligible": result.eligible,
+        "plan_ready": result.plan_ready,
+        "gate_passed": result.gate_passed,
+        "execution_ready": result.execution_ready,
+        "step_count": result.step_count,
+        "runtime_type": result.runtime_type,
+        "guard_names": result.guard_names,
+        "will_execute": result.will_execute,
+        "can_execute": result.can_execute,
+    }
+    return InternalReadOnlyHandlerResult(
+        action_key="run_preview",
+        result_payload=payload,
+        result_summary=f"Preview evaluated for version '{version_id}'. Ready: {result.preview_ready}.",
+    )
+
+
 _HANDLERS = {
     "check_governance_gaps": _handle_check_governance_gaps,
-    "search_skills": _handle_search_skills,
-    "reuse_suggestions": _handle_reuse_suggestions,
     "inspect_lifecycle": _handle_inspect_lifecycle,
     "recommend_next_step": _handle_recommend_next_step,
+    "reuse_suggestions": _handle_reuse_suggestions,
+    "run_preview": _handle_run_preview,
+    "search_skills": _handle_search_skills,
 }
 
 

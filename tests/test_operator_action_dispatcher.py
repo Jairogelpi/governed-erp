@@ -128,34 +128,25 @@ def test_unknown_action_key_blocks(db):
     assert result.action_key == "unknown_action"
 
 
-def test_action_key_not_allowed_in_sprint45_blocks(db):
+def test_activate_candidate_without_version_id_blocks(db):
     token_id = _make_token(db, endpoint_hint="POST /v1/agent-candidate-activation/ver_1", method_hint="POST", confirmed=True)
     result = _dispatch(db, token_id=token_id, action_key="activate_candidate")
     assert result.status == "blocked"
-    assert "not allowed in Sprint 45" in result.result_summary
-
-
-def test_activate_candidate_blocks(db):
-    token_id = _make_token(db, endpoint_hint="POST /v1/agent-candidate-activation/ver_1", method_hint="POST", confirmed=True)
-    result = _dispatch(db, token_id=token_id, action_key="activate_candidate")
     assert result.dispatch_performed is False
+    assert "not allowed in Sprint 45" not in result.result_summary
 
 
-def test_record_human_decision_blocks(db):
+def test_record_human_decision_without_version_id_blocks(db):
     token_id = _make_token(db, endpoint_hint="POST /v1/agent-candidate-decision/ver_1", method_hint="POST", confirmed=True)
     result = _dispatch(db, token_id=token_id, action_key="record_human_decision")
+    assert result.status == "blocked"
     assert result.dispatch_performed is False
 
 
-def test_create_activation_request_blocks(db):
+def test_create_activation_request_without_version_id_blocks(db):
     token_id = _make_token(db, endpoint_hint="POST /v1/agent-candidate-activation-request/ver_1", method_hint="POST", confirmed=True)
     result = _dispatch(db, token_id=token_id, action_key="create_activation_request")
-    assert result.dispatch_performed is False
-
-
-def test_run_preview_blocks(db):
-    token_id = _make_token(db, endpoint_hint="POST /v1/agent-skill-run-preview/ver_1/run", method_hint="POST", confirmed=True)
-    result = _dispatch(db, token_id=token_id, action_key="run_preview")
+    assert result.status == "blocked"
     assert result.dispatch_performed is False
 
 

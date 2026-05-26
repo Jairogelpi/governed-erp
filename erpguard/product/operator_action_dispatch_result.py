@@ -60,6 +60,9 @@ def persist_dispatch_result(
     parameters: dict[str, Any],
     audit_recorded: bool,
     session,
+    system_state_mutated: bool = False,
+    skill_mutated: bool = False,
+    activation_performed: bool = False,
 ) -> OperatorActionDispatchResult:
     dispatch_id = dispatch_id or f"disp_{uuid.uuid4().hex[:16]}"
     create_action_dispatch_result_record(
@@ -83,9 +86,9 @@ def persist_dispatch_result(
         browser_control_performed=False,
         mcp_execution_performed=False,
         llm_runtime_used=False,
-        system_state_mutated=False,
-        skill_mutated=False,
-        activation_performed=False,
+        system_state_mutated=system_state_mutated,
+        skill_mutated=skill_mutated,
+        activation_performed=activation_performed,
         scheduling_performed=False,
         audit_recorded=audit_recorded,
     )
@@ -101,6 +104,9 @@ def persist_dispatch_result(
         result_summary=result_summary,
         blocking_reasons=blocking_reasons,
         audit_recorded=audit_recorded,
+        system_state_mutated=system_state_mutated,
+        skill_mutated=skill_mutated,
+        activation_performed=activation_performed,
     )
 
 

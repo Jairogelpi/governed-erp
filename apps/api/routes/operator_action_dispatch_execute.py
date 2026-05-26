@@ -15,8 +15,9 @@ from erpguard.product.operator_action_dispatch_handlers import list_dispatchable
 from erpguard.product.operator_action_dispatch_result import get_dispatch_result
 from erpguard.product.operator_action_dispatcher import (
     DispatchRequest,
-    dispatch_confirmed_read_only_action,
+    dispatch_confirmed_action,
 )
+from erpguard.product.operator_action_governance_mutation_handlers import list_governance_mutation_actions
 
 router = APIRouter(
     prefix="/v1/operator-console",
@@ -50,7 +51,7 @@ def _to_response(result) -> DispatchResultResponse:
 
 @router.get("/action-plan/dispatchable-actions", response_model=DispatchableActionsResponse)
 def get_dispatchable_actions():
-    actions = list_dispatchable_actions()
+    actions = sorted(set(list_dispatchable_actions()) | set(list_governance_mutation_actions()))
     return DispatchableActionsResponse(actions=actions, total=len(actions))
 
 
@@ -59,7 +60,7 @@ def dispatch_read_only_action(body: DispatchExecuteRequest):
     init_db()
     db = SessionLocal()
     try:
-        result = dispatch_confirmed_read_only_action(
+        result = dispatch_confirmed_action(
             DispatchRequest(
                 plan_id=body.plan_id,
                 step_number=body.step_number,
