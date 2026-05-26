@@ -34,7 +34,7 @@ class OperatorActionDispatchResult:
     audit_recorded: bool = False
     will_execute: bool = False
     can_execute: bool = False
-    is_advisory_only: bool = True
+    is_advisory_only: bool = False
 
 
 def _serialize(value: dict[str, Any] | list[str]) -> str:

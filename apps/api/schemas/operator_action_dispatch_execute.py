@@ -38,7 +38,7 @@ class DispatchResultResponse(BaseModel):
     audit_recorded: bool = True
     will_execute: bool = False
     can_execute: bool = False
-    is_advisory_only: bool = True
+    is_advisory_only: bool = False
 
 
 class DispatchExecutionAuditEntrySchema(BaseModel):

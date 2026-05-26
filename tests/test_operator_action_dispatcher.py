@@ -97,6 +97,7 @@ def test_read_only_action_with_confirmed_token_dispatches_correctly(db):
     assert result.dispatch_performed is True
     assert result.token_confirmed is True
     assert result.eligibility_passed is True
+    assert result.is_advisory_only is False
 
 
 def test_missing_token_blocks(db):

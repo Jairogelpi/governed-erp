@@ -52,3 +52,4 @@ def test_dispatch_result_persists_and_loads(db):
     assert loaded.dispatch_id == "disp_result_test"
     assert loaded.result_payload["total_found"] == 1
     assert loaded.browser_control_performed is False
+    assert loaded.is_advisory_only is False

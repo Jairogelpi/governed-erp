@@ -71,6 +71,7 @@ def test_read_only_action_dispatches_correctly_via_api():
     assert data["status"] == "completed"
     assert data["dispatch_performed"] is True
     assert data["handler_type"] == "internal_read_only"
+    assert data["is_advisory_only"] is False
 
 
 def test_result_endpoint_recovers_dispatch_result():
