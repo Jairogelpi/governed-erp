@@ -125,7 +125,9 @@ def _handle_activate_candidate(
     parameters: dict[str, Any], session
 ) -> InternalGovernanceMutationHandlerResult:
     version_id = _require_version_id("activate_candidate", parameters)
-    actor = str(parameters.get("actor") or "system").strip()
+    actor = str(parameters.get("actor") or "").strip()
+    if not actor:
+        raise ValueError("activate_candidate_requires_actor")
 
     previous_state: dict[str, Any] = {"version_status": "candidate", "is_active": False}
     result = activate_candidate_version(version_id, actor=actor, session=session)

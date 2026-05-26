@@ -58,6 +58,19 @@
 - Updated `/demo` with a minimal vanilla HTML/JS recording preview after finish recording: `recording_id`, status, event count, ordered event summaries, captured selectors, and compiler readiness `ready` / `not_ready`. No React, Vite, Tailwind, or broad UI rewrite was added.
 - Updated `README.md` with a short Human Recording v0.2.1 Hardening section explaining the new preview/readiness behavior and compiler diagnostics.
 - Ran focused tests for the hardening change with `python -m pytest tests/test_human_recording_dashboard.py tests/test_recording_to_skill_compiler.py tests/test_recording_compile_skill_api.py -q`; result: `11 passed`.
+- 
+### 2026-05-26 — Sprint 46 patch (agent)
+
+- What changed: small safety fixes to the operator action dispatcher and governance mutation handlers:
+	- `erpguard/product/operator_action_dispatcher.py`: include `previous_state` and `new_state` (and `actor` + optional `underlying_artifact_type`/`underlying_artifact_id`) in the `completed` dispatch execution audit event for internal governance mutations.
+	- `erpguard/product/operator_action_governance_mutation_handlers.py`: `activate_candidate` now requires an explicit `actor` parameter and raises `activate_candidate_requires_actor` if missing.
+	- Added targeted tests in `tests/test_operator_action_governance_mutation_dispatcher.py` covering audit fields, actor requirement, `run_preview` read-only invariant, and no automatic chaining.
+
+- Why: ensure audit evidence contains both previous/new states for governance mutations and enforce explicit actor provenance for activation actions (tightens auditability and governance invariants).
+
+- Verification: ran the focused dispatcher/governance test slice and related API slices; targeted tests passed locally. `git diff --check` shows only normal CRLF warnings for this Windows worktree.
+
+- Note: per original sprint notes this patch addresses the acceptance points from issue #39; committing and pushing these changes now to the repository and closing the issue as requested.
 - Ran full verification with `python -m pytest`; result: `141 passed, 9 skipped, 2 warnings`. The skipped tests are the browser-dependent paths in this shell because Chromium/browser runtime availability is not active for the plain `python -m pytest` run.
 - Explicitly did not add LLM, MCP, browser extension, real Odoo UI, unrestricted/free recorder, new ERP adapters, marketplace behavior, or real ERP write actions.
 - Added `docs/specs/23_human_recording_v0_2_1_evidence_freeze.md` to freeze the v0.2.1 evidence state: exact system state, proven behavior, required event sequence, supported negative diagnostics, `/demo` usage, compiler readiness meaning, test baseline, known browser-dependent skips, limitations, why this is still not real Odoo or a free recorder, and the next recommended block.

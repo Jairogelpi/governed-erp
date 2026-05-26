@@ -254,6 +254,38 @@ def dispatch_confirmed_action(
         activation_performed=activation_performed,
         session=session,
     )
+    completed_detail = {
+        "plan_id": request.plan_id,
+        "step_number": request.step_number,
+        "result_summary": handler_result.result_summary,
+        "endpoint_hint_executed": False,
+        "handler_selected_by": "action_key",
+    }
+    if handler_type == "internal_governance_mutation":
+        actor_value = request.parameters.get("actor") or request.parameters.get("requested_by")
+        underlying_artifact_type: str | None = {
+            "record_human_decision": "decision",
+            "create_activation_request": "activation_request",
+            "activate_candidate": "activation",
+        }.get(request.action_key)
+        underlying_artifact_id: str | None = None
+        if request.action_key == "record_human_decision":
+            underlying_artifact_id = str(handler_result.result_payload.get("decision_id") or "").strip() or None
+        elif request.action_key == "create_activation_request":
+            underlying_artifact_id = str(handler_result.result_payload.get("request_id") or "").strip() or None
+        elif request.action_key == "activate_candidate":
+            underlying_artifact_id = str(
+                handler_result.result_payload.get("version_id") or handler_result.result_payload.get("skill_id") or ""
+            ).strip() or None
+        completed_detail.update(
+            {
+                "previous_state": handler_result.previous_state,
+                "new_state": handler_result.new_state,
+                "actor": str(actor_value).strip() if actor_value is not None else None,
+                "underlying_artifact_type": underlying_artifact_type,
+                "underlying_artifact_id": underlying_artifact_id,
+            }
+        )
     persist_dispatch_execution_event(
         dispatch_id=result.dispatch_id,
         action_key=request.action_key,
@@ -264,13 +296,7 @@ def dispatch_confirmed_action(
         method_hint=request.method_hint,
         token_id=request.token_id,
         version_id=request.version_id,
-        detail={
-            "plan_id": request.plan_id,
-            "step_number": request.step_number,
-            "result_summary": handler_result.result_summary,
-            "endpoint_hint_executed": False,
-            "handler_selected_by": "action_key",
-        },
+        detail=completed_detail,
         session=session,
     )
     return result

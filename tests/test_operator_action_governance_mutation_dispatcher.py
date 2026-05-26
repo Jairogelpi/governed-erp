@@ -22,6 +22,7 @@ from erpguard.db.repositories import (
     create_agent_candidate_decision,
     create_agent_candidate_decision_event,
 )
+from erpguard.product.operator_action_dispatch_execution_audit import get_dispatch_execution_audit
 from erpguard.product.operator_action_dispatch_handlers import list_dispatchable_actions
 from erpguard.product.operator_action_dispatch_result import get_dispatch_result
 from erpguard.product.operator_action_dispatcher import (
@@ -204,6 +205,31 @@ def test_read_only_handler_type_remains_internal_read_only(db):
         endpoint_hint="GET /v1/agent-builder/discovery/search",
     )
     assert result.handler_type == "internal_read_only"
+
+
+def test_run_preview_remains_read_only(db):
+    version = _seed_approved_version(db)
+    create_agent_candidate_activation_request(
+        db,
+        version_id=version.id,
+        skill_id=version.skill_id,
+        requested_by="test_operator",
+        rationale="Ready to preview",
+    )
+    version.status = "active"
+    version.is_active = True
+    db.commit()
+    result = _dispatch(
+        db,
+        action_key="run_preview",
+        version_id=version.id,
+        parameters={"version_id": version.id},
+        endpoint_hint="GET /v1/agent-builder/run-preview",
+    )
+    assert result.status == "completed"
+    assert result.handler_type == "internal_read_only"
+    assert result.result_payload["will_execute"] is False
+    assert result.result_payload["can_execute"] is False
 
 
 # ─── record_human_decision ──────────────────────────────────────────────────
@@ -390,6 +416,19 @@ def test_activate_candidate_blocked_without_activation_request(db):
     assert result.dispatch_performed is False
 
 
+def test_activate_candidate_requires_explicit_actor(db):
+    version = _seed_fully_eligible_version(db)
+    result = _dispatch(
+        db,
+        action_key="activate_candidate",
+        version_id=version.id,
+        parameters={},
+    )
+    assert result.status == "blocked"
+    assert result.dispatch_performed is False
+    assert result.result_summary == "activate_candidate_requires_actor"
+
+
 def test_activate_candidate_idempotent_already_active(db):
     version = _seed_fully_eligible_version(db)
     # First activation
@@ -442,3 +481,23 @@ def test_activate_candidate_is_not_chained_from_create_activation_request(db):
     # Blocked: final_gate_evaluated event missing
     assert act_result.status == "blocked"
     assert act_result.dispatch_performed is False
+
+
+def test_completed_governance_mutation_audit_contains_previous_and_new_state(db):
+    version = _seed_approved_version(db)
+    result = _dispatch(
+        db,
+        action_key="create_activation_request",
+        version_id=version.id,
+        parameters={"requested_by": "operator", "rationale": "ready"},
+    )
+    audit = get_dispatch_execution_audit(db)
+    completed = next(
+        entry for entry in audit.entries
+        if entry.dispatch_id == result.dispatch_id and entry.event_type == "completed"
+    )
+    assert completed.detail["previous_state"] == {"activation_request_exists": False}
+    assert completed.detail["new_state"]["activation_request_exists"] is True
+    assert completed.detail["underlying_artifact_type"] == "activation_request"
+    assert completed.detail["underlying_artifact_id"] == result.result_payload["request_id"]
+    assert completed.detail["actor"] == "operator"
