@@ -1467,3 +1467,15 @@ class OperatorConsoleQuery(Base):
     response_summary: Mapped[str] = mapped_column(Text, nullable=False, default="")
     result_type: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class OperatorActionPlanEvent(Base):
+    __tablename__ = "operator_action_plan_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    plan_type: Mapped[str] = mapped_column(Text, nullable=False, default="unknown")
+    goal: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    version_id_context: Mapped[str | None] = mapped_column(Text, nullable=True)
+    step_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    blocking_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

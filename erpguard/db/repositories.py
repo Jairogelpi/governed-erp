@@ -90,6 +90,7 @@ from erpguard.db.models import (
     OperatorEvidencePack,
     OperatorConsoleSession,
     OperatorConsoleQuery,
+    OperatorActionPlanEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -3947,6 +3948,40 @@ def list_recent_operator_console_queries(session: Session, *, limit: int = 50) -
     return list(
         session.query(OperatorConsoleQuery)
         .order_by(OperatorConsoleQuery.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+def create_operator_action_plan_event(
+    session: Session,
+    *,
+    plan_id: str,
+    plan_type: str,
+    goal: str,
+    version_id_context: str | None,
+    step_count: int,
+    blocking_count: int,
+) -> OperatorActionPlanEvent:
+    row = OperatorActionPlanEvent(
+        id=plan_id,
+        plan_type=plan_type,
+        goal=goal,
+        version_id_context=version_id_context,
+        step_count=step_count,
+        blocking_count=blocking_count,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_recent_operator_action_plan_events(
+    session: Session, *, limit: int = 50
+) -> list[OperatorActionPlanEvent]:
+    return list(
+        session.query(OperatorActionPlanEvent)
+        .order_by(OperatorActionPlanEvent.created_at.desc())
         .limit(limit)
         .all()
     )

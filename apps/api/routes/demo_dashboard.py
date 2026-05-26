@@ -870,6 +870,26 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Conversational Action Planner</h2>
+        <p>
+          Sprint 42 — Describe an operational goal and receive an ordered, safe action plan.
+          Each step includes an endpoint hint, severity, prerequisites state, and blocker reason.
+          Operator must click every step manually.
+          <strong>Advisory plan only. No execution. No activation. No ERP writes.</strong>
+        </p>
+        <div class="toolbar">
+          <label>Goal <input id="plannerGoal" type="text" value="preparar para preview" style="width:340px"/></label>
+          <label>Version ID <input id="plannerVersionId" type="text" placeholder="optional" style="width:200px"/></label>
+        </div>
+        <div class="toolbar">
+          <button id="plannerCreatePlan">69. Create Action Plan</button>
+          <button id="plannerAudit">70. Action Plan Audit</button>
+          <button id="plannerPlanTypes">71. Supported Plan Types</button>
+        </div>
+        <pre id="plannerOutput">No planner data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -4983,6 +5003,30 @@ selectors captured: none</pre>
       if (!consoleSessionId) { consoleOut().textContent = "Start a console session first (65)."; return; }
       const r = await fetch(`${currentBaseUrl()}/v1/operator/console/sessions/${consoleSessionId}/history`);
       consoleOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 42 — Conversational Action Planner ──────────────────────────────
+    const plannerOut = () => document.getElementById("plannerOutput");
+
+    document.getElementById("plannerCreatePlan").addEventListener("click", async () => {
+      const goal = document.getElementById("plannerGoal").value.trim() || "preparar para preview";
+      const versionId = document.getElementById("plannerVersionId").value.trim() || null;
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({goal, version_id: versionId, actor: "operator"}),
+      });
+      plannerOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("plannerAudit").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/audit`);
+      plannerOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("plannerPlanTypes").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/plan-types`);
+      plannerOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>
