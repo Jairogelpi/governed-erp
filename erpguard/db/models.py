@@ -1594,3 +1594,56 @@ class ManualDryRunAuditEvent(Base):
     status: Mapped[str] = mapped_column(Text, nullable=False, default="info")
     detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 48 — Controlled Fake ERP Execution
+
+class FakeERPExecutionRecord(Base):
+    __tablename__ = "fake_erp_execution_records"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    dry_run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    execution_target: Mapped[str] = mapped_column(Text, nullable=False, default="fake_erp")
+    inputs_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="blocked")
+    step_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    steps_executed: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    steps_blocked: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    result_summary: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    safety_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    evidence_pack_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class FakeERPExecutionEvidence(Base):
+    __tablename__ = "fake_erp_execution_evidence"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    execution_id: Mapped[str] = mapped_column(Text, nullable=False)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    dry_run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    execution_target: Mapped[str] = mapped_column(Text, nullable=False, default="fake_erp")
+    inputs_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    steps_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    safety_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class FakeERPExecutionAuditEvent(Base):
+    __tablename__ = "fake_erp_execution_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    execution_id: Mapped[str] = mapped_column(Text, nullable=False)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    dry_run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    event_type: Mapped[str] = mapped_column(Text, nullable=False, default="requested")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="info")
+    detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

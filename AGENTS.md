@@ -387,6 +387,28 @@
 - Verification result: all focused Sprint 47 slices passed; Sprint 45 and Sprint 46 regression slices remained green; full pytest passed in this shell with 2 skipped browser-dependent tests and no failures; `git diff --check` reported no diff errors, only Windows line-ending warnings on existing touched files.
 - No-goals respected: no Sprint 48, no Fake ERP execution, no Odoo execution, no browser automation, no MCP execution, no LLM runtime replay, no scheduler, no background worker, no generic endpoint dispatch, no ERP writes.
 
+### 2026-05-27 — Sprint 48 controlled Fake ERP execution (agent)
+
+- What changed: implemented the first controlled Fake ERP execution path for Block B Sprint 48 with separate persistence from Sprint 47. Added `erpguard/product/fake_erp_execution_gate.py`, `erpguard/product/fake_erp_execution_runtime.py`, `erpguard/product/fake_erp_execution_record.py`, `erpguard/product/fake_erp_execution_evidence.py`, `erpguard/product/fake_erp_execution_audit.py`, `apps/api/schemas/fake_erp_execution.py`, `apps/api/routes/fake_erp_execution.py`, and new Fake ERP execution tables plus repository helpers in `erpguard/db/models.py` and `erpguard/db/repositories.py`.
+- Why: allow the first explicit operator-triggered execution against controlled Fake ERP only, while keeping Sprint 47 manual dry-run separate and preserving the no-real-ERP boundary.
+- Files touched: `erpguard/db/models.py`, `erpguard/db/repositories.py`, `apps/api/main.py`, `apps/api/routes/demo_dashboard.py`, `README.md`, `AGENTS.md`, the 5 new product modules, the new API schema/route, and 7 new test files for gate/runtime/record/evidence/audit/API/UI.
+- Invariants kept: completed manual dry-run required; confirmed token required; actor required; `execution_target` must be `fake_erp`; runtime only executes explicit allowlisted `fake_*` steps; no `endpoint_hint` execution; no Odoo calls; no real ERP execution; no browser automation; no MCP; no scheduler; no LLM runtime replay; no external HTTP.
+- Verification commands executed with `C:\Users\jairo\AppData\Local\Python\pythoncore-3.14-64\python.exe` and workspace-local `--basetemp`:
+  - `-m pytest tests/test_fake_erp_execution_gate.py -q`
+  - `-m pytest tests/test_fake_erp_execution_runtime.py -q`
+  - `-m pytest tests/test_fake_erp_execution_record.py -q`
+  - `-m pytest tests/test_fake_erp_execution_evidence.py -q`
+  - `-m pytest tests/test_fake_erp_execution_audit.py -q`
+  - `-m pytest tests/test_fake_erp_execution_api.py -q`
+  - `-m pytest tests/test_fake_erp_execution_ui.py -q`
+  - `-m pytest tests/test_manual_dry_run_gate.py -q`
+  - `-m pytest tests/test_manual_dry_run_record.py -q`
+  - `-m pytest tests/test_manual_dry_run_api.py -q`
+  - `-m pytest tests/test_operator_action_governance_mutation_dispatcher.py -q`
+  - `-m pytest -q`
+  - `git diff --check`
+- No-goals respected: no Sprint 49, no Sprint 50, no Odoo implementation, no real ERP implementation, no browser automation, no MCP integration, no scheduler path, no autonomous execution, no external HTTP.
+
 - Added 2 new DB models to `erpguard/db/models.py`: `OperatorConsoleSession` (actor, created_at — prefix `ocses_`) and `OperatorConsoleQuery` (session_id, query_text, detected_intent, intent_confidence, version_id_context, response_summary, result_type, created_at — prefix `ocqry_`). Added `Float` to SQLAlchemy imports.
 - Added 4 Sprint 41 repository functions to `erpguard/db/repositories.py`: `create_operator_console_session`, `get_operator_console_session`, `create_operator_console_query`, `list_operator_console_queries`.
 - Created 5 product modules: `operator_console_intent_classifier.py` (8 intents: list_active_skills, find_similar, governance_gaps, preview_ready, next_step, lifecycle_status, reuse_suggestions, search_skills — keyword scored in Spanish + English), `operator_console_query_router.py` (routes classified intent to the correct Sprint 40 service with optional version_id context), `operator_console_response_formatter.py` (converts structured results into human-readable advisory sentences), `operator_console_session.py` (session lifecycle: start, history retrieval), `operator_console.py` (main orchestrator: classify → route → format → persist → return ConsoleQueryResult).

@@ -317,6 +317,71 @@ Example response:
 
 Block A ends before Fake ERP execution. The dry-run record is manual and explicit; it does not trigger Fake ERP, Odoo, browser automation, MCP tools, scheduler jobs, or ERP writes.
 
+## Sprint 48 Controlled Fake ERP Execution
+
+Sprint 48 adds the first controlled execution path, but only inside the local Fake ERP boundary. It requires an explicit operator request, a confirmed token, and a completed manual dry-run record from Sprint 47.
+
+New endpoints:
+
+- `POST /v1/operator-console/action-plan/fake-erp-execution`
+- `GET /v1/operator-console/action-plan/fake-erp-execution/{execution_id}`
+- `GET /v1/operator-console/action-plan/fake-erp-execution-audit`
+
+Example request:
+
+```json
+{
+  "version_id": "ui_skill_ver_...",
+  "dry_run_id": "dryrun_...",
+  "token_id": "tok_...",
+  "actor": {
+    "type": "user",
+    "id": "operator_1",
+    "display_name": "Operator"
+  },
+  "execution_target": "fake_erp",
+  "inputs": {
+    "order_reference": "SO-VALID"
+  },
+  "reason": "Operator approved controlled Fake ERP execution after dry-run evidence."
+}
+```
+
+Example response:
+
+```json
+{
+  "execution_id": "fexec_...",
+  "version_id": "ui_skill_ver_...",
+  "dry_run_id": "dryrun_...",
+  "status": "completed",
+  "execution_target": "fake_erp",
+  "execution_performed": true,
+  "fake_erp_execution_performed": true,
+  "odoo_execution_performed": false,
+  "real_erp_execution_performed": false,
+  "erp_writes_performed": false,
+  "browser_control_performed": false,
+  "mcp_execution_performed": false,
+  "llm_runtime_used": false,
+  "scheduler_used": false,
+  "external_http_performed": false,
+  "steps_executed": 1,
+  "steps_blocked": 0,
+  "evidence_pack_id": "fepack_...",
+  "audit_recorded": true,
+  "result_summary": "Controlled Fake ERP execution completed. No real ERP was touched.",
+  "blocking_reasons": []
+}
+```
+
+Manual dry-run and Fake ERP execution are different artifacts:
+
+- Sprint 47 `manual-dry-run` persists a simulated record and executes nothing.
+- Sprint 48 `fake-erp-execution` may execute only explicitly allowlisted `fake_*` operations inside controlled Fake ERP.
+
+The boundary is still strict: no Odoo, no real ERP, no browser automation, no MCP, no scheduler, no external HTTP, and `endpoint_hint` is never executed.
+
 ## Confirmed Read-Only Action Dispatcher
 
 Sprint 45 adds the first real operator dispatch path, but only for internal read-only handlers. The server requires a confirmed token, re-checks dispatch eligibility immediately before execution, selects the handler by `action_key`, persists the dispatch result, and records execution audit evidence.

@@ -97,6 +97,9 @@ from erpguard.db.models import (
     ActionDispatchExecutionAuditEvent,
     ManualDryRunEvidence,
     ManualDryRunAuditEvent,
+    FakeERPExecutionRecord,
+    FakeERPExecutionEvidence,
+    FakeERPExecutionAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -3992,6 +3995,10 @@ def list_recent_operator_action_plan_events(
         .all()
     )
 
+
+def count_operator_action_plan_events(session: Session) -> int:
+    return session.query(OperatorActionPlanEvent).count()
+
 def create_action_plan_step_token(
     session: Session,
     *,
@@ -4092,6 +4099,10 @@ def list_recent_dispatch_eligibility_events(
         .limit(limit)
         .all()
     )
+
+
+def count_action_dispatch_eligibility_events(session: Session) -> int:
+    return session.query(ActionDispatchEligibilityEvent).count()
 
 
 def create_action_dispatch_result_record(
@@ -4298,6 +4309,168 @@ def list_recent_manual_dry_run_audit_events(
     return list(
         session.query(ManualDryRunAuditEvent)
         .order_by(ManualDryRunAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+# Sprint 48 — Controlled Fake ERP Execution
+
+def create_fake_erp_execution_record(
+    session: Session,
+    *,
+    execution_id: str,
+    version_id: str,
+    skill_id: str,
+    dry_run_id: str,
+    actor_json: str,
+    execution_target: str,
+    inputs_json: str,
+    status: str,
+    step_count: int,
+    steps_executed: int,
+    steps_blocked: int,
+    result_summary: str,
+    safety_summary_json: str,
+    evidence_pack_id: str | None = None,
+    finished_at=None,
+) -> FakeERPExecutionRecord:
+    row = FakeERPExecutionRecord(
+        id=execution_id,
+        version_id=version_id,
+        skill_id=skill_id,
+        dry_run_id=dry_run_id,
+        actor_json=actor_json,
+        execution_target=execution_target,
+        inputs_json=inputs_json,
+        status=status,
+        step_count=step_count,
+        steps_executed=steps_executed,
+        steps_blocked=steps_blocked,
+        result_summary=result_summary,
+        safety_summary_json=safety_summary_json,
+        evidence_pack_id=evidence_pack_id,
+        finished_at=finished_at,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_fake_erp_execution_record(session: Session, execution_id: str) -> FakeERPExecutionRecord | None:
+    return session.get(FakeERPExecutionRecord, execution_id)
+
+
+def update_fake_erp_execution_record(
+    session: Session,
+    execution_id: str,
+    *,
+    status: str | None = None,
+    step_count: int | None = None,
+    steps_executed: int | None = None,
+    steps_blocked: int | None = None,
+    result_summary: str | None = None,
+    safety_summary_json: str | None = None,
+    evidence_pack_id: str | None = None,
+    finished_at=None,
+) -> FakeERPExecutionRecord | None:
+    row = session.get(FakeERPExecutionRecord, execution_id)
+    if row is None:
+        return None
+    if status is not None:
+        row.status = status
+    if step_count is not None:
+        row.step_count = step_count
+    if steps_executed is not None:
+        row.steps_executed = steps_executed
+    if steps_blocked is not None:
+        row.steps_blocked = steps_blocked
+    if result_summary is not None:
+        row.result_summary = result_summary
+    if safety_summary_json is not None:
+        row.safety_summary_json = safety_summary_json
+    if evidence_pack_id is not None:
+        row.evidence_pack_id = evidence_pack_id
+    if finished_at is not None:
+        row.finished_at = finished_at
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def create_fake_erp_execution_evidence(
+    session: Session,
+    *,
+    execution_id: str,
+    version_id: str,
+    skill_id: str,
+    dry_run_id: str,
+    actor_json: str,
+    execution_target: str,
+    inputs_json: str,
+    steps_json: str,
+    safety_summary_json: str,
+) -> FakeERPExecutionEvidence:
+    row = FakeERPExecutionEvidence(
+        id=f"fepack_{uuid4().hex[:16]}",
+        execution_id=execution_id,
+        version_id=version_id,
+        skill_id=skill_id,
+        dry_run_id=dry_run_id,
+        actor_json=actor_json,
+        execution_target=execution_target,
+        inputs_json=inputs_json,
+        steps_json=steps_json,
+        safety_summary_json=safety_summary_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_fake_erp_execution_evidence(session: Session, execution_id: str) -> FakeERPExecutionEvidence | None:
+    return (
+        session.query(FakeERPExecutionEvidence)
+        .filter(FakeERPExecutionEvidence.execution_id == execution_id)
+        .first()
+    )
+
+
+def create_fake_erp_execution_audit_event(
+    session: Session,
+    *,
+    execution_id: str,
+    version_id: str,
+    dry_run_id: str,
+    actor_json: str,
+    event_type: str,
+    status: str,
+    detail_json: str = "{}",
+) -> FakeERPExecutionAuditEvent:
+    row = FakeERPExecutionAuditEvent(
+        id=f"fea_{uuid4().hex[:16]}",
+        execution_id=execution_id,
+        version_id=version_id,
+        dry_run_id=dry_run_id,
+        actor_json=actor_json,
+        event_type=event_type,
+        status=status,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_recent_fake_erp_execution_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[FakeERPExecutionAuditEvent]:
+    return list(
+        session.query(FakeERPExecutionAuditEvent)
+        .order_by(FakeERPExecutionAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )

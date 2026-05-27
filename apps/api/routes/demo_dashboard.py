@@ -1003,6 +1003,34 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Controlled Fake ERP Execution</h2>
+        <p>
+          Sprint 48 runs only inside controlled Fake ERP. It does not call Odoo, real ERP systems,
+          external browser automation, MCP tools, scheduler jobs, LLM runtime or endpoint hints.
+        </p>
+        <div class="toolbar">
+          <label>Version ID <input id="fakeExecVersionId" type="text" placeholder="ver_..." style="width:220px"/></label>
+          <label>Dry-run ID <input id="fakeExecDryRunId" type="text" placeholder="dryrun_..." style="width:220px"/></label>
+          <label>Token ID <input id="fakeExecTokenId" type="text" placeholder="tok_..." style="width:220px"/></label>
+        </div>
+        <div class="toolbar">
+          <label>Actor ID <input id="fakeExecActorId" type="text" value="operator_1" style="width:160px"/></label>
+          <label>Execution target <input id="fakeExecTarget" type="text" value="fake_erp" style="width:140px"/></label>
+          <label>Inputs JSON <input id="fakeExecInputs" type="text" value='{"order_reference":"SO-VALID"}' style="width:360px"/></label>
+        </div>
+        <div class="toolbar">
+          <label>Reason <input id="fakeExecReason" type="text" value="Operator approved controlled Fake ERP execution after dry-run evidence." style="width:520px"/></label>
+        </div>
+        <div class="toolbar">
+          <button id="fakeExecRun">85. Run controlled Fake ERP execution</button>
+          <label>Execution ID <input id="fakeExecExecutionId" type="text" placeholder="fexec_..." style="width:220px"/></label>
+          <button id="fakeExecGet">86. Get Fake ERP execution result</button>
+          <button id="fakeExecAudit">87. Fake ERP execution audit</button>
+        </div>
+        <pre id="fakeExecOutput">No controlled Fake ERP execution data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -5313,6 +5341,58 @@ selectors captured: none</pre>
     document.getElementById("manualDryRunAudit").addEventListener("click", async () => {
       const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/manual-dry-run-audit`);
       manualDryRunOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 48 — Controlled Fake ERP Execution ───────────────────────────
+    const fakeExecOut = () => document.getElementById("fakeExecOutput");
+
+    function parseFakeExecInputs() {
+      const raw = document.getElementById("fakeExecInputs").value.trim();
+      if (!raw) return {};
+      return JSON.parse(raw);
+    }
+
+    document.getElementById("fakeExecRun").addEventListener("click", async () => {
+      try {
+        const body = {
+          version_id: document.getElementById("fakeExecVersionId").value.trim(),
+          dry_run_id: document.getElementById("fakeExecDryRunId").value.trim(),
+          token_id: document.getElementById("fakeExecTokenId").value.trim(),
+          actor: {
+            type: "user",
+            id: document.getElementById("fakeExecActorId").value.trim(),
+            display_name: "Operator",
+          },
+          execution_target: document.getElementById("fakeExecTarget").value.trim() || "fake_erp",
+          inputs: parseFakeExecInputs(),
+          reason: document.getElementById("fakeExecReason").value.trim() || null,
+        };
+        const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/fake-erp-execution`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(body),
+        });
+        const data = await r.json();
+        fakeExecOut().textContent = jsonText(data);
+        if (data.execution_id) document.getElementById("fakeExecExecutionId").value = data.execution_id;
+      } catch (err) {
+        fakeExecOut().textContent = `Invalid inputs JSON: ${err.message}`;
+      }
+    });
+
+    document.getElementById("fakeExecGet").addEventListener("click", async () => {
+      const executionId = document.getElementById("fakeExecExecutionId").value.trim();
+      if (!executionId) {
+        fakeExecOut().textContent = "Enter an execution ID first.";
+        return;
+      }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/fake-erp-execution/${executionId}`);
+      fakeExecOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("fakeExecAudit").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/fake-erp-execution-audit`);
+      fakeExecOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>
