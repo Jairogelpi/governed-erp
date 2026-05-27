@@ -1031,6 +1031,25 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Persisted Fake ERP Evidence Pack</h2>
+        <p>
+          Sprint 49 creates a persisted evidence pack from a completed Fake ERP execution. It does not
+          re-run Fake ERP, call Odoo, touch real ERP systems, use browser automation, call MCP tools,
+          schedule jobs, execute LLM runtime or invoke endpoint hints.
+        </p>
+        <div class="toolbar">
+          <label>Execution ID <input id="fakePackExecutionId" type="text" placeholder="fexec_..." style="width:220px"/></label>
+          <button id="fakePackCreate">88. Create Fake ERP evidence pack</button>
+          <label>Pack ID <input id="fakePackPackId" type="text" placeholder="fepack_..." style="width:220px"/></label>
+        </div>
+        <div class="toolbar">
+          <button id="fakePackGet">89. Get Fake ERP evidence pack</button>
+          <button id="fakePackGetLatest">90. Get latest execution evidence pack</button>
+        </div>
+        <pre id="fakePackOutput">No persisted Fake ERP evidence pack yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -5393,6 +5412,45 @@ selectors captured: none</pre>
     document.getElementById("fakeExecAudit").addEventListener("click", async () => {
       const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/fake-erp-execution-audit`);
       fakeExecOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 49 — Persisted Fake ERP Evidence Pack ────────────────────────
+    const fakePackOut = () => document.getElementById("fakePackOutput");
+
+    document.getElementById("fakePackCreate").addEventListener("click", async () => {
+      const executionId = document.getElementById("fakePackExecutionId").value.trim();
+      if (!executionId) {
+        fakePackOut().textContent = "Enter an execution ID first.";
+        return;
+      }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/fake-erp-evidence-pack`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({execution_id: executionId}),
+      });
+      const data = await r.json();
+      fakePackOut().textContent = jsonText(data);
+      if (data.pack_id) document.getElementById("fakePackPackId").value = data.pack_id;
+    });
+
+    document.getElementById("fakePackGet").addEventListener("click", async () => {
+      const packId = document.getElementById("fakePackPackId").value.trim();
+      if (!packId) {
+        fakePackOut().textContent = "Enter a pack ID first.";
+        return;
+      }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/fake-erp-evidence-pack/${packId}`);
+      fakePackOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("fakePackGetLatest").addEventListener("click", async () => {
+      const executionId = document.getElementById("fakePackExecutionId").value.trim();
+      if (!executionId) {
+        fakePackOut().textContent = "Enter an execution ID first.";
+        return;
+      }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/fake-erp-execution/${executionId}/evidence-pack`);
+      fakePackOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>

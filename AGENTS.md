@@ -409,6 +409,19 @@
   - `git diff --check`
 - No-goals respected: no Sprint 49, no Sprint 50, no Odoo implementation, no real ERP implementation, no browser automation, no MCP integration, no scheduler path, no autonomous execution, no external HTTP.
 
+### 2026-05-27 — Sprint 49 persisted Fake ERP evidence pack (agent)
+
+- What changed: implemented a new persisted `FakeERPExecutionEvidencePack` artifact built from completed Sprint 48 executions only. Added `erpguard/product/fake_erp_evidence_pack.py`, `apps/api/schemas/fake_erp_evidence_pack.py`, `apps/api/routes/fake_erp_evidence_pack.py`, a new DB table in `erpguard/db/models.py`, repository helpers in `erpguard/db/repositories.py`, a new `/demo` section, and 3 new test files for pack service/API/UI.
+- Why: freeze execution result, steps, safety summary, audit snapshot, `dry_run_id`, actor snapshot, and input snapshot into a persisted evidence artifact without re-running Fake ERP.
+- Invariants kept: source execution must exist and be `completed`; pack generation is read-only over Sprint 48 data; no Fake ERP re-execution; no Odoo; no real ERP; no browser automation; no MCP; no scheduler; no external HTTP; no `endpoint_hint` execution.
+- Verification commands executed with `C:\Users\jairo\AppData\Local\Python\pythoncore-3.14-64\python.exe`:
+  - `-m pytest tests/test_fake_erp_evidence_pack.py -q`
+  - `-m pytest tests/test_fake_erp_evidence_pack_api.py -q`
+  - `-m pytest tests/test_fake_erp_evidence_pack_ui.py -q`
+  - Sprint 48 regression slices rerun after the change
+  - `git diff --check`
+- No-goals respected: no Sprint 50 implementation here, no regression-suite expansion beyond focused verification, no new execution runtime, no Odoo, no real ERP, no browser/MCP/scheduler/HTTP paths.
+
 - Added 2 new DB models to `erpguard/db/models.py`: `OperatorConsoleSession` (actor, created_at — prefix `ocses_`) and `OperatorConsoleQuery` (session_id, query_text, detected_intent, intent_confidence, version_id_context, response_summary, result_type, created_at — prefix `ocqry_`). Added `Float` to SQLAlchemy imports.
 - Added 4 Sprint 41 repository functions to `erpguard/db/repositories.py`: `create_operator_console_session`, `get_operator_console_session`, `create_operator_console_query`, `list_operator_console_queries`.
 - Created 5 product modules: `operator_console_intent_classifier.py` (8 intents: list_active_skills, find_similar, governance_gaps, preview_ready, next_step, lifecycle_status, reuse_suggestions, search_skills — keyword scored in Spanish + English), `operator_console_query_router.py` (routes classified intent to the correct Sprint 40 service with optional version_id context), `operator_console_response_formatter.py` (converts structured results into human-readable advisory sentences), `operator_console_session.py` (session lifecycle: start, history retrieval), `operator_console.py` (main orchestrator: classify → route → format → persist → return ConsoleQueryResult).

@@ -1647,3 +1647,22 @@ class FakeERPExecutionAuditEvent(Base):
     status: Mapped[str] = mapped_column(Text, nullable=False, default="info")
     detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 49 — Persisted Fake ERP Evidence Pack
+
+class FakeERPExecutionEvidencePack(Base):
+    __tablename__ = "fake_erp_execution_evidence_packs"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    execution_id: Mapped[str] = mapped_column(Text, nullable=False)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    dry_run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    inputs_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    result_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    steps_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    safety_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    audit_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

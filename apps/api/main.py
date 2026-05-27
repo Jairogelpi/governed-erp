@@ -37,6 +37,7 @@ from apps.api.routes.operator_action_dispatch import router as operator_action_d
 from apps.api.routes.operator_action_dispatch_execute import router as operator_action_dispatch_execute_router
 from apps.api.routes.manual_dry_run import router as manual_dry_run_router
 from apps.api.routes.fake_erp_execution import router as fake_erp_execution_router
+from apps.api.routes.fake_erp_evidence_pack import router as fake_erp_evidence_pack_router
 from apps.api.routes.connector_auth import router as connector_auth_router
 from apps.api.routes.external_connectors import router as external_connectors_router
 from apps.api.routes.google_calendar_oauth import router as google_calendar_oauth_router
@@ -94,6 +95,7 @@ app.include_router(operator_action_dispatch_router)
 app.include_router(operator_action_dispatch_execute_router)
 app.include_router(manual_dry_run_router)
 app.include_router(fake_erp_execution_router)
+app.include_router(fake_erp_evidence_pack_router)
 app.include_router(connector_auth_router)
 app.include_router(external_connectors_router)
 app.include_router(google_calendar_oauth_router)

@@ -100,6 +100,7 @@ from erpguard.db.models import (
     FakeERPExecutionRecord,
     FakeERPExecutionEvidence,
     FakeERPExecutionAuditEvent,
+    FakeERPExecutionEvidencePack,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -4473,4 +4474,57 @@ def list_recent_fake_erp_execution_audit_events(
         .order_by(FakeERPExecutionAuditEvent.created_at.desc())
         .limit(limit)
         .all()
+    )
+
+
+# Sprint 49 — Persisted Fake ERP Evidence Pack
+
+def create_fake_erp_execution_evidence_pack(
+    session: Session,
+    *,
+    pack_id: str,
+    execution_id: str,
+    version_id: str,
+    skill_id: str,
+    dry_run_id: str,
+    actor_json: str,
+    inputs_json: str,
+    result_snapshot_json: str,
+    steps_snapshot_json: str,
+    safety_summary_json: str,
+    audit_snapshot_json: str,
+) -> FakeERPExecutionEvidencePack:
+    row = FakeERPExecutionEvidencePack(
+        id=pack_id,
+        execution_id=execution_id,
+        version_id=version_id,
+        skill_id=skill_id,
+        dry_run_id=dry_run_id,
+        actor_json=actor_json,
+        inputs_json=inputs_json,
+        result_snapshot_json=result_snapshot_json,
+        steps_snapshot_json=steps_snapshot_json,
+        safety_summary_json=safety_summary_json,
+        audit_snapshot_json=audit_snapshot_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_fake_erp_execution_evidence_pack(
+    session: Session, pack_id: str
+) -> FakeERPExecutionEvidencePack | None:
+    return session.get(FakeERPExecutionEvidencePack, pack_id)
+
+
+def get_latest_fake_erp_execution_evidence_pack_for_execution(
+    session: Session, execution_id: str
+) -> FakeERPExecutionEvidencePack | None:
+    return (
+        session.query(FakeERPExecutionEvidencePack)
+        .filter(FakeERPExecutionEvidencePack.execution_id == execution_id)
+        .order_by(FakeERPExecutionEvidencePack.created_at.desc())
+        .first()
     )

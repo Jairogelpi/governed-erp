@@ -382,6 +382,45 @@ Manual dry-run and Fake ERP execution are different artifacts:
 
 The boundary is still strict: no Odoo, no real ERP, no browser automation, no MCP, no scheduler, no external HTTP, and `endpoint_hint` is never executed.
 
+## Sprint 49 Persisted Fake ERP Evidence Pack
+
+Sprint 49 adds a persisted evidence-pack artifact built from a completed Sprint 48 Fake ERP execution. It does not re-run Fake ERP or open any new execution surface.
+
+New endpoints:
+
+- `POST /v1/operator-console/action-plan/fake-erp-evidence-pack`
+- `GET /v1/operator-console/action-plan/fake-erp-evidence-pack/{pack_id}`
+- `GET /v1/operator-console/action-plan/fake-erp-execution/{execution_id}/evidence-pack`
+
+Example request:
+
+```json
+{
+  "execution_id": "fexec_..."
+}
+```
+
+Pack contents:
+
+- result snapshot
+- steps snapshot
+- safety summary
+- audit snapshot
+- `dry_run_id` reference
+- actor and inputs snapshot
+
+The pack is generated only from a completed Fake ERP execution. It does not:
+
+- re-run Fake ERP
+- reopen the runtime
+- call Odoo
+- touch real ERP systems
+- use browser automation
+- call MCP tools
+- use a scheduler
+- call external HTTP
+- execute `endpoint_hint`
+
 ## Confirmed Read-Only Action Dispatcher
 
 Sprint 45 adds the first real operator dispatch path, but only for internal read-only handlers. The server requires a confirmed token, re-checks dispatch eligibility immediately before execution, selects the handler by `action_key`, persists the dispatch result, and records execution audit evidence.
