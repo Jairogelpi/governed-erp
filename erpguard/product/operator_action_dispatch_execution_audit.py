@@ -9,6 +9,7 @@ from erpguard.db.repositories import (
     create_action_dispatch_execution_audit_event,
     list_recent_action_dispatch_execution_audit_events,
 )
+from erpguard.db.models import ActionDispatchExecutionAuditEvent
 
 
 @dataclass(frozen=True)
@@ -88,5 +89,5 @@ def get_dispatch_execution_audit(session, *, limit: int = 50) -> DispatchExecuti
             )
             for row in rows
         ],
-        event_count=len(rows),
+        event_count=session.query(ActionDispatchExecutionAuditEvent).count(),
     )

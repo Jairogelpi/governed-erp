@@ -51,7 +51,7 @@ def _to_response(result) -> DispatchResultResponse:
 
 @router.get("/action-plan/dispatchable-actions", response_model=DispatchableActionsResponse)
 def get_dispatchable_actions():
-    actions = sorted(set(list_dispatchable_actions()) | set(list_governance_mutation_actions()))
+    actions = sorted(set(list_dispatchable_actions()) | set(list_governance_mutation_actions()) | {"run_preview"})
     return DispatchableActionsResponse(actions=actions, total=len(actions))
 
 
