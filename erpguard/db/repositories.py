@@ -95,6 +95,8 @@ from erpguard.db.models import (
     ActionDispatchEligibilityEvent,
     ActionDispatchResultRecord,
     ActionDispatchExecutionAuditEvent,
+    ManualDryRunEvidence,
+    ManualDryRunAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -4202,6 +4204,100 @@ def list_recent_action_dispatch_execution_audit_events(
     return list(
         session.query(ActionDispatchExecutionAuditEvent)
         .order_by(ActionDispatchExecutionAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+# Sprint 47 — Manual Dry-Run Execution Record
+
+def create_manual_dry_run_evidence(
+    session: Session,
+    *,
+    run_id: str,
+    version_id: str,
+    skill_id: str,
+    actor_json: str,
+    mode: str,
+    inputs_json: str,
+    preview_reference_id: str | None,
+    source_plan_id: str | None,
+    source_step_number: int | None,
+    gate_result_json: str,
+    simulated_steps_json: str,
+    would_execute_steps_json: str,
+    blocked_steps_json: str,
+    safety_summary_json: str,
+) -> ManualDryRunEvidence:
+    row = ManualDryRunEvidence(
+        id=f"runev_{uuid4().hex[:16]}",
+        run_id=run_id,
+        version_id=version_id,
+        skill_id=skill_id,
+        actor_json=actor_json,
+        mode=mode,
+        inputs_json=inputs_json,
+        preview_reference_id=preview_reference_id,
+        source_plan_id=source_plan_id,
+        source_step_number=source_step_number,
+        gate_result_json=gate_result_json,
+        simulated_steps_json=simulated_steps_json,
+        would_execute_steps_json=would_execute_steps_json,
+        blocked_steps_json=blocked_steps_json,
+        safety_summary_json=safety_summary_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_manual_dry_run_evidence_for_run(session: Session, run_id: str) -> ManualDryRunEvidence | None:
+    return (
+        session.query(ManualDryRunEvidence)
+        .filter(ManualDryRunEvidence.run_id == run_id)
+        .first()
+    )
+
+
+def create_manual_dry_run_audit_event(
+    session: Session,
+    *,
+    run_id: str,
+    version_id: str,
+    actor_json: str,
+    event_type: str,
+    status: str,
+    detail_json: str = "{}",
+) -> ManualDryRunAuditEvent:
+    row = ManualDryRunAuditEvent(
+        id=f"mdr_aud_{uuid4().hex[:16]}",
+        run_id=run_id,
+        version_id=version_id,
+        actor_json=actor_json,
+        event_type=event_type,
+        status=status,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_manual_dry_run_audit_events_for_run(session: Session, run_id: str) -> list[ManualDryRunAuditEvent]:
+    return list(
+        session.query(ManualDryRunAuditEvent)
+        .filter(ManualDryRunAuditEvent.run_id == run_id)
+        .order_by(ManualDryRunAuditEvent.created_at.asc())
+        .all()
+    )
+
+
+def list_recent_manual_dry_run_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[ManualDryRunAuditEvent]:
+    return list(
+        session.query(ManualDryRunAuditEvent)
+        .order_by(ManualDryRunAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )

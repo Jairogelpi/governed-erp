@@ -1558,3 +1558,39 @@ class ActionDispatchExecutionAuditEvent(Base):
     version_id: Mapped[str | None] = mapped_column(Text, nullable=True)
     detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 47 — Manual Dry-Run Execution Record
+
+class ManualDryRunEvidence(Base):
+    __tablename__ = "manual_dry_run_evidence"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    mode: Mapped[str] = mapped_column(Text, nullable=False, default="dry_run")
+    inputs_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    preview_reference_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source_plan_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source_step_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    gate_result_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    simulated_steps_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    would_execute_steps_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    blocked_steps_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    safety_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class ManualDryRunAuditEvent(Base):
+    __tablename__ = "manual_dry_run_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    event_type: Mapped[str] = mapped_column(Text, nullable=False, default="requested")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="info")
+    detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

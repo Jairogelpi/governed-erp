@@ -259,6 +259,64 @@ Simulated: an approval gate that plans the critical `confirm_sales_order` action
 
 Not implemented: real Odoo UI automation, real ERP writes, a full approval workflow, browser-extension capture, MCP, or an LLM-driven builder.
 
+## Sprint 47 Manual Dry-Run Execution Record
+
+Sprint 47 adds the first formal manual dry-run execution record. It creates a persisted dry-run artifact only after preview and token confirmation, and it remains fully non-executing.
+
+New endpoints:
+
+- `POST /v1/operator-console/action-plan/manual-dry-run`
+- `GET /v1/operator-console/action-plan/manual-dry-run/{run_id}`
+- `GET /v1/operator-console/action-plan/manual-dry-run-audit`
+
+Example request:
+
+```json
+{
+  "version_id": "ui_skill_ver_...",
+  "token_id": "tok_...",
+  "actor": {
+    "type": "user",
+    "id": "operator_1",
+    "display_name": "Operator"
+  },
+  "source_plan_id": "aplan_...",
+  "source_step_number": 4,
+  "mode": "dry_run",
+  "inputs": {
+    "order_reference": "SO-VALID"
+  },
+  "reason": "Operator requested a dry-run evidence record after preview passed."
+}
+```
+
+Example response:
+
+```json
+{
+  "run_id": "dryrun_...",
+  "version_id": "ui_skill_ver_...",
+  "status": "completed",
+  "mode": "dry_run",
+  "execution_performed": false,
+  "simulation_performed": true,
+  "erp_writes_performed": false,
+  "browser_control_performed": false,
+  "mcp_execution_performed": false,
+  "llm_runtime_used": false,
+  "scheduler_used": false,
+  "active_skill_run_created": true,
+  "fake_erp_execution_performed": false,
+  "odoo_execution_performed": false,
+  "evidence_id": "runev_...",
+  "audit_recorded": true,
+  "result_summary": "Manual dry-run record created. No ERP action was executed.",
+  "blocking_reasons": []
+}
+```
+
+Block A ends before Fake ERP execution. The dry-run record is manual and explicit; it does not trigger Fake ERP, Odoo, browser automation, MCP tools, scheduler jobs, or ERP writes.
+
 ## Confirmed Read-Only Action Dispatcher
 
 Sprint 45 adds the first real operator dispatch path, but only for internal read-only handlers. The server requires a confirmed token, re-checks dispatch eligibility immediately before execution, selects the handler by `action_key`, persists the dispatch result, and records execution audit evidence.

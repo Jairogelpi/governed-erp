@@ -973,6 +973,36 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Manual Dry-Run Execution Record</h2>
+        <p>
+          Sprint 47 creates a manual dry-run execution record only. It does not execute Fake ERP, Odoo,
+          browser actions, MCP tools, scheduler jobs or ERP writes.
+        </p>
+        <div class="toolbar">
+          <label>Version ID <input id="manualDryRunVersionId" type="text" placeholder="ver_..." style="width:220px"/></label>
+          <label>Token ID <input id="manualDryRunTokenId" type="text" placeholder="tok_..." style="width:220px"/></label>
+          <label>Actor ID <input id="manualDryRunActorId" type="text" value="operator_1" style="width:160px"/></label>
+        </div>
+        <div class="toolbar">
+          <label>Source plan ID <input id="manualDryRunSourcePlanId" type="text" value="aplan_manual_dry_run" style="width:220px"/></label>
+          <label>Source step # <input id="manualDryRunSourceStepNumber" type="number" value="4" style="width:90px"/></label>
+          <label>Mode <input id="manualDryRunMode" type="text" value="dry_run" style="width:120px"/></label>
+        </div>
+        <div class="toolbar">
+          <label>Inputs JSON <input id="manualDryRunInputs" type="text" value='{"order_reference":"SO-VALID"}' style="width:360px"/></label>
+          <label>Reason <input id="manualDryRunReason" type="text" value="Operator requested a dry-run evidence record after preview passed." style="width:460px"/></label>
+        </div>
+        <div class="toolbar">
+          <label>Requested target <input id="manualDryRunRequestedTarget" type="text" value="simulation" style="width:160px"/></label>
+          <button id="manualDryRunCreate">82. Create manual dry-run record</button>
+          <label>Run ID <input id="manualDryRunRunId" type="text" placeholder="as_run_..." style="width:220px"/></label>
+          <button id="manualDryRunGet">83. Get dry-run result</button>
+          <button id="manualDryRunAudit">84. Dry-run audit</button>
+        </div>
+        <pre id="manualDryRunOutput">No manual dry-run data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -5229,6 +5259,60 @@ selectors captured: none</pre>
     document.getElementById("dispatchExecuteActions").addEventListener("click", async () => {
       const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/dispatchable-actions`);
       dispatchExecuteOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 47 — Manual Dry-Run Execution Record ─────────────────────────
+    const manualDryRunOut = () => document.getElementById("manualDryRunOutput");
+
+    function parseManualDryRunInputs() {
+      const raw = document.getElementById("manualDryRunInputs").value.trim();
+      if (!raw) return {};
+      return JSON.parse(raw);
+    }
+
+    document.getElementById("manualDryRunCreate").addEventListener("click", async () => {
+      try {
+        const body = {
+          version_id: document.getElementById("manualDryRunVersionId").value.trim(),
+          token_id: document.getElementById("manualDryRunTokenId").value.trim(),
+          actor: {
+            type: "user",
+            id: document.getElementById("manualDryRunActorId").value.trim(),
+            display_name: "Operator",
+          },
+          source_plan_id: document.getElementById("manualDryRunSourcePlanId").value.trim() || null,
+          source_step_number: parseInt(document.getElementById("manualDryRunSourceStepNumber").value) || null,
+          mode: document.getElementById("manualDryRunMode").value.trim() || "dry_run",
+          inputs: parseManualDryRunInputs(),
+          reason: document.getElementById("manualDryRunReason").value.trim() || null,
+          requested_target: document.getElementById("manualDryRunRequestedTarget").value.trim() || "simulation",
+        };
+        const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/manual-dry-run`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(body),
+        });
+        const data = await r.json();
+        manualDryRunOut().textContent = jsonText(data);
+        if (data.run_id) document.getElementById("manualDryRunRunId").value = data.run_id;
+      } catch (err) {
+        manualDryRunOut().textContent = `Invalid inputs JSON: ${err.message}`;
+      }
+    });
+
+    document.getElementById("manualDryRunGet").addEventListener("click", async () => {
+      const runId = document.getElementById("manualDryRunRunId").value.trim();
+      if (!runId) {
+        manualDryRunOut().textContent = "Enter a run ID first.";
+        return;
+      }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/manual-dry-run/${runId}`);
+      manualDryRunOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("manualDryRunAudit").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/manual-dry-run-audit`);
+      manualDryRunOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>

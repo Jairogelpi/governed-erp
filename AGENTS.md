@@ -366,6 +366,27 @@
 - Verification: ran focused dispatcher/audit/`activate_candidate` tests; all passed locally (`tests/test_operator_action_governance_mutation_dispatcher.py`, `tests/test_operator_action_dispatch_api.py`, `tests/test_operator_action_dispatch_execute_api.py`, `tests/test_operator_action_dispatch_audit.py`, `tests/test_operator_action_dispatch_handlers.py`).
 - Commit: recorded this acceptance note and pushed changes to the remote repository.
 
+### 2026-05-27 — Sprint 47 manual dry-run foundation (agent)
+
+- What changed: implemented the manual dry-run execution record for Block A. Added `erpguard/product/manual_dry_run_gate.py`, `erpguard/product/manual_dry_run_record.py`, `erpguard/product/manual_dry_run_evidence.py`, `erpguard/product/manual_dry_run_audit.py`, `apps/api/schemas/manual_dry_run.py`, `apps/api/routes/manual_dry_run.py`, new manual dry-run tables in `erpguard/db/models.py`, and new repository helpers in `erpguard/db/repositories.py`.
+- Why: create the first persisted dry-run artifact without enabling Fake ERP execution, Odoo execution, browser control, MCP, scheduler usage, or ERP writes.
+- Invariants kept: mode is forced to `dry_run`; gate blocks on token, actor, version, governance, and requested target; evidence records simulated steps with `would_execute=true` but `executed=false`; audit persists requested, gate_passed/gate_blocked, dry_run_record_created, completed/blocked events; no automatic chaining from preview or dispatch.
+- Verification commands executed with `C:\Users\jairo\AppData\Local\Python\pythoncore-3.14-64\python.exe` and workspace-local `--basetemp`:
+  - `-m pytest tests/test_operator_action_dispatch_handlers.py -q`
+  - `-m pytest tests/test_operator_action_dispatcher.py -q`
+  - `-m pytest tests/test_operator_action_dispatch_execute_api.py -q`
+  - `-m pytest tests/test_operator_action_governance_mutation_dispatcher.py -q`
+  - `-m pytest tests/test_manual_dry_run_gate.py -q`
+  - `-m pytest tests/test_manual_dry_run_record.py -q`
+  - `-m pytest tests/test_manual_dry_run_evidence.py -q`
+  - `-m pytest tests/test_manual_dry_run_audit.py -q`
+  - `-m pytest tests/test_manual_dry_run_api.py -q`
+  - `-m pytest tests/test_manual_dry_run_ui.py -q`
+  - `-m pytest -q --basetemp C:\Users\jairo\Desktop\TFM\.pytest_tmp_full`
+  - `git diff --check`
+- Verification result: all focused Sprint 47 slices passed; Sprint 45 and Sprint 46 regression slices remained green; full pytest passed in this shell with 2 skipped browser-dependent tests and no failures; `git diff --check` reported no diff errors, only Windows line-ending warnings on existing touched files.
+- No-goals respected: no Sprint 48, no Fake ERP execution, no Odoo execution, no browser automation, no MCP execution, no LLM runtime replay, no scheduler, no background worker, no generic endpoint dispatch, no ERP writes.
+
 - Added 2 new DB models to `erpguard/db/models.py`: `OperatorConsoleSession` (actor, created_at — prefix `ocses_`) and `OperatorConsoleQuery` (session_id, query_text, detected_intent, intent_confidence, version_id_context, response_summary, result_type, created_at — prefix `ocqry_`). Added `Float` to SQLAlchemy imports.
 - Added 4 Sprint 41 repository functions to `erpguard/db/repositories.py`: `create_operator_console_session`, `get_operator_console_session`, `create_operator_console_query`, `list_operator_console_queries`.
 - Created 5 product modules: `operator_console_intent_classifier.py` (8 intents: list_active_skills, find_similar, governance_gaps, preview_ready, next_step, lifecycle_status, reuse_suggestions, search_skills — keyword scored in Spanish + English), `operator_console_query_router.py` (routes classified intent to the correct Sprint 40 service with optional version_id context), `operator_console_response_formatter.py` (converts structured results into human-readable advisory sentences), `operator_console_session.py` (session lifecycle: start, history retrieval), `operator_console.py` (main orchestrator: classify → route → format → persist → return ConsoleQueryResult).
