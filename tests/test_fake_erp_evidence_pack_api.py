@@ -130,3 +130,15 @@ def test_missing_execution_blocks_pack_creation():
     assert r.status_code == 200
     assert "execution_not_found" in r.json()["blocking_reasons"]
 
+
+def test_repeated_post_reuses_same_pack_id():
+    execution_id = _seed_execution()
+    first = client.post(f"{BASE}/fake-erp-evidence-pack", json={"execution_id": execution_id})
+    second = client.post(f"{BASE}/fake-erp-evidence-pack", json={"execution_id": execution_id})
+    assert first.status_code == 200
+    assert second.status_code == 200
+    first_body = first.json()
+    second_body = second.json()
+    assert first_body["created"] is True
+    assert second_body["created"] is False
+    assert second_body["pack_id"] == first_body["pack_id"]

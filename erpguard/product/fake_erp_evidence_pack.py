@@ -8,6 +8,7 @@ from erpguard.db.repositories import (
     create_fake_erp_execution_evidence_pack,
     get_fake_erp_execution_evidence,
     get_fake_erp_execution_evidence_pack,
+    get_latest_fake_erp_execution_evidence_pack_for_execution,
     get_fake_erp_execution_record,
 )
 from erpguard.product.fake_erp_execution_audit import get_fake_erp_execution_audit
@@ -107,6 +108,21 @@ def create_persisted_fake_erp_evidence_pack(*, execution_id: str, session) -> Fa
     }
     steps_snapshot = json.loads(evidence.steps_json or "[]")
     safety_summary = json.loads(record.safety_summary_json or "{}") if record.safety_summary_json else {}
+    existing = get_latest_fake_erp_execution_evidence_pack_for_execution(session, execution_id)
+    if existing is not None:
+        return FakeERPExecutionEvidencePackResult(
+            pack_id=existing.id,
+            execution_id=existing.execution_id,
+            version_id=existing.version_id,
+            skill_id=existing.skill_id,
+            dry_run_id=existing.dry_run_id,
+            result_snapshot=json.loads(existing.result_snapshot_json or "{}"),
+            steps_snapshot=json.loads(existing.steps_snapshot_json or "[]"),
+            safety_summary=json.loads(existing.safety_summary_json or "{}"),
+            audit_snapshot=json.loads(existing.audit_snapshot_json or "[]"),
+            created=False,
+            blocking_reasons=[],
+        )
 
     row = create_fake_erp_execution_evidence_pack(
         session,

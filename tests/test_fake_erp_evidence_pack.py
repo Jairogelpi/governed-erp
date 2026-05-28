@@ -4,6 +4,7 @@ import json
 import uuid
 from datetime import datetime, timedelta, timezone
 
+from erpguard.db.models import FakeERPExecutionEvidencePack
 from erpguard.db.models import ActionPlanStepToken, UISkillVersionRecord
 from erpguard.db.repositories import (
     create_action_plan_step_token,
@@ -159,5 +160,25 @@ def test_incomplete_execution_blocks():
         result = create_persisted_fake_erp_evidence_pack(execution_id=execution_id, session=db)
         assert result.created is False
         assert "execution_not_completed" in result.blocking_reasons
+    finally:
+        db.close()
+
+
+def test_repeated_create_reuses_same_pack_id_without_duplicates():
+    execution_id = _seed_execution()
+    init_db()
+    db = SessionLocal()
+    try:
+        first = create_persisted_fake_erp_evidence_pack(execution_id=execution_id, session=db)
+        second = create_persisted_fake_erp_evidence_pack(execution_id=execution_id, session=db)
+        assert first.created is True
+        assert second.created is False
+        assert second.pack_id == first.pack_id
+        count = (
+            db.query(FakeERPExecutionEvidencePack)
+            .filter(FakeERPExecutionEvidencePack.execution_id == execution_id)
+            .count()
+        )
+        assert count == 1
     finally:
         db.close()
