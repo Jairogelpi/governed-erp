@@ -106,11 +106,19 @@ from erpguard.db.models import (
     FakeERPRegressionAuditEvent,
     FakeERPRegressionCase,
     FakeERPRegressionRun,
+    CredentialVaultEntry,
+    CredentialVaultAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
 
-def create_connection(session: Session, name: str, erp_type: ERPType, config: dict, status: str = "created") -> Connection:
+def create_connection(
+    session: Session,
+    name: str,
+    erp_type: ERPType,
+    config: dict,
+    status: str = "created",
+) -> Connection:
     # TODO: Encrypt connection secrets or move them to a dedicated secret manager.
     connection = Connection(
         id=f"conn_{uuid4().hex}",
@@ -133,7 +141,9 @@ def list_connections(session: Session) -> list[Connection]:
     return list(session.query(Connection).order_by(Connection.created_at.desc()).all())
 
 
-def create_preflight_case(session: Session, result: PreflightResult, connection_id: str = "fake") -> PreflightCase:
+def create_preflight_case(
+    session: Session, result: PreflightResult, connection_id: str = "fake"
+) -> PreflightCase:
     case = PreflightCase(
         id=result.id,
         connection_id=connection_id,
@@ -183,7 +193,9 @@ def create_invariant_results_from_policy_issues(
     return rows
 
 
-def create_audit_event(session: Session, case_id: str, event_type: str, event: dict) -> AuditEvent:
+def create_audit_event(
+    session: Session, case_id: str, event_type: str, event: dict
+) -> AuditEvent:
     audit_event = AuditEvent(
         id=f"audit_{uuid4().hex}",
         case_id=case_id,
@@ -218,7 +230,9 @@ def list_audit_events(session: Session, case_id: str) -> list[AuditEvent]:
     )
 
 
-def create_skill(session: Session, name: str, description: str | None, status: str = "draft") -> Skill:
+def create_skill(
+    session: Session, name: str, description: str | None, status: str = "draft"
+) -> Skill:
     skill = Skill(
         id=f"skill_{uuid4().hex}",
         name=name,
@@ -399,12 +413,18 @@ def create_recording_session(
     return recording_session
 
 
-def get_recording_session(session: Session, recording_session_id: str) -> RecordingSession | None:
+def get_recording_session(
+    session: Session, recording_session_id: str
+) -> RecordingSession | None:
     return session.get(RecordingSession, recording_session_id)
 
 
 def list_recording_sessions(session: Session) -> list[RecordingSession]:
-    return list(session.query(RecordingSession).order_by(RecordingSession.created_at.desc()).all())
+    return list(
+        session.query(RecordingSession)
+        .order_by(RecordingSession.created_at.desc())
+        .all()
+    )
 
 
 def add_recording_event(
@@ -454,7 +474,9 @@ def add_recording_event(
     return event
 
 
-def list_recording_events(session: Session, recording_session_id: str) -> list[RecordingEvent]:
+def list_recording_events(
+    session: Session, recording_session_id: str
+) -> list[RecordingEvent]:
     return list(
         session.query(RecordingEvent)
         .filter(RecordingEvent.recording_session_id == recording_session_id)
@@ -463,7 +485,9 @@ def list_recording_events(session: Session, recording_session_id: str) -> list[R
     )
 
 
-def finish_recording_session(session: Session, recording_session_id: str, status: str = "finished") -> RecordingSession | None:
+def finish_recording_session(
+    session: Session, recording_session_id: str, status: str = "finished"
+) -> RecordingSession | None:
     recording_session = session.get(RecordingSession, recording_session_id)
     if recording_session is None:
         return None
@@ -477,7 +501,14 @@ def _to_json(value) -> str:
     return json.dumps(value, default=str)
 
 
-def create_business_snapshot(session: Session, connection_id: str, erp_type: str, snapshot_json: str, status: str = "ok", read_only_mode: bool = True) -> BusinessSnapshot:
+def create_business_snapshot(
+    session: Session,
+    connection_id: str,
+    erp_type: str,
+    snapshot_json: str,
+    status: str = "ok",
+    read_only_mode: bool = True,
+) -> BusinessSnapshot:
     snapshot = BusinessSnapshot(
         id=f"business_snapshot_{uuid4().hex}",
         connection_id=connection_id,
@@ -492,7 +523,9 @@ def create_business_snapshot(session: Session, connection_id: str, erp_type: str
     return snapshot
 
 
-def get_business_snapshot(session: Session, snapshot_id: str) -> BusinessSnapshot | None:
+def get_business_snapshot(
+    session: Session, snapshot_id: str
+) -> BusinessSnapshot | None:
     return session.get(BusinessSnapshot, snapshot_id)
 
 
@@ -522,7 +555,9 @@ def create_business_signal(
     return signal
 
 
-def list_business_signals(session: Session, business_snapshot_id: str) -> list[BusinessSignal]:
+def list_business_signals(
+    session: Session, business_snapshot_id: str
+) -> list[BusinessSignal]:
     return list(
         session.query(BusinessSignal)
         .filter(BusinessSignal.business_snapshot_id == business_snapshot_id)
@@ -640,7 +675,9 @@ def get_automation_draft(session: Session, draft_id: str) -> AutomationDraft | N
     return session.get(AutomationDraft, draft_id)
 
 
-def list_automation_drafts(session: Session, opportunity_id: str) -> list[AutomationDraft]:
+def list_automation_drafts(
+    session: Session, opportunity_id: str
+) -> list[AutomationDraft]:
     return list(
         session.query(AutomationDraft)
         .filter(AutomationDraft.opportunity_id == opportunity_id)
@@ -649,7 +686,9 @@ def list_automation_drafts(session: Session, opportunity_id: str) -> list[Automa
     )
 
 
-def create_agent_builder_session(session: Session, created_by_actor_json: str) -> AgentBuilderSession:
+def create_agent_builder_session(
+    session: Session, created_by_actor_json: str
+) -> AgentBuilderSession:
     row = AgentBuilderSession(
         id=f"builder_{uuid4().hex}",
         status="created",
@@ -668,11 +707,15 @@ def create_agent_builder_session(session: Session, created_by_actor_json: str) -
     return row
 
 
-def get_agent_builder_session(session: Session, session_id: str) -> AgentBuilderSession | None:
+def get_agent_builder_session(
+    session: Session, session_id: str
+) -> AgentBuilderSession | None:
     return session.get(AgentBuilderSession, session_id)
 
 
-def update_agent_builder_session(session: Session, session_id: str, **updates) -> AgentBuilderSession | None:
+def update_agent_builder_session(
+    session: Session, session_id: str, **updates
+) -> AgentBuilderSession | None:
     row = session.get(AgentBuilderSession, session_id)
     if row is None:
         return None
@@ -707,7 +750,9 @@ def create_agent_builder_event(
     return row
 
 
-def list_agent_builder_events(session: Session, session_id: str) -> list[AgentBuilderEvent]:
+def list_agent_builder_events(
+    session: Session, session_id: str
+) -> list[AgentBuilderEvent]:
     return list(
         session.query(AgentBuilderEvent)
         .filter(AgentBuilderEvent.session_id == session_id)
@@ -747,15 +792,23 @@ def create_connector_auth_profile(
     return row
 
 
-def get_connector_auth_profile(session: Session, profile_id: str) -> ConnectorAuthProfile | None:
+def get_connector_auth_profile(
+    session: Session, profile_id: str
+) -> ConnectorAuthProfile | None:
     return session.get(ConnectorAuthProfile, profile_id)
 
 
 def list_connector_auth_profiles(session: Session) -> list[ConnectorAuthProfile]:
-    return list(session.query(ConnectorAuthProfile).order_by(ConnectorAuthProfile.created_at.desc()).all())
+    return list(
+        session.query(ConnectorAuthProfile)
+        .order_by(ConnectorAuthProfile.created_at.desc())
+        .all()
+    )
 
 
-def update_connector_auth_profile(session: Session, profile_id: str, **updates) -> ConnectorAuthProfile | None:
+def update_connector_auth_profile(
+    session: Session, profile_id: str, **updates
+) -> ConnectorAuthProfile | None:
     row = session.get(ConnectorAuthProfile, profile_id)
     if row is None:
         return None
@@ -789,7 +842,9 @@ def create_connector_credential_audit_event(
     return row
 
 
-def list_connector_credential_audit_events(session: Session, profile_id: str) -> list[ConnectorCredentialAuditEvent]:
+def list_connector_credential_audit_events(
+    session: Session, profile_id: str
+) -> list[ConnectorCredentialAuditEvent]:
     return list(
         session.query(ConnectorCredentialAuditEvent)
         .filter(ConnectorCredentialAuditEvent.profile_id == profile_id)
@@ -826,11 +881,15 @@ def create_automation_draft_review(
     return review
 
 
-def get_automation_draft_review(session: Session, review_id: str) -> AutomationDraftReview | None:
+def get_automation_draft_review(
+    session: Session, review_id: str
+) -> AutomationDraftReview | None:
     return session.get(AutomationDraftReview, review_id)
 
 
-def mark_review_compiled(session: Session, review_id: str, skill_id: str, skill_version_id: str) -> AutomationDraftReview | None:
+def mark_review_compiled(
+    session: Session, review_id: str, skill_id: str, skill_version_id: str
+) -> AutomationDraftReview | None:
     review = session.get(AutomationDraftReview, review_id)
     if review is None:
         return None
@@ -883,7 +942,9 @@ def get_skill_dry_run_proof(session: Session, proof_id: str) -> SkillDryRunProof
     return session.get(SkillDryRunProof, proof_id)
 
 
-def get_latest_dry_run_proof_for_skill(session: Session, skill_id: str) -> SkillDryRunProof | None:
+def get_latest_dry_run_proof_for_skill(
+    session: Session, skill_id: str
+) -> SkillDryRunProof | None:
     return (
         session.query(SkillDryRunProof)
         .filter(SkillDryRunProof.skill_id == skill_id)
@@ -917,11 +978,15 @@ def create_skill_approval_request(
     return req
 
 
-def get_approval_request(session: Session, request_id: str) -> SkillApprovalRequest | None:
+def get_approval_request(
+    session: Session, request_id: str
+) -> SkillApprovalRequest | None:
     return session.get(SkillApprovalRequest, request_id)
 
 
-def get_latest_approval_request_for_skill(session: Session, skill_id: str) -> SkillApprovalRequest | None:
+def get_latest_approval_request_for_skill(
+    session: Session, skill_id: str
+) -> SkillApprovalRequest | None:
     return (
         session.query(SkillApprovalRequest)
         .filter(SkillApprovalRequest.skill_id == skill_id)
@@ -930,7 +995,9 @@ def get_latest_approval_request_for_skill(session: Session, skill_id: str) -> Sk
     )
 
 
-def list_approval_requests_for_skill(session: Session, skill_id: str) -> list[SkillApprovalRequest]:
+def list_approval_requests_for_skill(
+    session: Session, skill_id: str
+) -> list[SkillApprovalRequest]:
     return list(
         session.query(SkillApprovalRequest)
         .filter(SkillApprovalRequest.skill_id == skill_id)
@@ -939,7 +1006,9 @@ def list_approval_requests_for_skill(session: Session, skill_id: str) -> list[Sk
     )
 
 
-def update_approval_request_status(session: Session, request_id: str, status: str) -> SkillApprovalRequest | None:
+def update_approval_request_status(
+    session: Session, request_id: str, status: str
+) -> SkillApprovalRequest | None:
     req = session.get(SkillApprovalRequest, request_id)
     if req is None:
         return None
@@ -975,7 +1044,9 @@ def create_skill_approval_decision(
     return dec
 
 
-def list_approval_decisions_for_request(session: Session, approval_request_id: str) -> list[SkillApprovalDecision]:
+def list_approval_decisions_for_request(
+    session: Session, approval_request_id: str
+) -> list[SkillApprovalDecision]:
     return list(
         session.query(SkillApprovalDecision)
         .filter(SkillApprovalDecision.approval_request_id == approval_request_id)
@@ -984,7 +1055,9 @@ def list_approval_decisions_for_request(session: Session, approval_request_id: s
     )
 
 
-def list_approval_decisions_for_skill(session: Session, skill_id: str) -> list[SkillApprovalDecision]:
+def list_approval_decisions_for_skill(
+    session: Session, skill_id: str
+) -> list[SkillApprovalDecision]:
     return list(
         session.query(SkillApprovalDecision)
         .filter(SkillApprovalDecision.skill_id == skill_id)
@@ -1017,7 +1090,9 @@ def create_activation_gate_evaluation(
     return ev
 
 
-def get_latest_gate_evaluation(session: Session, skill_id: str) -> SkillActivationGateEvaluation | None:
+def get_latest_gate_evaluation(
+    session: Session, skill_id: str
+) -> SkillActivationGateEvaluation | None:
     return (
         session.query(SkillActivationGateEvaluation)
         .filter(SkillActivationGateEvaluation.skill_id == skill_id)
@@ -1026,7 +1101,9 @@ def get_latest_gate_evaluation(session: Session, skill_id: str) -> SkillActivati
     )
 
 
-def list_gate_evaluations_for_skill(session: Session, skill_id: str) -> list[SkillActivationGateEvaluation]:
+def list_gate_evaluations_for_skill(
+    session: Session, skill_id: str
+) -> list[SkillActivationGateEvaluation]:
     return list(
         session.query(SkillActivationGateEvaluation)
         .filter(SkillActivationGateEvaluation.skill_id == skill_id)
@@ -1067,7 +1144,9 @@ def get_execution_request(session: Session, request_id: str) -> ExecutionRequest
     return session.get(ExecutionRequest, request_id)
 
 
-def update_execution_request_status(session: Session, request_id: str, status: str) -> ExecutionRequest | None:
+def update_execution_request_status(
+    session: Session, request_id: str, status: str
+) -> ExecutionRequest | None:
     req = session.get(ExecutionRequest, request_id)
     if req is None:
         return None
@@ -1077,7 +1156,9 @@ def update_execution_request_status(session: Session, request_id: str, status: s
     return req
 
 
-def list_execution_requests_for_skill(session: Session, skill_id: str) -> list[ExecutionRequest]:
+def list_execution_requests_for_skill(
+    session: Session, skill_id: str
+) -> list[ExecutionRequest]:
     return list(
         session.query(ExecutionRequest)
         .filter(ExecutionRequest.skill_id == skill_id)
@@ -1118,7 +1199,9 @@ def get_execution_run(session: Session, run_id: str) -> ExecutionRun | None:
     return session.get(ExecutionRun, run_id)
 
 
-def list_execution_runs_for_request(session: Session, execution_request_id: str) -> list[ExecutionRun]:
+def list_execution_runs_for_request(
+    session: Session, execution_request_id: str
+) -> list[ExecutionRun]:
     return list(
         session.query(ExecutionRun)
         .filter(ExecutionRun.execution_request_id == execution_request_id)
@@ -1127,7 +1210,9 @@ def list_execution_runs_for_request(session: Session, execution_request_id: str)
     )
 
 
-def list_execution_runs_for_skill(session: Session, skill_id: str) -> list[ExecutionRun]:
+def list_execution_runs_for_skill(
+    session: Session, skill_id: str
+) -> list[ExecutionRun]:
     return list(
         session.query(ExecutionRun)
         .filter(ExecutionRun.skill_id == skill_id)
@@ -1162,7 +1247,9 @@ def create_execution_run_step(
     return step
 
 
-def list_execution_run_steps(session: Session, execution_run_id: str) -> list[ExecutionRunStep]:
+def list_execution_run_steps(
+    session: Session, execution_run_id: str
+) -> list[ExecutionRunStep]:
     return list(
         session.query(ExecutionRunStep)
         .filter(ExecutionRunStep.execution_run_id == execution_run_id)
@@ -1218,7 +1305,9 @@ def create_blocked_write_evidence(
     return ev
 
 
-def list_blocked_write_evidence_for_run(session: Session, execution_run_id: str) -> list[BlockedWriteEvidenceRecord]:
+def list_blocked_write_evidence_for_run(
+    session: Session, execution_run_id: str
+) -> list[BlockedWriteEvidenceRecord]:
     return list(
         session.query(BlockedWriteEvidenceRecord)
         .filter(BlockedWriteEvidenceRecord.execution_run_id == execution_run_id)
@@ -1228,6 +1317,7 @@ def list_blocked_write_evidence_for_run(session: Session, execution_run_id: str)
 
 
 # Sprint 6 — Live Read Execution
+
 
 def create_live_read_execution_request(
     session: Session,
@@ -1260,11 +1350,15 @@ def create_live_read_execution_request(
     return req
 
 
-def get_live_read_execution_request(session: Session, request_id: str) -> LiveReadExecutionRequest | None:
+def get_live_read_execution_request(
+    session: Session, request_id: str
+) -> LiveReadExecutionRequest | None:
     return session.get(LiveReadExecutionRequest, request_id)
 
 
-def update_live_read_execution_request_status(session: Session, request_id: str, status: str) -> LiveReadExecutionRequest | None:
+def update_live_read_execution_request_status(
+    session: Session, request_id: str, status: str
+) -> LiveReadExecutionRequest | None:
     req = session.get(LiveReadExecutionRequest, request_id)
     if req is None:
         return None
@@ -1274,7 +1368,9 @@ def update_live_read_execution_request_status(session: Session, request_id: str,
     return req
 
 
-def list_live_read_execution_requests_for_skill(session: Session, skill_id: str) -> list[LiveReadExecutionRequest]:
+def list_live_read_execution_requests_for_skill(
+    session: Session, skill_id: str
+) -> list[LiveReadExecutionRequest]:
     return list(
         session.query(LiveReadExecutionRequest)
         .filter(LiveReadExecutionRequest.skill_id == skill_id)
@@ -1320,7 +1416,9 @@ def get_live_read_run(session: Session, run_id: str) -> LiveReadRun | None:
     return session.get(LiveReadRun, run_id)
 
 
-def list_live_read_runs_for_request(session: Session, execution_request_id: str) -> list[LiveReadRun]:
+def list_live_read_runs_for_request(
+    session: Session, execution_request_id: str
+) -> list[LiveReadRun]:
     return list(
         session.query(LiveReadRun)
         .filter(LiveReadRun.execution_request_id == execution_request_id)
@@ -1360,7 +1458,9 @@ def create_live_read_evidence(
     return ev
 
 
-def list_live_read_evidence_for_run(session: Session, live_read_run_id: str) -> list[LiveReadEvidence]:
+def list_live_read_evidence_for_run(
+    session: Session, live_read_run_id: str
+) -> list[LiveReadEvidence]:
     return list(
         session.query(LiveReadEvidence)
         .filter(LiveReadEvidence.live_read_run_id == live_read_run_id)
@@ -1370,6 +1470,7 @@ def list_live_read_evidence_for_run(session: Session, live_read_run_id: str) -> 
 
 
 # Sprint 7 — Write Readiness
+
 
 def create_write_readiness_assessment(
     session: Session,
@@ -1403,11 +1504,15 @@ def create_write_readiness_assessment(
     return row
 
 
-def get_write_readiness_assessment(session: Session, assessment_id: str) -> WriteReadinessAssessment | None:
+def get_write_readiness_assessment(
+    session: Session, assessment_id: str
+) -> WriteReadinessAssessment | None:
     return session.get(WriteReadinessAssessment, assessment_id)
 
 
-def get_latest_write_readiness_assessment_for_skill(session: Session, skill_id: str) -> WriteReadinessAssessment | None:
+def get_latest_write_readiness_assessment_for_skill(
+    session: Session, skill_id: str
+) -> WriteReadinessAssessment | None:
     return (
         session.query(WriteReadinessAssessment)
         .filter(WriteReadinessAssessment.skill_id == skill_id)
@@ -1443,7 +1548,9 @@ def create_write_impact_preview(
     return row
 
 
-def get_latest_write_impact_preview_for_skill(session: Session, skill_id: str) -> WriteImpactPreview | None:
+def get_latest_write_impact_preview_for_skill(
+    session: Session, skill_id: str
+) -> WriteImpactPreview | None:
     return (
         session.query(WriteImpactPreview)
         .filter(WriteImpactPreview.skill_id == skill_id)
@@ -1475,7 +1582,9 @@ def create_write_rollback_plan(
     return row
 
 
-def get_latest_write_rollback_plan_for_skill(session: Session, skill_id: str) -> WriteRollbackPlan | None:
+def get_latest_write_rollback_plan_for_skill(
+    session: Session, skill_id: str
+) -> WriteRollbackPlan | None:
     return (
         session.query(WriteRollbackPlan)
         .filter(WriteRollbackPlan.skill_id == skill_id)
@@ -1515,11 +1624,15 @@ def create_write_readiness_certification(
     return row
 
 
-def get_write_readiness_certification(session: Session, certification_id: str) -> WriteReadinessCertification | None:
+def get_write_readiness_certification(
+    session: Session, certification_id: str
+) -> WriteReadinessCertification | None:
     return session.get(WriteReadinessCertification, certification_id)
 
 
-def get_latest_write_readiness_certification_for_skill(session: Session, skill_id: str) -> WriteReadinessCertification | None:
+def get_latest_write_readiness_certification_for_skill(
+    session: Session, skill_id: str
+) -> WriteReadinessCertification | None:
     return (
         session.query(WriteReadinessCertification)
         .filter(WriteReadinessCertification.skill_id == skill_id)
@@ -1529,6 +1642,7 @@ def get_latest_write_readiness_certification_for_skill(session: Session, skill_i
 
 
 # Sprint 8 — Write Pilot
+
 
 def create_write_pilot_request(
     session: Session,
@@ -1566,11 +1680,15 @@ def create_write_pilot_request(
     return row
 
 
-def get_write_pilot_request(session: Session, request_id: str) -> WritePilotRequest | None:
+def get_write_pilot_request(
+    session: Session, request_id: str
+) -> WritePilotRequest | None:
     return session.get(WritePilotRequest, request_id)
 
 
-def get_write_pilot_request_by_idempotency_key(session: Session, key: str) -> WritePilotRequest | None:
+def get_write_pilot_request_by_idempotency_key(
+    session: Session, key: str
+) -> WritePilotRequest | None:
     return (
         session.query(WritePilotRequest)
         .filter(WritePilotRequest.idempotency_key == key)
@@ -1578,7 +1696,9 @@ def get_write_pilot_request_by_idempotency_key(session: Session, key: str) -> Wr
     )
 
 
-def list_write_pilot_requests_for_skill(session: Session, skill_id: str) -> list[WritePilotRequest]:
+def list_write_pilot_requests_for_skill(
+    session: Session, skill_id: str
+) -> list[WritePilotRequest]:
     return list(
         session.query(WritePilotRequest)
         .filter(WritePilotRequest.skill_id == skill_id)
@@ -1625,7 +1745,9 @@ def get_write_pilot_run(session: Session, run_id: str) -> WritePilotRun | None:
     return session.get(WritePilotRun, run_id)
 
 
-def get_write_pilot_run_for_request(session: Session, request_id: str) -> WritePilotRun | None:
+def get_write_pilot_run_for_request(
+    session: Session, request_id: str
+) -> WritePilotRun | None:
     return (
         session.query(WritePilotRun)
         .filter(WritePilotRun.request_id == request_id)
@@ -1669,7 +1791,9 @@ def create_write_pilot_evidence(
     return ev
 
 
-def list_write_pilot_evidence_for_run(session: Session, run_id: str) -> list[WritePilotEvidence]:
+def list_write_pilot_evidence_for_run(
+    session: Session, run_id: str
+) -> list[WritePilotEvidence]:
     return list(
         session.query(WritePilotEvidence)
         .filter(WritePilotEvidence.run_id == run_id)
@@ -1679,6 +1803,7 @@ def list_write_pilot_evidence_for_run(session: Session, run_id: str) -> list[Wri
 
 
 # Sprint 9 — Production Safety Hardening & Tenant Controls
+
 
 def create_tenant(
     session: Session,
@@ -1713,7 +1838,9 @@ def list_tenants(session: Session) -> list[Tenant]:
     return list(session.query(Tenant).order_by(Tenant.created_at.desc()).all())
 
 
-def update_tenant_kill_switches(session: Session, tenant_id: str, kill_switch_json: str) -> Tenant | None:
+def update_tenant_kill_switches(
+    session: Session, tenant_id: str, kill_switch_json: str
+) -> Tenant | None:
     row = session.get(Tenant, tenant_id)
     if row is None:
         return None
@@ -1755,7 +1882,9 @@ def create_kill_switch_event(
     return ev
 
 
-def list_kill_switch_events_for_tenant(session: Session, tenant_id: str) -> list[KillSwitchEvent]:
+def list_kill_switch_events_for_tenant(
+    session: Session, tenant_id: str
+) -> list[KillSwitchEvent]:
     return list(
         session.query(KillSwitchEvent)
         .filter(KillSwitchEvent.tenant_id == tenant_id)
@@ -1773,6 +1902,7 @@ def create_audit_export(
     result_json: str,
 ) -> AuditExport:
     from datetime import datetime, timezone
+
     row = AuditExport(
         id=f"export_{uuid4().hex}",
         tenant_id=tenant_id,
@@ -1832,15 +1962,15 @@ def list_platform_audit_events_for_tenant(
 def count_write_pilot_runs_recent(session: Session, hours: int = 24) -> int:
     from datetime import datetime, timezone, timedelta
     from erpguard.db.models import WritePilotRun
+
     cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
     return (
-        session.query(WritePilotRun)
-        .filter(WritePilotRun.created_at >= cutoff)
-        .count()
+        session.query(WritePilotRun).filter(WritePilotRun.created_at >= cutoff).count()
     )
 
 
 # Sprint 10A — Operator Flow repositories
+
 
 def create_operator_session(
     session: Session,
@@ -1918,7 +2048,9 @@ def create_operator_session_event(
     return row
 
 
-def list_operator_session_events(session: Session, session_id: str) -> list[OperatorSessionEvent]:
+def list_operator_session_events(
+    session: Session, session_id: str
+) -> list[OperatorSessionEvent]:
     return (
         session.query(OperatorSessionEvent)
         .filter(OperatorSessionEvent.session_id == session_id)
@@ -1928,6 +2060,7 @@ def list_operator_session_events(session: Session, session_id: str) -> list[Oper
 
 
 # Sprint 10B — R2 write pilot repositories
+
 
 def create_r2_write_pilot_request(
     session: Session,
@@ -1970,15 +2103,25 @@ def create_r2_write_pilot_request(
     return row
 
 
-def get_r2_write_pilot_request(session: Session, request_id: str) -> R2WritePilotRequest | None:
+def get_r2_write_pilot_request(
+    session: Session, request_id: str
+) -> R2WritePilotRequest | None:
     return session.get(R2WritePilotRequest, request_id)
 
 
-def get_r2_write_pilot_request_by_idempotency_key(session: Session, key: str) -> R2WritePilotRequest | None:
-    return session.query(R2WritePilotRequest).filter(R2WritePilotRequest.idempotency_key == key).first()
+def get_r2_write_pilot_request_by_idempotency_key(
+    session: Session, key: str
+) -> R2WritePilotRequest | None:
+    return (
+        session.query(R2WritePilotRequest)
+        .filter(R2WritePilotRequest.idempotency_key == key)
+        .first()
+    )
 
 
-def list_r2_write_pilot_requests_for_skill(session: Session, skill_id: str) -> list[R2WritePilotRequest]:
+def list_r2_write_pilot_requests_for_skill(
+    session: Session, skill_id: str
+) -> list[R2WritePilotRequest]:
     return (
         session.query(R2WritePilotRequest)
         .filter(R2WritePilotRequest.skill_id == skill_id)
@@ -2026,8 +2169,14 @@ def get_r2_write_pilot_run(session: Session, run_id: str) -> R2WritePilotRun | N
     return session.get(R2WritePilotRun, run_id)
 
 
-def get_r2_write_pilot_run_for_request(session: Session, request_id: str) -> R2WritePilotRun | None:
-    return session.query(R2WritePilotRun).filter(R2WritePilotRun.request_id == request_id).first()
+def get_r2_write_pilot_run_for_request(
+    session: Session, request_id: str
+) -> R2WritePilotRun | None:
+    return (
+        session.query(R2WritePilotRun)
+        .filter(R2WritePilotRun.request_id == request_id)
+        .first()
+    )
 
 
 def create_r2_write_pilot_evidence(
@@ -2066,7 +2215,9 @@ def create_r2_write_pilot_evidence(
     return row
 
 
-def list_r2_write_pilot_evidence_for_run(session: Session, run_id: str) -> list[R2WritePilotEvidence]:
+def list_r2_write_pilot_evidence_for_run(
+    session: Session, run_id: str
+) -> list[R2WritePilotEvidence]:
     return (
         session.query(R2WritePilotEvidence)
         .filter(R2WritePilotEvidence.run_id == run_id)
@@ -2076,6 +2227,7 @@ def list_r2_write_pilot_evidence_for_run(session: Session, run_id: str) -> list[
 
 
 # Sprint 11 — R2 Evidence Review, Rollback Rehearsal & Production Readiness
+
 
 def create_r2_evidence_review(
     session: Session,
@@ -2106,8 +2258,14 @@ def create_r2_evidence_review(
     return row
 
 
-def get_r2_evidence_review_for_run(session: Session, run_id: str) -> R2EvidenceReview | None:
-    return session.query(R2EvidenceReview).filter(R2EvidenceReview.run_id == run_id).first()
+def get_r2_evidence_review_for_run(
+    session: Session, run_id: str
+) -> R2EvidenceReview | None:
+    return (
+        session.query(R2EvidenceReview)
+        .filter(R2EvidenceReview.run_id == run_id)
+        .first()
+    )
 
 
 def create_r2_rollback_rehearsal(
@@ -2137,8 +2295,14 @@ def create_r2_rollback_rehearsal(
     return row
 
 
-def get_r2_rollback_rehearsal_for_run(session: Session, run_id: str) -> R2RollbackRehearsal | None:
-    return session.query(R2RollbackRehearsal).filter(R2RollbackRehearsal.run_id == run_id).first()
+def get_r2_rollback_rehearsal_for_run(
+    session: Session, run_id: str
+) -> R2RollbackRehearsal | None:
+    return (
+        session.query(R2RollbackRehearsal)
+        .filter(R2RollbackRehearsal.run_id == run_id)
+        .first()
+    )
 
 
 def create_r2_execution_report(
@@ -2166,8 +2330,14 @@ def create_r2_execution_report(
     return row
 
 
-def get_r2_execution_report_for_run(session: Session, run_id: str) -> R2ExecutionReport | None:
-    return session.query(R2ExecutionReport).filter(R2ExecutionReport.run_id == run_id).first()
+def get_r2_execution_report_for_run(
+    session: Session, run_id: str
+) -> R2ExecutionReport | None:
+    return (
+        session.query(R2ExecutionReport)
+        .filter(R2ExecutionReport.run_id == run_id)
+        .first()
+    )
 
 
 def create_r2_promotion_gate(
@@ -2195,11 +2365,16 @@ def create_r2_promotion_gate(
     return row
 
 
-def get_r2_promotion_gate_for_run(session: Session, run_id: str) -> R2PromotionGate | None:
-    return session.query(R2PromotionGate).filter(R2PromotionGate.run_id == run_id).first()
+def get_r2_promotion_gate_for_run(
+    session: Session, run_id: str
+) -> R2PromotionGate | None:
+    return (
+        session.query(R2PromotionGate).filter(R2PromotionGate.run_id == run_id).first()
+    )
 
 
 # Sprint 18 — External Connector Read-Only Pilot
+
 
 def create_connector_read_evidence(
     session: Session,
@@ -2231,11 +2406,15 @@ def create_connector_read_evidence(
     return row
 
 
-def get_connector_read_evidence(session: Session, evidence_id: str) -> ConnectorReadEvidence | None:
+def get_connector_read_evidence(
+    session: Session, evidence_id: str
+) -> ConnectorReadEvidence | None:
     return session.get(ConnectorReadEvidence, evidence_id)
 
 
-def list_connector_read_evidence_for_profile(session: Session, auth_profile_id: str) -> list[ConnectorReadEvidence]:
+def list_connector_read_evidence_for_profile(
+    session: Session, auth_profile_id: str
+) -> list[ConnectorReadEvidence]:
     return list(
         session.query(ConnectorReadEvidence)
         .filter(ConnectorReadEvidence.auth_profile_id == auth_profile_id)
@@ -2286,6 +2465,7 @@ def list_external_connector_audit_events_for_profile(
 
 # Sprint 54 - Connector Autopilot Setup Session
 
+
 def create_connector_setup_session(
     session: Session,
     *,
@@ -2320,7 +2500,9 @@ def create_connector_setup_session(
     return row
 
 
-def get_connector_setup_session(session: Session, session_id: str) -> ConnectorSetupSession | None:
+def get_connector_setup_session(
+    session: Session, session_id: str
+) -> ConnectorSetupSession | None:
     return session.get(ConnectorSetupSession, session_id)
 
 
@@ -2330,6 +2512,34 @@ def list_connector_setup_sessions(session: Session) -> list[ConnectorSetupSessio
         .order_by(ConnectorSetupSession.created_at.desc())
         .all()
     )
+
+
+def update_connector_setup_session(
+    session: Session,
+    session_id: str,
+    *,
+    status: str | None = None,
+    credential_mode: str | None = None,
+    credential_ref: str | None = None,
+    detected_adapter_type: str | None = None,
+    blocking_reasons_json: str | None = None,
+) -> ConnectorSetupSession | None:
+    row = session.get(ConnectorSetupSession, session_id)
+    if row is None:
+        return None
+    if status is not None:
+        row.status = status
+    if credential_mode is not None:
+        row.credential_mode = credential_mode
+    if credential_ref is not None:
+        row.credential_ref = credential_ref
+    if detected_adapter_type is not None:
+        row.detected_adapter_type = detected_adapter_type
+    if blocking_reasons_json is not None:
+        row.blocking_reasons_json = blocking_reasons_json
+    session.commit()
+    session.refresh(row)
+    return row
 
 
 def create_connector_setup_audit_event(
@@ -2356,7 +2566,9 @@ def create_connector_setup_audit_event(
     return row
 
 
-def list_connector_setup_audit_events(session: Session) -> list[ConnectorSetupAuditEvent]:
+def list_connector_setup_audit_events(
+    session: Session,
+) -> list[ConnectorSetupAuditEvent]:
     return list(
         session.query(ConnectorSetupAuditEvent)
         .order_by(ConnectorSetupAuditEvent.created_at.asc())
@@ -2365,6 +2577,7 @@ def list_connector_setup_audit_events(session: Session) -> list[ConnectorSetupAu
 
 
 # Sprint 19 — OAuth Consent Flow
+
 
 def create_oauth_state(
     session: Session,
@@ -2393,12 +2606,17 @@ def create_oauth_state(
 
 
 def get_oauth_state_by_token(session: Session, state_token: str) -> OAuthState | None:
-    return session.query(OAuthState).filter(OAuthState.state_token == state_token).first()
+    return (
+        session.query(OAuthState).filter(OAuthState.state_token == state_token).first()
+    )
 
 
 def consume_oauth_state(session: Session, state_token: str) -> OAuthState | None:
     from datetime import datetime, timezone
-    row = session.query(OAuthState).filter(OAuthState.state_token == state_token).first()
+
+    row = (
+        session.query(OAuthState).filter(OAuthState.state_token == state_token).first()
+    )
     if row is None:
         return None
     row.status = "used"
@@ -2442,17 +2660,25 @@ def create_oauth_token_record(
     return row
 
 
-def get_oauth_token_record_for_profile(session: Session, profile_id: str) -> OAuthTokenRecord | None:
+def get_oauth_token_record_for_profile(
+    session: Session, profile_id: str
+) -> OAuthTokenRecord | None:
     return (
         session.query(OAuthTokenRecord)
-        .filter(OAuthTokenRecord.profile_id == profile_id, OAuthTokenRecord.status == "active")
+        .filter(
+            OAuthTokenRecord.profile_id == profile_id,
+            OAuthTokenRecord.status == "active",
+        )
         .order_by(OAuthTokenRecord.created_at.desc())
         .first()
     )
 
 
-def revoke_oauth_token_record(session: Session, profile_id: str) -> OAuthTokenRecord | None:
+def revoke_oauth_token_record(
+    session: Session, profile_id: str
+) -> OAuthTokenRecord | None:
     from datetime import datetime, timezone
+
     row = get_oauth_token_record_for_profile(session, profile_id)
     if row is None:
         return None
@@ -2464,6 +2690,7 @@ def revoke_oauth_token_record(session: Session, profile_id: str) -> OAuthTokenRe
 
 
 # Sprint 20 — Record-to-Skill End-to-End Loop
+
 
 def create_ui_recording_session(
     session: Session,
@@ -2485,11 +2712,15 @@ def create_ui_recording_session(
     return row
 
 
-def get_ui_recording_session(session: Session, session_id: str) -> UIRecordingSession | None:
+def get_ui_recording_session(
+    session: Session, session_id: str
+) -> UIRecordingSession | None:
     return session.get(UIRecordingSession, session_id)
 
 
-def finish_ui_recording_session(session: Session, session_id: str) -> UIRecordingSession | None:
+def finish_ui_recording_session(
+    session: Session, session_id: str
+) -> UIRecordingSession | None:
     row = session.get(UIRecordingSession, session_id)
     if row is None:
         return None
@@ -2534,7 +2765,9 @@ def add_ui_recording_event(
     return row
 
 
-def list_ui_recording_events(session: Session, session_id: str) -> list[UIRecordingEvent]:
+def list_ui_recording_events(
+    session: Session, session_id: str
+) -> list[UIRecordingEvent]:
     return list(
         session.query(UIRecordingEvent)
         .filter(UIRecordingEvent.session_id == session_id)
@@ -2599,7 +2832,9 @@ def create_ui_compiled_skill(
     return row
 
 
-def get_ui_compiled_skill(session: Session, compiled_skill_id: str) -> UICompiledSkill | None:
+def get_ui_compiled_skill(
+    session: Session, compiled_skill_id: str
+) -> UICompiledSkill | None:
     return session.get(UICompiledSkill, compiled_skill_id)
 
 
@@ -2640,6 +2875,7 @@ def finish_ui_replay_run(
     result_json: str,
 ) -> UIReplayRun | None:
     from datetime import datetime, timezone
+
     row = session.get(UIReplayRun, replay_id)
     if row is None:
         return None
@@ -2684,7 +2920,9 @@ def add_ui_replay_step_audit(
     return row
 
 
-def list_ui_replay_step_audits(session: Session, replay_run_id: str) -> list[UIReplayStepAudit]:
+def list_ui_replay_step_audits(
+    session: Session, replay_run_id: str
+) -> list[UIReplayStepAudit]:
     return list(
         session.query(UIReplayStepAudit)
         .filter(UIReplayStepAudit.replay_run_id == replay_run_id)
@@ -2694,6 +2932,7 @@ def list_ui_replay_step_audits(session: Session, replay_run_id: str) -> list[UIR
 
 
 # Sprint 22 — Verification and failure repositories
+
 
 def add_ui_replay_verification(
     session: Session,
@@ -2728,7 +2967,9 @@ def add_ui_replay_verification(
     return row
 
 
-def list_ui_replay_verifications(session: Session, replay_run_id: str) -> list[UIReplayVerification]:
+def list_ui_replay_verifications(
+    session: Session, replay_run_id: str
+) -> list[UIReplayVerification]:
     return list(
         session.query(UIReplayVerification)
         .filter(UIReplayVerification.replay_run_id == replay_run_id)
@@ -2764,7 +3005,9 @@ def add_ui_replay_failure(
     return row
 
 
-def list_ui_replay_failures(session: Session, replay_run_id: str) -> list[UIReplayFailure]:
+def list_ui_replay_failures(
+    session: Session, replay_run_id: str
+) -> list[UIReplayFailure]:
     return list(
         session.query(UIReplayFailure)
         .filter(UIReplayFailure.replay_run_id == replay_run_id)
@@ -2774,6 +3017,7 @@ def list_ui_replay_failures(session: Session, replay_run_id: str) -> list[UIRepl
 
 
 # Sprint 23 — Skill Versioning, Promotion & Rollback
+
 
 def create_ui_skill_version_record(
     session: Session,
@@ -2813,11 +3057,15 @@ def create_ui_skill_version_record(
     return row
 
 
-def get_ui_skill_version_record(session: Session, version_id: str) -> UISkillVersionRecord | None:
+def get_ui_skill_version_record(
+    session: Session, version_id: str
+) -> UISkillVersionRecord | None:
     return session.get(UISkillVersionRecord, version_id)
 
 
-def list_ui_skill_version_records(session: Session, skill_id: str) -> list[UISkillVersionRecord]:
+def list_ui_skill_version_records(
+    session: Session, skill_id: str
+) -> list[UISkillVersionRecord]:
     return list(
         session.query(UISkillVersionRecord)
         .filter(UISkillVersionRecord.skill_id == skill_id)
@@ -2826,10 +3074,15 @@ def list_ui_skill_version_records(session: Session, skill_id: str) -> list[UISki
     )
 
 
-def get_active_ui_skill_version(session: Session, skill_id: str) -> UISkillVersionRecord | None:
+def get_active_ui_skill_version(
+    session: Session, skill_id: str
+) -> UISkillVersionRecord | None:
     return (
         session.query(UISkillVersionRecord)
-        .filter(UISkillVersionRecord.skill_id == skill_id, UISkillVersionRecord.is_active.is_(True))
+        .filter(
+            UISkillVersionRecord.skill_id == skill_id,
+            UISkillVersionRecord.is_active.is_(True),
+        )
         .first()
     )
 
@@ -2881,7 +3134,9 @@ def create_ui_skill_version_lifecycle_event(
     return row
 
 
-def list_ui_skill_version_lifecycle_events(session: Session, version_id: str) -> list[UISkillVersionLifecycleEvent]:
+def list_ui_skill_version_lifecycle_events(
+    session: Session, version_id: str
+) -> list[UISkillVersionLifecycleEvent]:
     return list(
         session.query(UISkillVersionLifecycleEvent)
         .filter(UISkillVersionLifecycleEvent.version_id == version_id)
@@ -2909,6 +3164,7 @@ def list_all_ui_skill_version_records(
 
 
 # Sprint 24 — Active Skill Runner & Manual Runs
+
 
 def create_active_skill_run(
     session: Session,
@@ -2943,7 +3199,9 @@ def get_active_skill_run(session: Session, run_id: str) -> ActiveSkillRun | None
     return session.get(ActiveSkillRun, run_id)
 
 
-def list_active_skill_runs_for_skill(session: Session, skill_id: str) -> list[ActiveSkillRun]:
+def list_active_skill_runs_for_skill(
+    session: Session, skill_id: str
+) -> list[ActiveSkillRun]:
     return list(
         session.query(ActiveSkillRun)
         .filter(ActiveSkillRun.skill_id == skill_id)
@@ -3000,7 +3258,9 @@ def add_active_skill_run_event(
     return row
 
 
-def list_active_skill_run_events(session: Session, run_id: str) -> list[ActiveSkillRunEvent]:
+def list_active_skill_run_events(
+    session: Session, run_id: str
+) -> list[ActiveSkillRunEvent]:
     return list(
         session.query(ActiveSkillRunEvent)
         .filter(ActiveSkillRunEvent.run_id == run_id)
@@ -3010,6 +3270,7 @@ def list_active_skill_run_events(session: Session, run_id: str) -> list[ActiveSk
 
 
 # Sprint 25 — Scheduled Skill Runs & Run Queue Safety
+
 
 def create_skill_schedule(
     session: Session,
@@ -3047,7 +3308,9 @@ def get_skill_schedule(session: Session, schedule_id: str) -> SkillSchedule | No
     return session.get(SkillSchedule, schedule_id)
 
 
-def list_skill_schedules_for_skill(session: Session, skill_id: str) -> list[SkillSchedule]:
+def list_skill_schedules_for_skill(
+    session: Session, skill_id: str
+) -> list[SkillSchedule]:
     return list(
         session.query(SkillSchedule)
         .filter(SkillSchedule.skill_id == skill_id)
@@ -3129,7 +3392,9 @@ def add_skill_schedule_event(
     return row
 
 
-def list_skill_schedule_events(session: Session, schedule_id: str) -> list[SkillScheduleEvent]:
+def list_skill_schedule_events(
+    session: Session, schedule_id: str
+) -> list[SkillScheduleEvent]:
     return list(
         session.query(SkillScheduleEvent)
         .filter(SkillScheduleEvent.schedule_id == schedule_id)
@@ -3165,11 +3430,15 @@ def create_skill_run_queue_entry(
     return row
 
 
-def get_skill_run_queue_entry(session: Session, entry_id: str) -> SkillRunQueueEntry | None:
+def get_skill_run_queue_entry(
+    session: Session, entry_id: str
+) -> SkillRunQueueEntry | None:
     return session.get(SkillRunQueueEntry, entry_id)
 
 
-def list_skill_run_queue_entries_for_schedule(session: Session, schedule_id: str) -> list[SkillRunQueueEntry]:
+def list_skill_run_queue_entries_for_schedule(
+    session: Session, schedule_id: str
+) -> list[SkillRunQueueEntry]:
     return list(
         session.query(SkillRunQueueEntry)
         .filter(SkillRunQueueEntry.schedule_id == schedule_id)
@@ -3179,7 +3448,9 @@ def list_skill_run_queue_entries_for_schedule(session: Session, schedule_id: str
 
 
 def list_recent_queue_entries_for_schedule(
-    session: Session, schedule_id: str, since,
+    session: Session,
+    schedule_id: str,
+    since,
 ) -> list[SkillRunQueueEntry]:
     return list(
         session.query(SkillRunQueueEntry)
@@ -3222,6 +3493,7 @@ def update_skill_run_queue_entry(
 
 # Sprint 26 — Operator Evidence Packs
 
+
 def create_operator_evidence_pack(
     session: Session,
     created_by: str,
@@ -3250,7 +3522,9 @@ def create_operator_evidence_pack(
     return pack
 
 
-def get_operator_evidence_pack(session: Session, pack_id: str) -> OperatorEvidencePack | None:
+def get_operator_evidence_pack(
+    session: Session, pack_id: str
+) -> OperatorEvidencePack | None:
     return session.get(OperatorEvidencePack, pack_id)
 
 
@@ -3264,7 +3538,10 @@ def list_operator_evidence_packs(session: Session) -> list[OperatorEvidencePack]
 
 # Sprint 28 — Conversational Agent Builder Advisory Mode
 
-def create_advisory_session(session: Session, created_by_actor_json: str) -> AdvisorySession:
+
+def create_advisory_session(
+    session: Session, created_by_actor_json: str
+) -> AdvisorySession:
     row = AdvisorySession(
         id=f"advisory_{uuid4().hex}",
         status="created",
@@ -3281,7 +3558,9 @@ def get_advisory_session(session: Session, session_id: str) -> AdvisorySession |
     return session.get(AdvisorySession, session_id)
 
 
-def update_advisory_session(session: Session, session_id: str, **updates) -> AdvisorySession | None:
+def update_advisory_session(
+    session: Session, session_id: str, **updates
+) -> AdvisorySession | None:
     row = session.get(AdvisorySession, session_id)
     if row is None:
         return None
@@ -3326,11 +3605,15 @@ def create_advisory_proposal(
     return row
 
 
-def get_advisory_proposal(session: Session, proposal_id: str) -> AdvisoryProposal | None:
+def get_advisory_proposal(
+    session: Session, proposal_id: str
+) -> AdvisoryProposal | None:
     return session.get(AdvisoryProposal, proposal_id)
 
 
-def update_advisory_proposal(session: Session, proposal_id: str, **updates) -> AdvisoryProposal | None:
+def update_advisory_proposal(
+    session: Session, proposal_id: str, **updates
+) -> AdvisoryProposal | None:
     row = session.get(AdvisoryProposal, proposal_id)
     if row is None:
         return None
@@ -3341,7 +3624,9 @@ def update_advisory_proposal(session: Session, proposal_id: str, **updates) -> A
     return row
 
 
-def list_advisory_proposals_for_session(session: Session, session_id: str) -> list[AdvisoryProposal]:
+def list_advisory_proposals_for_session(
+    session: Session, session_id: str
+) -> list[AdvisoryProposal]:
     return list(
         session.query(AdvisoryProposal)
         .filter(AdvisoryProposal.session_id == session_id)
@@ -3351,6 +3636,7 @@ def list_advisory_proposals_for_session(session: Session, session_id: str) -> li
 
 
 # Sprint 29 — Agent Proposal to AutomationDraft
+
 
 def create_agent_proposal_draft_link(
     session: Session,
@@ -3393,6 +3679,7 @@ def get_agent_proposal_draft_link_by_draft(
 
 
 # Sprint 30 — Agent Clarification Loop & Mapping Confirmation
+
 
 def create_clarification_answer(
     session: Session,
@@ -3513,6 +3800,7 @@ def list_clarification_audit_events_for_proposal(
 
 # Sprint 31 — Agent Draft Review Bridge to ERPGuard Pipeline
 
+
 def create_agent_draft_bridge_event(
     session: Session,
     draft_id: str,
@@ -3547,6 +3835,7 @@ def list_agent_draft_bridge_events_for_draft(
 
 
 # Sprint 32 — Agent Draft Dry-Run Proof & Approval Handoff
+
 
 def create_agent_draft_handoff_event(
     session: Session,
@@ -3620,6 +3909,7 @@ def get_agent_draft_handoff_packet_by_id(
 
 # Sprint 34 — Agent-to-Skill Versioning Handoff
 
+
 def create_agent_handoff_version_link(
     session: Session,
     *,
@@ -3630,6 +3920,7 @@ def create_agent_handoff_version_link(
     skill_id: str,
 ) -> "AgentHandoffVersionLink":
     from erpguard.db.models import AgentHandoffVersionLink
+
     row = AgentHandoffVersionLink(
         id=f"ahvl_{uuid4().hex[:16]}",
         packet_id=packet_id,
@@ -3648,6 +3939,7 @@ def get_agent_handoff_version_link_by_packet(
     session: Session, packet_id: str
 ) -> "AgentHandoffVersionLink | None":
     from erpguard.db.models import AgentHandoffVersionLink
+
     return (
         session.query(AgentHandoffVersionLink)
         .filter(AgentHandoffVersionLink.packet_id == packet_id)
@@ -3663,6 +3955,7 @@ def create_agent_handoff_version_event(
     detail_json: str = "{}",
 ) -> "AgentHandoffVersionEvent":
     from erpguard.db.models import AgentHandoffVersionEvent
+
     row = AgentHandoffVersionEvent(
         id=f"ahve_{uuid4().hex[:16]}",
         packet_id=packet_id,
@@ -3680,6 +3973,7 @@ def list_agent_handoff_version_events_for_packet(
     session: Session, packet_id: str
 ) -> list["AgentHandoffVersionEvent"]:
     from erpguard.db.models import AgentHandoffVersionEvent
+
     return (
         session.query(AgentHandoffVersionEvent)
         .filter(AgentHandoffVersionEvent.packet_id == packet_id)
@@ -3690,6 +3984,7 @@ def list_agent_handoff_version_events_for_packet(
 
 # Sprint 35 — Agent Candidate Promotion Readiness & Human Approval Bridge
 
+
 def create_agent_candidate_approval_packet(
     session: Session,
     *,
@@ -3698,6 +3993,7 @@ def create_agent_candidate_approval_packet(
     packet_json: str = "{}",
 ) -> "AgentCandidateApprovalPacket":
     from erpguard.db.models import AgentCandidateApprovalPacket
+
     row = AgentCandidateApprovalPacket(
         id=f"acap_{uuid4().hex[:16]}",
         version_id=version_id,
@@ -3715,6 +4011,7 @@ def get_agent_candidate_approval_packet_by_version(
     session: Session, version_id: str
 ) -> "AgentCandidateApprovalPacket | None":
     from erpguard.db.models import AgentCandidateApprovalPacket
+
     return (
         session.query(AgentCandidateApprovalPacket)
         .filter(AgentCandidateApprovalPacket.version_id == version_id)
@@ -3731,6 +4028,7 @@ def create_agent_candidate_approval_event(
     detail_json: str = "{}",
 ) -> "AgentCandidateApprovalEvent":
     from erpguard.db.models import AgentCandidateApprovalEvent
+
     row = AgentCandidateApprovalEvent(
         id=f"acae_{uuid4().hex[:16]}",
         version_id=version_id,
@@ -3748,6 +4046,7 @@ def list_agent_candidate_approval_events_for_version(
     session: Session, version_id: str
 ) -> list["AgentCandidateApprovalEvent"]:
     from erpguard.db.models import AgentCandidateApprovalEvent
+
     return (
         session.query(AgentCandidateApprovalEvent)
         .filter(AgentCandidateApprovalEvent.version_id == version_id)
@@ -3757,6 +4056,7 @@ def list_agent_candidate_approval_events_for_version(
 
 
 # Sprint 36 — Agent Candidate Human Decision & Activation Gate Bridge
+
 
 def create_agent_candidate_decision(
     session: Session,
@@ -3768,6 +4068,7 @@ def create_agent_candidate_decision(
     detail_json: str = "{}",
 ) -> "AgentCandidateDecision":
     from erpguard.db.models import AgentCandidateDecision
+
     row = AgentCandidateDecision(
         id=f"acd_{uuid4().hex[:16]}",
         version_id=version_id,
@@ -3786,6 +4087,7 @@ def list_agent_candidate_decisions_for_version(
     session: Session, version_id: str
 ) -> list["AgentCandidateDecision"]:
     from erpguard.db.models import AgentCandidateDecision
+
     return (
         session.query(AgentCandidateDecision)
         .filter(AgentCandidateDecision.version_id == version_id)
@@ -3798,6 +4100,7 @@ def get_latest_agent_candidate_decision(
     session: Session, version_id: str
 ) -> "AgentCandidateDecision | None":
     from erpguard.db.models import AgentCandidateDecision
+
     return (
         session.query(AgentCandidateDecision)
         .filter(AgentCandidateDecision.version_id == version_id)
@@ -3814,6 +4117,7 @@ def create_agent_candidate_decision_event(
     detail_json: str = "{}",
 ) -> "AgentCandidateDecisionEvent":
     from erpguard.db.models import AgentCandidateDecisionEvent
+
     row = AgentCandidateDecisionEvent(
         id=f"acde_{uuid4().hex[:16]}",
         version_id=version_id,
@@ -3831,6 +4135,7 @@ def list_agent_candidate_decision_events_for_version(
     session: Session, version_id: str
 ) -> list["AgentCandidateDecisionEvent"]:
     from erpguard.db.models import AgentCandidateDecisionEvent
+
     return (
         session.query(AgentCandidateDecisionEvent)
         .filter(AgentCandidateDecisionEvent.version_id == version_id)
@@ -3840,6 +4145,7 @@ def list_agent_candidate_decision_events_for_version(
 
 
 # Sprint 37 — Explicit Agent Candidate Activation Request
+
 
 def create_agent_candidate_activation_request(
     session: Session,
@@ -3851,6 +4157,7 @@ def create_agent_candidate_activation_request(
     detail_json: str = "{}",
 ) -> "AgentCandidateActivationRequest":
     from erpguard.db.models import AgentCandidateActivationRequest
+
     row = AgentCandidateActivationRequest(
         id=f"acar_{uuid4().hex[:16]}",
         version_id=version_id,
@@ -3870,6 +4177,7 @@ def get_agent_candidate_activation_request_by_version(
     session: Session, version_id: str
 ) -> "AgentCandidateActivationRequest | None":
     from erpguard.db.models import AgentCandidateActivationRequest
+
     return (
         session.query(AgentCandidateActivationRequest)
         .filter(AgentCandidateActivationRequest.version_id == version_id)
@@ -3886,6 +4194,7 @@ def create_agent_candidate_activation_request_event(
     detail_json: str = "{}",
 ) -> "AgentCandidateActivationRequestEvent":
     from erpguard.db.models import AgentCandidateActivationRequestEvent
+
     row = AgentCandidateActivationRequestEvent(
         id=f"acare_{uuid4().hex[:16]}",
         version_id=version_id,
@@ -3903,6 +4212,7 @@ def list_agent_candidate_activation_request_events_for_version(
     session: Session, version_id: str
 ) -> list["AgentCandidateActivationRequestEvent"]:
     from erpguard.db.models import AgentCandidateActivationRequestEvent
+
     return (
         session.query(AgentCandidateActivationRequestEvent)
         .filter(AgentCandidateActivationRequestEvent.version_id == version_id)
@@ -3912,6 +4222,7 @@ def list_agent_candidate_activation_request_events_for_version(
 
 
 # Sprint 38 — Explicit Candidate Activation Without Execution
+
 
 def create_agent_candidate_activation_event(
     session: Session,
@@ -3923,6 +4234,7 @@ def create_agent_candidate_activation_event(
     detail_json: str = "{}",
 ) -> "AgentCandidateActivationEvent":
     from erpguard.db.models import AgentCandidateActivationEvent
+
     row = AgentCandidateActivationEvent(
         id=f"acav_{uuid4().hex[:16]}",
         version_id=version_id,
@@ -3941,6 +4253,7 @@ def list_agent_candidate_activation_events_for_version(
     session: Session, version_id: str
 ) -> list["AgentCandidateActivationEvent"]:
     from erpguard.db.models import AgentCandidateActivationEvent
+
     return (
         session.query(AgentCandidateActivationEvent)
         .filter(AgentCandidateActivationEvent.version_id == version_id)
@@ -3950,6 +4263,7 @@ def list_agent_candidate_activation_events_for_version(
 
 
 # Sprint 39 — Explicit Active Agent Skill Manual Run Preview
+
 
 def create_agent_skill_run_preview_event(
     session: Session,
@@ -3961,6 +4275,7 @@ def create_agent_skill_run_preview_event(
     detail_json: str = "{}",
 ) -> "AgentSkillRunPreviewEvent":
     from erpguard.db.models import AgentSkillRunPreviewEvent
+
     row = AgentSkillRunPreviewEvent(
         id=f"asrpe_{uuid4().hex[:16]}",
         version_id=version_id,
@@ -3979,6 +4294,7 @@ def list_agent_skill_run_preview_events_for_version(
     session: Session, version_id: str
 ) -> list["AgentSkillRunPreviewEvent"]:
     from erpguard.db.models import AgentSkillRunPreviewEvent
+
     return (
         session.query(AgentSkillRunPreviewEvent)
         .filter(AgentSkillRunPreviewEvent.version_id == version_id)
@@ -3989,8 +4305,12 @@ def list_agent_skill_run_preview_events_for_version(
 
 # Sprint 41 - Conversational Operator Console
 
-def create_operator_console_session(session: Session, *, actor: str = "operator") -> OperatorConsoleSession:
+
+def create_operator_console_session(
+    session: Session, *, actor: str = "operator"
+) -> OperatorConsoleSession:
     from uuid import uuid4
+
     row = OperatorConsoleSession(id=f"ocses_{uuid4().hex[:16]}", actor=actor)
     session.add(row)
     session.commit()
@@ -3998,7 +4318,9 @@ def create_operator_console_session(session: Session, *, actor: str = "operator"
     return row
 
 
-def get_operator_console_session(session: Session, session_id: str) -> OperatorConsoleSession | None:
+def get_operator_console_session(
+    session: Session, session_id: str
+) -> OperatorConsoleSession | None:
     return session.get(OperatorConsoleSession, session_id)
 
 
@@ -4014,6 +4336,7 @@ def create_operator_console_query(
     result_type: str = "",
 ) -> OperatorConsoleQuery:
     from uuid import uuid4
+
     row = OperatorConsoleQuery(
         id=f"ocqry_{uuid4().hex[:16]}",
         session_id=session_id,
@@ -4030,7 +4353,9 @@ def create_operator_console_query(
     return row
 
 
-def list_operator_console_queries(session: Session, session_id: str) -> list[OperatorConsoleQuery]:
+def list_operator_console_queries(
+    session: Session, session_id: str
+) -> list[OperatorConsoleQuery]:
     return list(
         session.query(OperatorConsoleQuery)
         .filter(OperatorConsoleQuery.session_id == session_id)
@@ -4039,13 +4364,16 @@ def list_operator_console_queries(session: Session, session_id: str) -> list[Ope
     )
 
 
-def list_recent_operator_console_queries(session: Session, *, limit: int = 50) -> list[OperatorConsoleQuery]:
+def list_recent_operator_console_queries(
+    session: Session, *, limit: int = 50
+) -> list[OperatorConsoleQuery]:
     return list(
         session.query(OperatorConsoleQuery)
         .order_by(OperatorConsoleQuery.created_at.desc())
         .limit(limit)
         .all()
     )
+
 
 def create_operator_action_plan_event(
     session: Session,
@@ -4085,6 +4413,7 @@ def list_recent_operator_action_plan_events(
 def count_operator_action_plan_events(session: Session) -> int:
     return session.query(OperatorActionPlanEvent).count()
 
+
 def create_action_plan_step_token(
     session: Session,
     *,
@@ -4118,8 +4447,14 @@ def create_action_plan_step_token(
     return row
 
 
-def get_action_plan_step_token(session: Session, token_id: str) -> ActionPlanStepToken | None:
-    return session.query(ActionPlanStepToken).filter(ActionPlanStepToken.id == token_id).first()
+def get_action_plan_step_token(
+    session: Session, token_id: str
+) -> ActionPlanStepToken | None:
+    return (
+        session.query(ActionPlanStepToken)
+        .filter(ActionPlanStepToken.id == token_id)
+        .first()
+    )
 
 
 def confirm_action_plan_step_token(
@@ -4147,6 +4482,7 @@ def expire_action_plan_step_tokens(session: Session, now) -> int:
     if rows:
         session.commit()
     return len(rows)
+
 
 def create_action_dispatch_eligibility_event(
     session: Session,
@@ -4304,7 +4640,10 @@ def list_recent_action_dispatch_execution_audit_events(
         .limit(limit)
         .all()
     )
+
+
 # Sprint 47 — Manual Dry-Run Execution Record
+
 
 def create_manual_dry_run_evidence(
     session: Session,
@@ -4347,7 +4686,9 @@ def create_manual_dry_run_evidence(
     return row
 
 
-def get_manual_dry_run_evidence_for_run(session: Session, run_id: str) -> ManualDryRunEvidence | None:
+def get_manual_dry_run_evidence_for_run(
+    session: Session, run_id: str
+) -> ManualDryRunEvidence | None:
     return (
         session.query(ManualDryRunEvidence)
         .filter(ManualDryRunEvidence.run_id == run_id)
@@ -4380,7 +4721,9 @@ def create_manual_dry_run_audit_event(
     return row
 
 
-def list_manual_dry_run_audit_events_for_run(session: Session, run_id: str) -> list[ManualDryRunAuditEvent]:
+def list_manual_dry_run_audit_events_for_run(
+    session: Session, run_id: str
+) -> list[ManualDryRunAuditEvent]:
     return list(
         session.query(ManualDryRunAuditEvent)
         .filter(ManualDryRunAuditEvent.run_id == run_id)
@@ -4401,6 +4744,7 @@ def list_recent_manual_dry_run_audit_events(
 
 
 # Sprint 48 — Controlled Fake ERP Execution
+
 
 def create_fake_erp_execution_record(
     session: Session,
@@ -4444,7 +4788,9 @@ def create_fake_erp_execution_record(
     return row
 
 
-def get_fake_erp_execution_record(session: Session, execution_id: str) -> FakeERPExecutionRecord | None:
+def get_fake_erp_execution_record(
+    session: Session, execution_id: str
+) -> FakeERPExecutionRecord | None:
     return session.get(FakeERPExecutionRecord, execution_id)
 
 
@@ -4516,7 +4862,9 @@ def create_fake_erp_execution_evidence(
     return row
 
 
-def get_fake_erp_execution_evidence(session: Session, execution_id: str) -> FakeERPExecutionEvidence | None:
+def get_fake_erp_execution_evidence(
+    session: Session, execution_id: str
+) -> FakeERPExecutionEvidence | None:
     return (
         session.query(FakeERPExecutionEvidence)
         .filter(FakeERPExecutionEvidence.execution_id == execution_id)
@@ -4563,6 +4911,7 @@ def list_recent_fake_erp_execution_audit_events(
 
 
 # Sprint 49 — Persisted Fake ERP Evidence Pack
+
 
 def create_fake_erp_execution_evidence_pack(
     session: Session,
@@ -4617,6 +4966,7 @@ def get_latest_fake_erp_execution_evidence_pack_for_execution(
 
 # Sprint 50 — Manual Fake ERP Regression Suite
 
+
 def create_fake_erp_regression_case(
     session: Session,
     *,
@@ -4643,7 +4993,9 @@ def create_fake_erp_regression_case(
     return row
 
 
-def get_fake_erp_regression_case(session: Session, case_id: str) -> FakeERPRegressionCase | None:
+def get_fake_erp_regression_case(
+    session: Session, case_id: str
+) -> FakeERPRegressionCase | None:
     return session.get(FakeERPRegressionCase, case_id)
 
 
@@ -4687,7 +5039,9 @@ def create_fake_erp_regression_run(
     return row
 
 
-def get_fake_erp_regression_run(session: Session, regression_run_id: str) -> FakeERPRegressionRun | None:
+def get_fake_erp_regression_run(
+    session: Session, regression_run_id: str
+) -> FakeERPRegressionRun | None:
     return session.get(FakeERPRegressionRun, regression_run_id)
 
 
@@ -4763,6 +5117,113 @@ def list_recent_fake_erp_regression_audit_events(
     return list(
         session.query(FakeERPRegressionAuditEvent)
         .order_by(FakeERPRegressionAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+# Sprint 55 — Connector Credential Vault Contract
+
+
+def create_credential_vault_entry(
+    session: Session,
+    *,
+    credential_ref: str,
+    setup_session_id: str,
+    connector_name: str,
+    erp_url_host: str,
+    auth_type: str,
+    username_redacted: str | None,
+    secret_fingerprint: str,
+    secret_length: int | None,
+    secret_last4: str | None,
+    status: str,
+    created_by: str,
+    blocking_reasons_json: str,
+) -> CredentialVaultEntry:
+    row = CredentialVaultEntry(
+        id=f"credv_{uuid4().hex[:12]}",
+        credential_ref=credential_ref,
+        setup_session_id=setup_session_id,
+        connector_name=connector_name,
+        erp_url_host=erp_url_host,
+        auth_type=auth_type,
+        username_redacted=username_redacted,
+        secret_fingerprint=secret_fingerprint,
+        secret_length=secret_length,
+        secret_last4=secret_last4,
+        status=status,
+        created_by=created_by,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_credential_vault_entry_by_ref(
+    session: Session, credential_ref: str
+) -> CredentialVaultEntry | None:
+    return (
+        session.query(CredentialVaultEntry)
+        .filter(CredentialVaultEntry.credential_ref == credential_ref)
+        .first()
+    )
+
+
+def revoke_credential_vault_entry(
+    session: Session, credential_ref: str
+) -> CredentialVaultEntry | None:
+    from datetime import datetime, timezone
+
+    row = get_credential_vault_entry_by_ref(session, credential_ref)
+    if row is None:
+        return None
+    row.status = "revoked"
+    row.revoked_at = datetime.now(timezone.utc)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def create_credential_vault_audit_event(
+    session: Session,
+    *,
+    credential_ref: str,
+    setup_session_id: str,
+    event_type: str,
+    auth_type: str,
+    status: str,
+    username_redacted: str | None,
+    secret_fingerprint: str,
+    created_by: str,
+    details_json: str,
+) -> CredentialVaultAuditEvent:
+    row = CredentialVaultAuditEvent(
+        id=f"credva_{uuid4().hex[:12]}",
+        credential_ref=credential_ref,
+        setup_session_id=setup_session_id,
+        event_type=event_type,
+        auth_type=auth_type,
+        status=status,
+        username_redacted=username_redacted,
+        secret_fingerprint=secret_fingerprint,
+        created_by=created_by,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_credential_vault_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[CredentialVaultAuditEvent]:
+    return list(
+        session.query(CredentialVaultAuditEvent)
+        .order_by(CredentialVaultAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )

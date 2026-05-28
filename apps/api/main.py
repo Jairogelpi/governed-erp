@@ -18,31 +18,58 @@ from apps.api.routes.r2_readiness import router as r2_readiness_router
 from apps.api.routes.release import router as release_router
 from apps.api.routes.marketplace import router as marketplace_router
 from apps.api.routes.agent_builder import router as agent_builder_router
-from apps.api.routes.agent_builder_advisory import router as agent_builder_advisory_router
+from apps.api.routes.agent_builder_advisory import (
+    router as agent_builder_advisory_router,
+)
 from apps.api.routes.agent_proposal_drafts import router as agent_proposal_drafts_router
 from apps.api.routes.agent_clarifications import router as agent_clarifications_router
 from apps.api.routes.agent_draft_bridge import router as agent_draft_bridge_router
 from apps.api.routes.agent_draft_handoff import router as agent_draft_handoff_router
-from apps.api.routes.agent_handoff_versioning import router as agent_handoff_versioning_router
-from apps.api.routes.agent_candidate_approval import router as agent_candidate_approval_router
-from apps.api.routes.agent_candidate_decision import router as agent_candidate_decision_router
-from apps.api.routes.agent_candidate_activation_request import router as agent_candidate_activation_request_router
-from apps.api.routes.agent_candidate_activation import router as agent_candidate_activation_router
-from apps.api.routes.agent_skill_run_preview import router as agent_skill_run_preview_router
-from apps.api.routes.semantic_skill_discovery import router as semantic_skill_discovery_router
+from apps.api.routes.agent_handoff_versioning import (
+    router as agent_handoff_versioning_router,
+)
+from apps.api.routes.agent_candidate_approval import (
+    router as agent_candidate_approval_router,
+)
+from apps.api.routes.agent_candidate_decision import (
+    router as agent_candidate_decision_router,
+)
+from apps.api.routes.agent_candidate_activation_request import (
+    router as agent_candidate_activation_request_router,
+)
+from apps.api.routes.agent_candidate_activation import (
+    router as agent_candidate_activation_router,
+)
+from apps.api.routes.agent_skill_run_preview import (
+    router as agent_skill_run_preview_router,
+)
+from apps.api.routes.semantic_skill_discovery import (
+    router as semantic_skill_discovery_router,
+)
 from apps.api.routes.operator_console import router as operator_console_router
-from apps.api.routes.operator_console import alias_router as operator_console_alias_router
+from apps.api.routes.operator_console import (
+    alias_router as operator_console_alias_router,
+)
 from apps.api.routes.operator_action_plan import router as operator_action_plan_router
-from apps.api.routes.operator_action_dispatch import router as operator_action_dispatch_router
-from apps.api.routes.operator_action_dispatch_execute import router as operator_action_dispatch_execute_router
+from apps.api.routes.operator_action_dispatch import (
+    router as operator_action_dispatch_router,
+)
+from apps.api.routes.operator_action_dispatch_execute import (
+    router as operator_action_dispatch_execute_router,
+)
 from apps.api.routes.manual_dry_run import router as manual_dry_run_router
 from apps.api.routes.fake_erp_execution import router as fake_erp_execution_router
-from apps.api.routes.fake_erp_evidence_pack import router as fake_erp_evidence_pack_router
+from apps.api.routes.fake_erp_evidence_pack import (
+    router as fake_erp_evidence_pack_router,
+)
 from apps.api.routes.fake_erp_regression import router as fake_erp_regression_router
-from apps.api.routes.erp_adapter_capability import router as erp_adapter_capability_router
+from apps.api.routes.erp_adapter_capability import (
+    router as erp_adapter_capability_router,
+)
 from apps.api.routes.erp_adapter_policy import router as erp_adapter_policy_router
 from apps.api.routes.connector_setup import router as connector_setup_router
 from apps.api.routes.connector_auth import router as connector_auth_router
+from apps.api.routes.connector_credentials import router as connector_credentials_router
 from apps.api.routes.external_connectors import router as external_connectors_router
 from apps.api.routes.google_calendar_oauth import router as google_calendar_oauth_router
 from apps.api.routes.skill_compilation import router as skill_compilation_router
@@ -105,6 +132,7 @@ app.include_router(erp_adapter_capability_router)
 app.include_router(erp_adapter_policy_router)
 app.include_router(connector_setup_router)
 app.include_router(connector_auth_router)
+app.include_router(connector_credentials_router)
 app.include_router(external_connectors_router)
 app.include_router(google_calendar_oauth_router)
 app.include_router(record_to_skill_router)

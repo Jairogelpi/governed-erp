@@ -5747,5 +5747,28 @@ selectors captured: none</pre>
       connectorSetupOut().textContent = jsonText(await r.json());
     });
   </script>
+
+    <!-- Sprint 55 - Connector Credential Vault Contract -->
+    <div style="border:1px solid #7c3aed;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Connector Autopilot — Credential Vault Contract</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 55 seals credentials into a vault reference only. It never returns raw secrets and does not connect to the ERP, perform login, fingerprinting, schema inspection, capability generation or connector activation.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Setup Session ID:</label><br>
+        <input id="credVaultSessionId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Auth Type:</label>
+        <select id="credVaultAuthType"><option value="password">password</option><option value="api_key">api_key</option><option value="token">token</option></select><br>
+        <label style="font-size:0.85em;">Username:</label>
+        <input id="credVaultUsername" style="width:250px;" value=""><br>
+        <label style="font-size:0.85em;">Secret:</label>
+        <input id="credVaultSecret" type="password" style="width:250px;" value=""><br>
+        <label style="font-size:0.85em;">Submitted By:</label>
+        <input id="credVaultSubmittedBy" style="width:250px;" value="operator_1"><br>
+        <button id="credVaultSeal">Seal Credential</button>
+        <button id="credVaultGetMetadata">Get Metadata</button>
+        <button id="credVaultAudit">Credential Audit</button>
+        <button id="credVaultRevoke">Revoke Credential</button>
+      </div>
+      <pre id="credVaultOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""
