@@ -88,7 +88,8 @@ def demo_dashboard() -> str:
       font-size: 0.92rem;
       min-width: min(100%, 380px);
     }
-    input {
+    input,
+    select {
       width: 100%;
       border: 1px solid var(--border);
       background: #fff;
@@ -1125,6 +1126,35 @@ selectors captured: none</pre>
           <button id="erpPolicyCheck">99. Check adapter policy</button>
         </div>
         <pre id="erpPolicyOutput">No ERP adapter policy data yet.</pre>
+      </div>
+
+      <div class="card full">
+        <h2>Connector Autopilot - Setup Session</h2>
+        <p>
+          Sprint 54 creates a connector setup session only. It does not store credentials, call ERP URLs,
+          perform login, fingerprint systems, inspect schemas, generate capabilities or activate connectors.
+        </p>
+        <div class="toolbar">
+          <label>Connector name <input id="connectorSetupName" type="text" value="Odoo Production" style="width:260px"/></label>
+          <label>ERP URL <input id="connectorSetupUrl" type="text" value="https://miempresa.odoo.com" style="width:320px"/></label>
+          <label>Environment type
+            <select id="connectorSetupEnv" style="width:170px">
+              <option value="production">production</option>
+              <option value="staging">staging</option>
+              <option value="sandbox">sandbox</option>
+              <option value="unknown">unknown</option>
+            </select>
+          </label>
+          <label>Submitted by <input id="connectorSetupSubmittedBy" type="text" value="operator_1" style="width:180px"/></label>
+        </div>
+        <div class="toolbar">
+          <button id="connectorSetupCreate">100. Create connector setup session</button>
+          <label>Session ID <input id="connectorSetupSessionId" type="text" placeholder="csess_..." style="width:230px"/></label>
+          <button id="connectorSetupGet">101. Get setup session</button>
+          <button id="connectorSetupList">102. List setup sessions</button>
+          <button id="connectorSetupAudit">103. Setup session audit</button>
+        </div>
+        <pre id="connectorSetupOutput">No connector setup session yet.</pre>
       </div>
 
       <div class="card full">
@@ -5676,6 +5706,45 @@ selectors captured: none</pre>
       } catch (err) {
         erpPolicyOut().textContent = `Invalid policy requested fields JSON: ${err.message}`;
       }
+    });
+
+    // -- Sprint 54 - Connector Autopilot Setup Session -----------------------
+    const connectorSetupOut = () => document.getElementById("connectorSetupOutput");
+
+    document.getElementById("connectorSetupCreate").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/connectors/setup-session`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          connector_name: document.getElementById("connectorSetupName").value.trim(),
+          erp_url: document.getElementById("connectorSetupUrl").value.trim(),
+          environment_type: document.getElementById("connectorSetupEnv").value,
+          submitted_by: document.getElementById("connectorSetupSubmittedBy").value.trim(),
+        }),
+      });
+      const data = await r.json();
+      connectorSetupOut().textContent = jsonText(data);
+      if (data.session_id) document.getElementById("connectorSetupSessionId").value = data.session_id;
+    });
+
+    document.getElementById("connectorSetupGet").addEventListener("click", async () => {
+      const sessionId = document.getElementById("connectorSetupSessionId").value.trim();
+      if (!sessionId) {
+        connectorSetupOut().textContent = "Enter a connector setup session ID first.";
+        return;
+      }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/connectors/setup-session/${sessionId}`);
+      connectorSetupOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("connectorSetupList").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/connectors/setup-sessions`);
+      connectorSetupOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("connectorSetupAudit").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/connectors/setup-session-audit`);
+      connectorSetupOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>

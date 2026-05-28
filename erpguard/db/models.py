@@ -922,6 +922,38 @@ class ExternalConnectorAuditEvent(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
 
 
+# Sprint 54 - Connector Autopilot Setup Session
+
+class ConnectorSetupSession(Base):
+    __tablename__ = "connector_setup_sessions"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    connector_name: Mapped[str] = mapped_column(Text, nullable=False)
+    erp_url: Mapped[str] = mapped_column(Text, nullable=False)
+    erp_url_host: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    environment_type: Mapped[str] = mapped_column(Text, nullable=False, default="unknown")
+    submitted_by: Mapped[str] = mapped_column(Text, nullable=False, default="operator")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="draft")
+    credential_mode: Mapped[str] = mapped_column(Text, nullable=False, default="not_provided")
+    credential_ref: Mapped[str | None] = mapped_column(Text, nullable=True)
+    detected_adapter_type: Mapped[str | None] = mapped_column(Text, nullable=True)
+    blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class ConnectorSetupAuditEvent(Base):
+    __tablename__ = "connector_setup_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    submitted_by: Mapped[str] = mapped_column(Text, nullable=False, default="operator")
+    detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
 # Sprint 20 — Record-to-Skill End-to-End Loop
 
 class UIRecordingSession(Base):

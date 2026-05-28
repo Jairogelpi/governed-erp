@@ -573,6 +573,68 @@ Requested fields are still validated only against declared allowlists. Sprint 53
 
 This keeps real ERP execution blocked while building the future bridge toward URL+credential Connector Autopilot on top of a neutral any-ERP policy model.
 
+## Sprint 54 Connector Setup Session
+
+Sprint 54 starts Block D, Connector Autopilot, with the first customer-facing onboarding object: a connector setup session.
+
+The thesis-facing intent is:
+
+```text
+I want to connect this ERP using URL + credentials.
+```
+
+Sprint 54 captures only the safe shell of that intent:
+
+- connector name
+- ERP URL
+- normalized ERP URL host
+- environment type: `sandbox`, `staging`, `production`, or `unknown`
+- submitting operator
+- optional opaque `credential_ref` for a future vault phase
+- status and blocking reasons
+- setup audit events
+
+Connector setup endpoints:
+
+- `POST /v1/operator-console/connectors/setup-session`
+- `GET /v1/operator-console/connectors/setup-session/{session_id}`
+- `GET /v1/operator-console/connectors/setup-sessions`
+- `GET /v1/operator-console/connectors/setup-session-audit`
+
+Setup session states:
+
+- `awaiting_credentials` when no `credential_ref` exists
+- `ready_for_fingerprint` only when an opaque future `credential_ref` exists
+- `blocked` when the URL is invalid, the scheme is unsafe, or raw credential fields are detected
+- `draft` is reserved for shell lifecycle representation
+
+Safety boundaries:
+
+- no credential vault implementation
+- no raw password, API key, token, secret, credential, or credentials are persisted
+- no external HTTP calls
+- no ERP login
+- no fingerprinting
+- no schema inspection
+- no capability generation
+- no connector activation
+- no real ERP adapter
+- no browser automation
+- no MCP
+- no scheduler
+- no ERP writes
+
+Every setup response preserves the critical safety flags:
+
+```text
+will_connect=false
+external_http_performed=false
+credentials_stored=false
+raw_credentials_seen=false
+```
+
+If a caller sends raw credential-shaped fields defensively, the session is blocked with `raw_credentials_not_allowed_in_sprint_54`; raw values are not echoed or stored.
+
 ## Confirmed Read-Only Action Dispatcher
 
 Sprint 45 adds the first real operator dispatch path, but only for internal read-only handlers. The server requires a confirmed token, re-checks dispatch eligibility immediately before execution, selects the handler by `action_key`, persists the dispatch result, and records execution audit evidence.

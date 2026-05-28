@@ -25,6 +25,8 @@ from erpguard.db.models import (
     Connection,
     ConnectorAuthProfile,
     ConnectorCredentialAuditEvent,
+    ConnectorSetupAuditEvent,
+    ConnectorSetupSession,
     ConnectorReadEvidence,
     ExternalConnectorAuditEvent,
     OAuthState,
@@ -2278,6 +2280,86 @@ def list_external_connector_audit_events_for_profile(
         session.query(ExternalConnectorAuditEvent)
         .filter(ExternalConnectorAuditEvent.auth_profile_id == auth_profile_id)
         .order_by(ExternalConnectorAuditEvent.created_at.asc())
+        .all()
+    )
+
+
+# Sprint 54 - Connector Autopilot Setup Session
+
+def create_connector_setup_session(
+    session: Session,
+    *,
+    session_id: str,
+    connector_name: str,
+    erp_url: str,
+    erp_url_host: str,
+    environment_type: str,
+    submitted_by: str,
+    status: str,
+    credential_mode: str,
+    credential_ref: str | None,
+    detected_adapter_type: str | None,
+    blocking_reasons_json: str,
+) -> ConnectorSetupSession:
+    row = ConnectorSetupSession(
+        id=session_id,
+        connector_name=connector_name,
+        erp_url=erp_url,
+        erp_url_host=erp_url_host,
+        environment_type=environment_type,
+        submitted_by=submitted_by,
+        status=status,
+        credential_mode=credential_mode,
+        credential_ref=credential_ref,
+        detected_adapter_type=detected_adapter_type,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_connector_setup_session(session: Session, session_id: str) -> ConnectorSetupSession | None:
+    return session.get(ConnectorSetupSession, session_id)
+
+
+def list_connector_setup_sessions(session: Session) -> list[ConnectorSetupSession]:
+    return list(
+        session.query(ConnectorSetupSession)
+        .order_by(ConnectorSetupSession.created_at.desc())
+        .all()
+    )
+
+
+def create_connector_setup_audit_event(
+    session: Session,
+    *,
+    event_id: str,
+    session_id: str,
+    event_type: str,
+    status: str,
+    submitted_by: str,
+    detail_json: str,
+) -> ConnectorSetupAuditEvent:
+    row = ConnectorSetupAuditEvent(
+        id=event_id,
+        session_id=session_id,
+        event_type=event_type,
+        status=status,
+        submitted_by=submitted_by,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_connector_setup_audit_events(session: Session) -> list[ConnectorSetupAuditEvent]:
+    return list(
+        session.query(ConnectorSetupAuditEvent)
+        .order_by(ConnectorSetupAuditEvent.created_at.asc())
         .all()
     )
 
