@@ -483,6 +483,34 @@ The regression layer remains tightly bounded:
 
 Sprint 50 compares only deterministic artifacts already produced by controlled Fake ERP execution and persisted evidence. It does not create any new execution surface beyond the existing Sprint 48 path.
 
+## Sprint 51 Universal ERP Adapter Contract
+
+ERPGuard core now speaks neutral ERP operation contracts. Odoo, SAP, Dynamics, Holded, NetSuite, custom REST, and other platforms are future adapters, not core assumptions.
+
+Sprint 51 adds a product-layer contract only:
+
+- neutral operation types such as `read_object`, `search_objects`, `inspect_schema`, `preview_write`, `create_object`, and `confirm_document`
+- neutral object types such as `partner`, `product`, `sale_order`, `invoice`, and `manufacturing_order`
+- safety tiers and placeholder adapter identifiers
+- serializable request/result/evidence/error/safety-flags objects
+- helper functions for blocked results, contract-only success results, safety defaults, and read-like vs write-like inference
+
+The contract lives in `erpguard/product/erp_adapter_contract.py` and performs no real ERP calls.
+
+Sprint 51 explicitly does not implement:
+
+- adapter registry
+- policy API
+- Odoo/SAP/Dynamics/Holded/NetSuite adapters
+- custom REST execution
+- external HTTP
+- real credentials
+- browser automation
+- MCP
+- scheduler
+- real ERP writes
+- Fake ERP runtime changes
+
 ## Confirmed Read-Only Action Dispatcher
 
 Sprint 45 adds the first real operator dispatch path, but only for internal read-only handlers. The server requires a confirmed token, re-checks dispatch eligibility immediately before execution, selects the handler by `action_key`, persists the dispatch result, and records execution audit evidence.

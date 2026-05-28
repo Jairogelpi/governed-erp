@@ -135,7 +135,7 @@ def test_incomplete_execution_blocks():
     init_db()
     db = SessionLocal()
     try:
-        execution_id = "fexec_incomplete_1"
+        execution_id = f"fexec_incomplete_{uuid.uuid4().hex[:8]}"
         create_fake_erp_execution_record(
             db,
             execution_id=execution_id,
