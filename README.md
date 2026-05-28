@@ -541,6 +541,38 @@ All Sprint 52 responses remain advisory:
 - `can_execute=false`
 - all external execution safety flags remain false
 
+## Sprint 53 ERP Adapter Safety Policy
+
+Sprint 53 adds the policy layer on top of the universal contract and the capability registry.
+
+The distinction is now explicit:
+
+- capability: the adapter declares that it can represent or support an operation
+- policy: ERPGuard decides whether that operation is eligible, previewable, blocked, or still non-executable in the current phase
+
+Block C remains contract-only:
+
+- no real ERP connections
+- no external HTTP
+- no credentials used
+- no browser automation
+- no MCP
+- no scheduler
+- no real ERP writes
+
+Policy behavior in Block C:
+
+- `read_only` -> eligible, previewable, never executable
+- `preview_only` -> eligible, previewable, requires confirmation, never executable
+- `sandbox_write` -> representable for `fake_erp`, still never executable
+- `controlled_write` -> blocked
+- `high_risk_write` -> blocked
+- `forbidden` -> blocked
+
+Requested fields are still validated only against declared allowlists. Sprint 53 does not yet evaluate actor trust, tenant policy, execution readiness, write authorization, or any connector onboarding flow.
+
+This keeps real ERP execution blocked while building the future bridge toward URL+credential Connector Autopilot on top of a neutral any-ERP policy model.
+
 ## Confirmed Read-Only Action Dispatcher
 
 Sprint 45 adds the first real operator dispatch path, but only for internal read-only handlers. The server requires a confirmed token, re-checks dispatch eligibility immediately before execution, selects the handler by `action_key`, persists the dispatch result, and records execution audit evidence.

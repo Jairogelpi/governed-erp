@@ -1105,6 +1105,29 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>ERP Adapter Safety Policy</h2>
+        <p>
+          Sprint 53 evaluates ERP adapter safety policy only. It does not connect to real ERPs, use credentials,
+          call external HTTP, control browsers, call MCP tools, schedule jobs or execute endpoint hints.
+        </p>
+        <div class="toolbar">
+          <label>Adapter ID <input id="erpPolicyAdapterId" type="text" value="odoo_placeholder" style="width:220px"/></label>
+          <label>Operation type <input id="erpPolicyOperationType" type="text" value="preview_write" style="width:180px"/></label>
+          <label>Object type <input id="erpPolicyObjectType" type="text" value="sale_order" style="width:180px"/></label>
+        </div>
+        <div class="toolbar">
+          <label>Requested fields JSON/list <input id="erpPolicyRequestedFields" type="text" value='["state"]' style="width:260px"/></label>
+          <label>Has confirmed token <input id="erpPolicyHasToken" type="checkbox"/></label>
+          <label>Has credentials <input id="erpPolicyHasCredentials" type="checkbox"/></label>
+          <label>Phase <input id="erpPolicyPhase" type="text" value="block_c_contract_only" style="width:220px"/></label>
+        </div>
+        <div class="toolbar">
+          <button id="erpPolicyCheck">99. Check adapter policy</button>
+        </div>
+        <pre id="erpPolicyOutput">No ERP adapter policy data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -5621,6 +5644,37 @@ selectors captured: none</pre>
         erpCapOut().textContent = jsonText(await r.json());
       } catch (err) {
         erpCapOut().textContent = `Invalid requested fields JSON: ${err.message}`;
+      }
+    });
+
+    // ── Sprint 53 — ERP Adapter Safety Policy ───────────────────────────────
+    const erpPolicyOut = () => document.getElementById("erpPolicyOutput");
+    const parseErpPolicyFields = () => {
+      const raw = document.getElementById("erpPolicyRequestedFields").value.trim();
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    };
+
+    document.getElementById("erpPolicyCheck").addEventListener("click", async () => {
+      try {
+        const r = await fetch(`${currentBaseUrl()}/v1/operator-console/erp-adapters/policy-check`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            adapter_id: document.getElementById("erpPolicyAdapterId").value.trim(),
+            operation_type: document.getElementById("erpPolicyOperationType").value.trim(),
+            object_type: document.getElementById("erpPolicyObjectType").value.trim(),
+            requested_fields: parseErpPolicyFields(),
+            actor: "operator_1",
+            has_confirmed_token: document.getElementById("erpPolicyHasToken").checked,
+            has_credentials: document.getElementById("erpPolicyHasCredentials").checked,
+            phase: document.getElementById("erpPolicyPhase").value.trim() || "block_c_contract_only",
+          }),
+        });
+        erpPolicyOut().textContent = jsonText(await r.json());
+      } catch (err) {
+        erpPolicyOut().textContent = `Invalid policy requested fields JSON: ${err.message}`;
       }
     });
   </script>

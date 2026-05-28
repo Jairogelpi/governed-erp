@@ -40,6 +40,7 @@ from apps.api.routes.fake_erp_execution import router as fake_erp_execution_rout
 from apps.api.routes.fake_erp_evidence_pack import router as fake_erp_evidence_pack_router
 from apps.api.routes.fake_erp_regression import router as fake_erp_regression_router
 from apps.api.routes.erp_adapter_capability import router as erp_adapter_capability_router
+from apps.api.routes.erp_adapter_policy import router as erp_adapter_policy_router
 from apps.api.routes.connector_auth import router as connector_auth_router
 from apps.api.routes.external_connectors import router as external_connectors_router
 from apps.api.routes.google_calendar_oauth import router as google_calendar_oauth_router
@@ -100,6 +101,7 @@ app.include_router(fake_erp_execution_router)
 app.include_router(fake_erp_evidence_pack_router)
 app.include_router(fake_erp_regression_router)
 app.include_router(erp_adapter_capability_router)
+app.include_router(erp_adapter_policy_router)
 app.include_router(connector_auth_router)
 app.include_router(external_connectors_router)
 app.include_router(google_calendar_oauth_router)
