@@ -101,6 +101,9 @@ from erpguard.db.models import (
     FakeERPExecutionEvidence,
     FakeERPExecutionAuditEvent,
     FakeERPExecutionEvidencePack,
+    FakeERPRegressionAuditEvent,
+    FakeERPRegressionCase,
+    FakeERPRegressionRun,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -4527,4 +4530,157 @@ def get_latest_fake_erp_execution_evidence_pack_for_execution(
         .filter(FakeERPExecutionEvidencePack.execution_id == execution_id)
         .order_by(FakeERPExecutionEvidencePack.created_at.desc())
         .first()
+    )
+
+
+# Sprint 50 — Manual Fake ERP Regression Suite
+
+def create_fake_erp_regression_case(
+    session: Session,
+    *,
+    case_id: str,
+    version_id: str,
+    dry_run_id: str,
+    name: str,
+    execution_target: str,
+    inputs_json: str,
+    expected_outcomes_json: str,
+) -> FakeERPRegressionCase:
+    row = FakeERPRegressionCase(
+        id=case_id,
+        version_id=version_id,
+        dry_run_id=dry_run_id,
+        name=name,
+        execution_target=execution_target,
+        inputs_json=inputs_json,
+        expected_outcomes_json=expected_outcomes_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_fake_erp_regression_case(session: Session, case_id: str) -> FakeERPRegressionCase | None:
+    return session.get(FakeERPRegressionCase, case_id)
+
+
+def create_fake_erp_regression_run(
+    session: Session,
+    *,
+    regression_run_id: str,
+    case_id: str,
+    version_id: str,
+    dry_run_id: str,
+    actor_json: str,
+    inputs_json: str,
+    execution_target: str,
+    status: str,
+    comparison_summary_json: str,
+    result_summary: str,
+    safety_summary_json: str,
+    execution_id: str | None = None,
+    evidence_pack_id: str | None = None,
+    finished_at=None,
+) -> FakeERPRegressionRun:
+    row = FakeERPRegressionRun(
+        id=regression_run_id,
+        case_id=case_id,
+        version_id=version_id,
+        dry_run_id=dry_run_id,
+        execution_id=execution_id,
+        evidence_pack_id=evidence_pack_id,
+        actor_json=actor_json,
+        inputs_json=inputs_json,
+        execution_target=execution_target,
+        status=status,
+        comparison_summary_json=comparison_summary_json,
+        result_summary=result_summary,
+        safety_summary_json=safety_summary_json,
+        finished_at=finished_at,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_fake_erp_regression_run(session: Session, regression_run_id: str) -> FakeERPRegressionRun | None:
+    return session.get(FakeERPRegressionRun, regression_run_id)
+
+
+def update_fake_erp_regression_run(
+    session: Session,
+    regression_run_id: str,
+    *,
+    execution_id: str | None = None,
+    evidence_pack_id: str | None = None,
+    status: str | None = None,
+    comparison_summary_json: str | None = None,
+    result_summary: str | None = None,
+    safety_summary_json: str | None = None,
+    finished_at=None,
+) -> FakeERPRegressionRun | None:
+    row = session.get(FakeERPRegressionRun, regression_run_id)
+    if row is None:
+        return None
+    if execution_id is not None:
+        row.execution_id = execution_id
+    if evidence_pack_id is not None:
+        row.evidence_pack_id = evidence_pack_id
+    if status is not None:
+        row.status = status
+    if comparison_summary_json is not None:
+        row.comparison_summary_json = comparison_summary_json
+    if result_summary is not None:
+        row.result_summary = result_summary
+    if safety_summary_json is not None:
+        row.safety_summary_json = safety_summary_json
+    if finished_at is not None:
+        row.finished_at = finished_at
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def create_fake_erp_regression_audit_event(
+    session: Session,
+    *,
+    audit_event_id: str,
+    regression_run_id: str,
+    case_id: str,
+    version_id: str,
+    execution_id: str | None,
+    evidence_pack_id: str | None,
+    actor_json: str,
+    event_type: str,
+    status: str,
+    detail_json: str = "{}",
+) -> FakeERPRegressionAuditEvent:
+    row = FakeERPRegressionAuditEvent(
+        id=audit_event_id,
+        regression_run_id=regression_run_id,
+        case_id=case_id,
+        version_id=version_id,
+        execution_id=execution_id,
+        evidence_pack_id=evidence_pack_id,
+        actor_json=actor_json,
+        event_type=event_type,
+        status=status,
+        detail_json=detail_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_recent_fake_erp_regression_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[FakeERPRegressionAuditEvent]:
+    return list(
+        session.query(FakeERPRegressionAuditEvent)
+        .order_by(FakeERPRegressionAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
     )

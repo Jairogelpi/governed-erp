@@ -421,6 +421,68 @@ The pack is generated only from a completed Fake ERP execution. It does not:
 - call external HTTP
 - execute `endpoint_hint`
 
+## Sprint 50 Manual Fake ERP Regression Suite
+
+Sprint 50 adds a manual regression layer on top of Sprint 48 and Sprint 49. A regression case stores deterministic expected outcomes, then a manual regression run explicitly reuses the controlled Fake ERP execution path and the persisted evidence-pack path to compare expected vs actual.
+
+New endpoints:
+
+- `POST /v1/operator-console/fake-erp-regression/cases`
+- `GET /v1/operator-console/fake-erp-regression/cases/{case_id}`
+- `POST /v1/operator-console/fake-erp-regression/run`
+- `GET /v1/operator-console/fake-erp-regression/runs/{regression_run_id}`
+- `GET /v1/operator-console/fake-erp-regression/audit`
+
+Example case request:
+
+```json
+{
+  "version_id": "ui_skill_ver_...",
+  "dry_run_id": "dryrun_...",
+  "name": "SO-VALID regression",
+  "execution_target": "fake_erp",
+  "inputs": {
+    "order_reference": "SO-VALID"
+  },
+  "expected_outcomes": {
+    "status": "completed",
+    "steps_executed": 1,
+    "steps_blocked": 0,
+    "execution_target": "fake_erp"
+  }
+}
+```
+
+Example run request:
+
+```json
+{
+  "case_id": "fregcase_...",
+  "token_id": "tok_...",
+  "actor": {
+    "type": "user",
+    "id": "operator_1",
+    "display_name": "Operator"
+  },
+  "reason": "Operator requested manual Fake ERP regression run."
+}
+```
+
+The regression layer remains tightly bounded:
+
+- manual only
+- no scheduler
+- no autonomous loop
+- no Odoo
+- no real ERP
+- no browser automation
+- no MCP
+- no LLM runtime
+- no external HTTP
+- no `endpoint_hint` execution
+
+Sprint 50 compares only deterministic artifacts already produced by controlled Fake ERP execution and persisted evidence. It does not create any new execution surface beyond the existing Sprint 48 path.
+
 ## Confirmed Read-Only Action Dispatcher
 
 Sprint 45 adds the first real operator dispatch path, but only for internal read-only handlers. The server requires a confirmed token, re-checks dispatch eligibility immediately before execution, selects the handler by `action_key`, persists the dispatch result, and records execution audit evidence.

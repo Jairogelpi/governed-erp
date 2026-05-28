@@ -1666,3 +1666,54 @@ class FakeERPExecutionEvidencePack(Base):
     safety_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     audit_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+# Sprint 50 — Manual Fake ERP Regression Suite
+
+class FakeERPRegressionCase(Base):
+    __tablename__ = "fake_erp_regression_cases"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    dry_run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    name: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    execution_target: Mapped[str] = mapped_column(Text, nullable=False, default="fake_erp")
+    inputs_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    expected_outcomes_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class FakeERPRegressionRun(Base):
+    __tablename__ = "fake_erp_regression_runs"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    case_id: Mapped[str] = mapped_column(Text, nullable=False)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    dry_run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    execution_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    evidence_pack_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    inputs_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    execution_target: Mapped[str] = mapped_column(Text, nullable=False, default="fake_erp")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="blocked")
+    comparison_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    result_summary: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    safety_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class FakeERPRegressionAuditEvent(Base):
+    __tablename__ = "fake_erp_regression_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    regression_run_id: Mapped[str] = mapped_column(Text, nullable=False)
+    case_id: Mapped[str] = mapped_column(Text, nullable=False)
+    version_id: Mapped[str] = mapped_column(Text, nullable=False)
+    execution_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    evidence_pack_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    actor_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    event_type: Mapped[str] = mapped_column(Text, nullable=False, default="requested")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="info")
+    detail_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

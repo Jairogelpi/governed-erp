@@ -1050,6 +1050,41 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>Manual Fake ERP Regression Suite</h2>
+        <p>
+          Sprint 50 runs a manual regression case only inside controlled Fake ERP. It does not call Odoo,
+          real ERP systems, browser automation, MCP tools, scheduler jobs, LLM runtime, external HTTP or endpoint hints.
+        </p>
+        <div class="toolbar">
+          <label>Version ID <input id="fakeRegVersionId" type="text" placeholder="ver_..." style="width:220px"/></label>
+          <label>Dry-run ID <input id="fakeRegDryRunId" type="text" placeholder="dryrun_..." style="width:220px"/></label>
+          <label>Case name <input id="fakeRegCaseName" type="text" value="SO-VALID regression" style="width:220px"/></label>
+        </div>
+        <div class="toolbar">
+          <label>Execution target <input id="fakeRegTarget" type="text" value="fake_erp" style="width:140px"/></label>
+          <label>Inputs JSON <input id="fakeRegInputs" type="text" value='{"order_reference":"SO-VALID"}' style="width:360px"/></label>
+          <label>Expected outcomes JSON <input id="fakeRegExpected" type="text" value='{"status":"completed","steps_executed":1,"steps_blocked":0,"execution_target":"fake_erp"}' style="width:500px"/></label>
+        </div>
+        <div class="toolbar">
+          <button id="fakeRegCreateCase">91. Create regression case</button>
+          <label>Case ID <input id="fakeRegCaseId" type="text" placeholder="fregcase_..." style="width:220px"/></label>
+          <button id="fakeRegGetCase">92. Get regression case</button>
+        </div>
+        <div class="toolbar">
+          <label>Token ID <input id="fakeRegTokenId" type="text" placeholder="tok_..." style="width:220px"/></label>
+          <label>Actor ID <input id="fakeRegActorId" type="text" value="operator_1" style="width:180px"/></label>
+          <label>Reason <input id="fakeRegReason" type="text" value="Operator requested manual Fake ERP regression run." style="width:420px"/></label>
+        </div>
+        <div class="toolbar">
+          <button id="fakeRegRun">93. Run manual Fake ERP regression</button>
+          <label>Regression Run ID <input id="fakeRegRunId" type="text" placeholder="fregrun_..." style="width:220px"/></label>
+          <button id="fakeRegGetRun">94. Get regression run</button>
+          <button id="fakeRegAudit">95. Regression audit</button>
+        </div>
+        <pre id="fakeRegOutput">No manual Fake ERP regression data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -5451,6 +5486,80 @@ selectors captured: none</pre>
       }
       const r = await fetch(`${currentBaseUrl()}/v1/operator-console/action-plan/fake-erp-execution/${executionId}/evidence-pack`);
       fakePackOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 50 — Manual Fake ERP Regression Suite ────────────────────────
+    const fakeRegOut = () => document.getElementById("fakeRegOutput");
+    const parseFakeRegJson = (id) => {
+      const raw = document.getElementById(id).value.trim();
+      return raw ? JSON.parse(raw) : {};
+    };
+
+    document.getElementById("fakeRegCreateCase").addEventListener("click", async () => {
+      try {
+        const r = await fetch(`${currentBaseUrl()}/v1/operator-console/fake-erp-regression/cases`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            version_id: document.getElementById("fakeRegVersionId").value.trim(),
+            dry_run_id: document.getElementById("fakeRegDryRunId").value.trim(),
+            name: document.getElementById("fakeRegCaseName").value.trim(),
+            execution_target: document.getElementById("fakeRegTarget").value.trim() || "fake_erp",
+            inputs: parseFakeRegJson("fakeRegInputs"),
+            expected_outcomes: parseFakeRegJson("fakeRegExpected"),
+          }),
+        });
+        const data = await r.json();
+        fakeRegOut().textContent = jsonText(data);
+        if (data.case_id) document.getElementById("fakeRegCaseId").value = data.case_id;
+      } catch (err) {
+        fakeRegOut().textContent = `Invalid regression JSON: ${err.message}`;
+      }
+    });
+
+    document.getElementById("fakeRegGetCase").addEventListener("click", async () => {
+      const caseId = document.getElementById("fakeRegCaseId").value.trim();
+      if (!caseId) {
+        fakeRegOut().textContent = "Enter a regression case ID first.";
+        return;
+      }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/fake-erp-regression/cases/${caseId}`);
+      fakeRegOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("fakeRegRun").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/fake-erp-regression/run`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          case_id: document.getElementById("fakeRegCaseId").value.trim(),
+          token_id: document.getElementById("fakeRegTokenId").value.trim(),
+          actor: {
+            type: "user",
+            id: document.getElementById("fakeRegActorId").value.trim(),
+            display_name: "Operator",
+          },
+          reason: document.getElementById("fakeRegReason").value.trim() || null,
+        }),
+      });
+      const data = await r.json();
+      fakeRegOut().textContent = jsonText(data);
+      if (data.regression_run_id) document.getElementById("fakeRegRunId").value = data.regression_run_id;
+    });
+
+    document.getElementById("fakeRegGetRun").addEventListener("click", async () => {
+      const runId = document.getElementById("fakeRegRunId").value.trim();
+      if (!runId) {
+        fakeRegOut().textContent = "Enter a regression run ID first.";
+        return;
+      }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/fake-erp-regression/runs/${runId}`);
+      fakeRegOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("fakeRegAudit").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/fake-erp-regression/audit`);
+      fakeRegOut().textContent = jsonText(await r.json());
     });
   </script>
 </body>
