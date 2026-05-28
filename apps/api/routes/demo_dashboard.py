@@ -1085,6 +1085,26 @@ selectors captured: none</pre>
       </div>
 
       <div class="card full">
+        <h2>ERP Adapter Capability Registry</h2>
+        <p>
+          Sprint 52 declares ERP adapter capabilities only. It does not connect to Odoo, SAP, Dynamics,
+          Holded, NetSuite, custom REST systems or external HTTP endpoints.
+        </p>
+        <div class="toolbar">
+          <label>Adapter ID <input id="erpCapAdapterId" type="text" value="odoo_placeholder" style="width:220px"/></label>
+          <label>Operation type <input id="erpCapOperationType" type="text" value="read_object" style="width:180px"/></label>
+          <label>Object type <input id="erpCapObjectType" type="text" value="partner" style="width:180px"/></label>
+        </div>
+        <div class="toolbar">
+          <label>Requested fields JSON/list <input id="erpCapRequestedFields" type="text" value='["name","email"]' style="width:360px"/></label>
+          <button id="erpCapListAdapters">96. List ERP adapters</button>
+          <button id="erpCapGetCapabilities">97. Get adapter capabilities</button>
+          <button id="erpCapCheck">98. Check adapter capability</button>
+        </div>
+        <pre id="erpCapOutput">No ERP adapter capability data yet.</pre>
+      </div>
+
+      <div class="card full">
         <h2>Skill Marketplace / Connector Catalog</h2>
         <p>
           Sprint 15 — Browse controlled connectors and predefined automation templates.
@@ -5560,6 +5580,48 @@ selectors captured: none</pre>
     document.getElementById("fakeRegAudit").addEventListener("click", async () => {
       const r = await fetch(`${currentBaseUrl()}/v1/operator-console/fake-erp-regression/audit`);
       fakeRegOut().textContent = jsonText(await r.json());
+    });
+
+    // ── Sprint 52 — ERP Adapter Capability Registry ─────────────────────────
+    const erpCapOut = () => document.getElementById("erpCapOutput");
+    const parseErpCapFields = () => {
+      const raw = document.getElementById("erpCapRequestedFields").value.trim();
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    };
+
+    document.getElementById("erpCapListAdapters").addEventListener("click", async () => {
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/erp-adapters`);
+      erpCapOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("erpCapGetCapabilities").addEventListener("click", async () => {
+      const adapterId = document.getElementById("erpCapAdapterId").value.trim();
+      if (!adapterId) {
+        erpCapOut().textContent = "Enter an adapter ID first.";
+        return;
+      }
+      const r = await fetch(`${currentBaseUrl()}/v1/operator-console/erp-adapters/${adapterId}/capabilities`);
+      erpCapOut().textContent = jsonText(await r.json());
+    });
+
+    document.getElementById("erpCapCheck").addEventListener("click", async () => {
+      try {
+        const r = await fetch(`${currentBaseUrl()}/v1/operator-console/erp-adapters/capability-check`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            adapter_id: document.getElementById("erpCapAdapterId").value.trim(),
+            operation_type: document.getElementById("erpCapOperationType").value.trim(),
+            object_type: document.getElementById("erpCapObjectType").value.trim(),
+            requested_fields: parseErpCapFields(),
+          }),
+        });
+        erpCapOut().textContent = jsonText(await r.json());
+      } catch (err) {
+        erpCapOut().textContent = `Invalid requested fields JSON: ${err.message}`;
+      }
     });
   </script>
 </body>

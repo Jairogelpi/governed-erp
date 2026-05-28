@@ -511,6 +511,36 @@ Sprint 51 explicitly does not implement:
 - real ERP writes
 - Fake ERP runtime changes
 
+## Sprint 52 ERP Adapter Capability Registry
+
+Sprint 52 builds on the universal contract from Sprint 51 and adds a neutral capability registry. ERPGuard can now reason about placeholder adapters and declared capabilities without connecting to any real ERP.
+
+New pieces:
+
+- placeholder adapter identities for `fake_erp`, `odoo_placeholder`, `holded_placeholder`, `sap_placeholder`, `dynamics_placeholder`, `netsuite_placeholder`, and `custom_rest_placeholder`
+- declared capabilities by `adapter_id + operation_type + object_type`
+- advisory-only capability lookup
+- advisory-only capability check with requested-field validation against declared allowlists
+- read-only endpoints for adapter listing, capability listing, and capability checks
+
+Capability declaration is not execution:
+
+- placeholders are not real adapters
+- supported capability is not executable capability
+- Sprint 52 never connects to Odoo, SAP, Dynamics, Holded, NetSuite, custom REST, or any external HTTP endpoint
+
+Requested field checks remain contract-only in Sprint 52:
+
+- requested field inside allowlist -> capability stays supported
+- requested field outside allowlist -> `supported=false` and `blocking_reasons=["requested_field_not_supported:<field>"]`
+
+All Sprint 52 responses remain advisory:
+
+- `is_advisory_only=true`
+- `will_execute=false`
+- `can_execute=false`
+- all external execution safety flags remain false
+
 ## Confirmed Read-Only Action Dispatcher
 
 Sprint 45 adds the first real operator dispatch path, but only for internal read-only handlers. The server requires a confirmed token, re-checks dispatch eligibility immediately before execution, selects the handler by `action_key`, persists the dispatch result, and records execution audit evidence.
