@@ -662,6 +662,45 @@ The next step after this story is consolidation, not more feature growth.
 
 This README is written to explain what exists today, what is simulated for the demo, and what remains intentionally out of scope.
 
+## Sprint 55 Connector Credential Vault Contract
+
+Sprint 55 seals raw credentials into a vault reference only, never returning or persisting raw secrets.
+
+Credential vault endpoints:
+
+- `POST /v1/operator-console/connectors/credentials/seal` — seal password/api_key/token into a `cred_` reference
+- `GET /v1/operator-console/connectors/credentials/{credential_ref}/metadata` — get redacted metadata
+- `POST /v1/operator-console/connectors/credentials/{credential_ref}/revoke` — revoke credential
+- `GET /v1/operator-console/connectors/credentials/audit` — audit trail
+
+Safety invariants:
+
+- `raw_secret_returned=false`, `raw_secret_logged=false`, `llm_accessible=false`
+- `external_http_performed=false`, `login_attempted=false`, `fingerprint_performed=false`
+- `schema_inspection_performed=false`, `read_only_activation_performed=false`, `erp_write_performed=false`
+- Only SHA-256 fingerprint + last 4 chars stored; no raw secret persisted
+- Setup session transitions to `credential_mode=vault_reference_only` and `status=ready_for_fingerprint`
+
+## Sprint 56 ERP Fingerprinting Plan
+
+Sprint 56 creates a plan-only fingerprinting artifact from a setup session + sealed credential reference. No real discovery is performed.
+
+Fingerprinting plan endpoints:
+
+- `POST /v1/operator-console/connectors/setup-session/{session_id}/fingerprinting-plan` — create plan
+- `GET /v1/operator-console/connectors/fingerprinting-plan/{fingerprint_plan_id}` — get plan
+- `GET /v1/operator-console/connectors/fingerprinting-plans` — list plans
+- `GET /v1/operator-console/connectors/fingerprinting-audit` — audit trail
+
+Plan-only heuristics detect adapter candidates (Odoo, Holded, SAP, Dynamics, NetSuite, custom_rest, unknown) from URL host and connector name patterns. Manual hints reinforce candidates. All planned checks are `plan_only` — no network call, no login, no schema inspection, no capability generation.
+
+Safety invariants:
+
+- `will_connect=false`, `external_http_performed=false`, `login_attempted=false`
+- `fingerprint_performed=false`, `schema_inspection_performed=false`
+- `capability_generation_performed=false`, `read_only_activation_performed=false`
+- `credentials_exposed=false`, `raw_secret_accessed=false`
+
 ## Next Phase Candidate
 
 The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.

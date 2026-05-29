@@ -2291,3 +2291,53 @@ class CredentialVaultAuditEvent(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, nullable=False
     )
+
+
+class ERPFingerprintingPlan(Base):
+    __tablename__ = "erp_fingerprinting_plans"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    fingerprint_plan_id: Mapped[str] = mapped_column(
+        Text, nullable=False, unique=True
+    )
+    setup_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    connector_name: Mapped[str] = mapped_column(Text, nullable=False)
+    erp_url_host: Mapped[str] = mapped_column(Text, nullable=False)
+    environment_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(
+        Text, nullable=False, default="planned"
+    )
+    adapter_candidates_json: Mapped[str] = mapped_column(
+        Text, nullable=False, default="[]"
+    )
+    planned_checks_json: Mapped[str] = mapped_column(
+        Text, nullable=False, default="[]"
+    )
+    risk_summary_json: Mapped[str] = mapped_column(
+        Text, nullable=False, default="{}"
+    )
+    next_safe_step: Mapped[str | None] = mapped_column(Text, nullable=True)
+    confidence: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    created_by: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, nullable=False
+    )
+    blocking_reasons_json: Mapped[str] = mapped_column(
+        Text, nullable=False, default="[]"
+    )
+
+
+class ERPFingerprintingAuditEvent(Base):
+    __tablename__ = "erp_fingerprinting_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    fingerprint_plan_id: Mapped[str] = mapped_column(Text, nullable=False)
+    setup_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, nullable=False
+    )

@@ -5770,5 +5770,26 @@ selectors captured: none</pre>
       </div>
       <pre id="credVaultOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
+
+    <!-- Sprint 56 - ERP Fingerprinting Plan -->
+    <div style="border:1px solid #8b5cf6;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Connector Autopilot — ERP Fingerprinting Plan</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 56 creates a fingerprinting plan only. It does not call the ERP URL, perform login, inspect schemas, generate capabilities, activate connectors or expose credentials.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Setup Session ID:</label><br>
+        <input id="fpSessionId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Credential Ref:</label>
+        <input id="fpCredRef" style="width:300px;" value=""><br>
+        <label style="font-size:0.85em;">Manual Hint:</label>
+        <select id="fpManualHint"><option value="">none</option><option value="odoo">odoo</option><option value="holded">holded</option><option value="sap">sap</option><option value="dynamics">dynamics</option><option value="netsuite">netsuite</option><option value="custom_rest">custom_rest</option></select><br>
+        <label style="font-size:0.85em;">Created By:</label>
+        <input id="fpCreatedBy" style="width:200px;" value="operator_1"><br>
+        <button id="fpCreatePlan">Create Fingerprinting Plan</button>
+        <button id="fpGetPlan">Get Fingerprinting Plan</button>
+        <button id="fpListPlans">List Fingerprinting Plans</button>
+        <button id="fpAudit">Fingerprinting Audit</button>
+      </div>
+      <pre id="fpOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""

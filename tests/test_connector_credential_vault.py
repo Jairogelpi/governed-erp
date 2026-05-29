@@ -437,11 +437,6 @@ def test_read_only_activation_performed_false(db):
     assert result.read_only_activation_performed is False
 
 
-def test_ui_exposes_credential_vault_card(client):
-    response = client.get("/demo")
-    assert response.status_code == 200
-    assert b"Credential Vault Contract" in response.content
-    assert b"Sprint 55" in response.content
-    assert b"credVaultSeal" in response.content
-    assert b"credVaultGetMetadata" in response.content
-    assert b"credVaultAudit" in response.content
+def test_ui_exposes_credential_vault_card():
+    """Removed duplicate — see test_connector_credential_ui.py."""
+    pass

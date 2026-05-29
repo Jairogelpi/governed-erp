@@ -108,6 +108,8 @@ from erpguard.db.models import (
     FakeERPRegressionRun,
     CredentialVaultEntry,
     CredentialVaultAuditEvent,
+    ERPFingerprintingPlan,
+    ERPFingerprintingAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -5224,6 +5226,104 @@ def list_credential_vault_audit_events(
     return list(
         session.query(CredentialVaultAuditEvent)
         .order_by(CredentialVaultAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_erp_fingerprinting_plan(
+    session: Session,
+    *,
+    fingerprint_plan_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    connector_name: str,
+    erp_url_host: str,
+    environment_type: str,
+    status: str = "planned",
+    adapter_candidates_json: str = "[]",
+    planned_checks_json: str = "[]",
+    risk_summary_json: str = "{}",
+    next_safe_step: str | None = None,
+    confidence: float = 0.0,
+    created_by: str = "operator_1",
+    blocking_reasons_json: str = "[]",
+) -> ERPFingerprintingPlan:
+    row = ERPFingerprintingPlan(
+        id=fingerprint_plan_id,
+        fingerprint_plan_id=fingerprint_plan_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        connector_name=connector_name,
+        erp_url_host=erp_url_host,
+        environment_type=environment_type,
+        status=status,
+        adapter_candidates_json=adapter_candidates_json,
+        planned_checks_json=planned_checks_json,
+        risk_summary_json=risk_summary_json,
+        next_safe_step=next_safe_step,
+        confidence=confidence,
+        created_by=created_by,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_erp_fingerprinting_plan_by_id(
+    session: Session, fingerprint_plan_id: str
+) -> ERPFingerprintingPlan | None:
+    return (
+        session.query(ERPFingerprintingPlan)
+        .filter(ERPFingerprintingPlan.fingerprint_plan_id == fingerprint_plan_id)
+        .first()
+    )
+
+
+def list_erp_fingerprinting_plans(
+    session: Session, *, limit: int = 50
+) -> list[ERPFingerprintingPlan]:
+    return list(
+        session.query(ERPFingerprintingPlan)
+        .order_by(ERPFingerprintingPlan.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_erp_fingerprinting_audit_event(
+    session: Session,
+    *,
+    fingerprint_plan_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    event_type: str,
+    status: str,
+    details_json: str = "{}",
+) -> ERPFingerprintingAuditEvent:
+    row = ERPFingerprintingAuditEvent(
+        id=f"fpaudit_{uuid4().hex[:12]}",
+        fingerprint_plan_id=fingerprint_plan_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        event_type=event_type,
+        status=status,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_erp_fingerprinting_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[ERPFingerprintingAuditEvent]:
+    return list(
+        session.query(ERPFingerprintingAuditEvent)
+        .order_by(ERPFingerprintingAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )
