@@ -11,6 +11,7 @@ from apps.api.schemas.operator_action_dispatch import (
     DispatchEligibilityResponse,
 )
 from erpguard.db.session import SessionLocal, init_db
+from erpguard.db.repositories import count_action_dispatch_eligibility_events
 from erpguard.product.operator_action_dispatch_audit import get_dispatch_audit, persist_eligibility_event
 from erpguard.product.operator_action_dispatch_eligibility import check_eligibility
 from erpguard.product.operator_action_registry import list_all_actions
@@ -93,7 +94,7 @@ def dispatch_audit(limit: int = Query(default=50, ge=1, le=200)):
                 )
                 for e in result.entries
             ],
-            event_count=result.event_count,
+            event_count=count_action_dispatch_eligibility_events(db),
         )
     finally:
         db.close()

@@ -732,6 +732,42 @@ Plan-only boundary:
 - `credentials_exposed=false`, `raw_secret_accessed=false`
 - No network, login, schema inspection, permission inspection, ERP reads, capability generation, connector activation, browser automation, MCP, scheduler, real ERP adapter, or writes are performed.
 
+## Sprint 58 Auto Capability Generation from Discovery
+
+Sprint 58 generates an advisory-only capability set from a Sprint 57 safe discovery plan. It is generation-only: capabilities are internal artifacts that can be inspected or policy-checked, not executed.
+
+Generated capability endpoints:
+
+- `POST /v1/operator-console/connectors/safe-discovery-plan/{discovery_plan_id}/generated-capabilities` - generate capabilities
+- `GET /v1/operator-console/connectors/generated-capabilities/{capability_set_id}` - get generated capability set
+- `GET /v1/operator-console/connectors/generated-capability-sets` - list generated capability sets
+- `GET /v1/operator-console/connectors/generated-capability-audit` - audit trail
+
+Generated read-only capabilities are derived only from `read_only_surface.objects` and `read_only_surface.fields`:
+
+- `read_object`
+- `search_objects`
+- `inspect_schema`
+- `inspect_permissions`
+
+Blocked write capabilities are derived from the Sprint 57 blocked write surface:
+
+- `create_object`
+- `update_object`
+- `delete_object`
+- `post_document`
+- `confirm_document`
+- `reconcile_payment`
+- `produce_manufacturing_order`
+
+Generation-only boundary:
+
+- `is_advisory_only=true`, `will_execute=false`, `can_execute=false`, `supports_execution=false`
+- `external_http_performed=false`, `login_attempted=false`, `schema_inspection_performed=false`, `permission_inspection_performed=false`, `sample_data_read=false`
+- `capability_generation_performed=true` because Sprint 58 creates internal capability artifacts
+- `read_only_activation_performed=false`, `erp_write_performed=false`, `credentials_exposed=false`, `raw_secret_accessed=false`
+- No ERP connection, login, schema inspection, permission inspection, ERP reads, connector activation, real ERP implementation, browser automation, MCP, scheduler, or writes are performed.
+
 ## Next Phase Candidate
 
 The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.

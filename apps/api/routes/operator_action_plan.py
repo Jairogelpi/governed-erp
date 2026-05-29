@@ -19,6 +19,7 @@ from apps.api.schemas.operator_step_token import (
     TokenStatusResponse,
 )
 from erpguard.db.session import SessionLocal, init_db
+from erpguard.db.repositories import count_operator_action_plan_events
 from erpguard.product.operator_action_plan_audit import get_recent_plan_audit, persist_plan_event
 from erpguard.product.operator_action_plan_builder import build_action_plan
 from erpguard.product.operator_action_plan_intent import classify_plan_intent, list_supported_plan_types
@@ -88,7 +89,7 @@ def audit_action_plans(limit: int = Query(default=50, ge=1, le=200)):
                 )
                 for e in result.entries
             ],
-            event_count=result.event_count,
+            event_count=count_operator_action_plan_events(db),
         )
     finally:
         db.close()

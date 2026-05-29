@@ -112,6 +112,8 @@ from erpguard.db.models import (
     ERPFingerprintingAuditEvent,
     SafeDiscoveryPlan,
     SafeDiscoveryAuditEvent,
+    GeneratedCapabilitySet,
+    GeneratedCapabilityAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -5434,6 +5436,110 @@ def list_safe_discovery_audit_events(
     return list(
         session.query(SafeDiscoveryAuditEvent)
         .order_by(SafeDiscoveryAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_generated_capability_set(
+    session: Session,
+    *,
+    capability_set_id: str,
+    discovery_plan_id: str,
+    fingerprint_plan_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    adapter_id: str,
+    adapter_type: str,
+    status: str = "generated",
+    capabilities_json: str = "[]",
+    blocked_capabilities_json: str = "[]",
+    source_surface_snapshot_json: str = "{}",
+    policy_summary_json: str = "{}",
+    created_by: str = "operator_1",
+    blocking_reasons_json: str = "[]",
+) -> GeneratedCapabilitySet:
+    row = GeneratedCapabilitySet(
+        id=capability_set_id,
+        capability_set_id=capability_set_id,
+        discovery_plan_id=discovery_plan_id,
+        fingerprint_plan_id=fingerprint_plan_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        adapter_id=adapter_id,
+        adapter_type=adapter_type,
+        status=status,
+        capabilities_json=capabilities_json,
+        blocked_capabilities_json=blocked_capabilities_json,
+        source_surface_snapshot_json=source_surface_snapshot_json,
+        policy_summary_json=policy_summary_json,
+        created_by=created_by,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_generated_capability_set_by_id(
+    session: Session, capability_set_id: str
+) -> GeneratedCapabilitySet | None:
+    return (
+        session.query(GeneratedCapabilitySet)
+        .filter(GeneratedCapabilitySet.capability_set_id == capability_set_id)
+        .first()
+    )
+
+
+def list_generated_capability_sets(
+    session: Session, *, limit: int = 50
+) -> list[GeneratedCapabilitySet]:
+    return list(
+        session.query(GeneratedCapabilitySet)
+        .order_by(GeneratedCapabilitySet.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_generated_capability_audit_event(
+    session: Session,
+    *,
+    capability_set_id: str,
+    discovery_plan_id: str,
+    fingerprint_plan_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    event_type: str,
+    status: str,
+    created_by: str,
+    details_json: str = "{}",
+) -> GeneratedCapabilityAuditEvent:
+    row = GeneratedCapabilityAuditEvent(
+        id=f"gcaudit_{uuid4().hex[:12]}",
+        capability_set_id=capability_set_id,
+        discovery_plan_id=discovery_plan_id,
+        fingerprint_plan_id=fingerprint_plan_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        event_type=event_type,
+        status=status,
+        created_by=created_by,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_generated_capability_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[GeneratedCapabilityAuditEvent]:
+    return list(
+        session.query(GeneratedCapabilityAuditEvent)
+        .order_by(GeneratedCapabilityAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )

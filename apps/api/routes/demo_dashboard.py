@@ -5812,5 +5812,24 @@ selectors captured: none</pre>
       </div>
       <pre id="sdOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
+
+    <!-- Sprint 58 - Generated Capabilities -->
+    <div style="border:1px solid #2563eb;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Connector Autopilot — Generated Capabilities</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 58 generates advisory capabilities from the safe discovery plan only. It does not connect to the ERP, login, inspect schemas, read ERP data, activate connectors or perform writes.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Discovery Plan ID:</label><br>
+        <input id="gcDiscoveryPlanId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Created By:</label>
+        <input id="gcCreatedBy" style="width:200px;" value="operator_1"><br>
+        <label style="font-size:0.85em;">Capability Set ID:</label>
+        <input id="gcCapabilitySetId" style="width:400px;" value=""><br>
+        <button id="gcGenerate">Generate capabilities</button>
+        <button id="gcGet">Get generated capabilities</button>
+        <button id="gcList">List generated capability sets</button>
+        <button id="gcAudit">Generated capability audit</button>
+      </div>
+      <pre id="gcOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""
