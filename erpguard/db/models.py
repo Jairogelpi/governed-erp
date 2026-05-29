@@ -2341,3 +2341,46 @@ class ERPFingerprintingAuditEvent(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, nullable=False
     )
+
+
+class SafeDiscoveryPlan(Base):
+    __tablename__ = "safe_discovery_plans"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    discovery_plan_id: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    fingerprint_plan_id: Mapped[str] = mapped_column(Text, nullable=False)
+    setup_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    selected_adapter_type: Mapped[str] = mapped_column(Text, nullable=False)
+    connector_name: Mapped[str] = mapped_column(Text, nullable=False)
+    erp_url_host: Mapped[str] = mapped_column(Text, nullable=False)
+    environment_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="planned")
+    read_only_surface_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    blocked_write_surface_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    permission_surface_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    planned_discovery_steps_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    risk_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    next_safe_step: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_by: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, nullable=False
+    )
+    blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+
+
+class SafeDiscoveryAuditEvent(Base):
+    __tablename__ = "safe_discovery_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    discovery_plan_id: Mapped[str] = mapped_column(Text, nullable=False)
+    fingerprint_plan_id: Mapped[str] = mapped_column(Text, nullable=False)
+    setup_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    created_by: Mapped[str] = mapped_column(Text, nullable=False)
+    details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, nullable=False
+    )

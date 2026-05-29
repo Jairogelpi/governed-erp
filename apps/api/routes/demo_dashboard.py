@@ -5791,5 +5791,26 @@ selectors captured: none</pre>
       </div>
       <pre id="fpOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
+
+    <!-- Sprint 57 - Safe Discovery Plan -->
+    <div style="border:1px solid #0f766e;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Connector Autopilot — Safe Discovery Plan</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 57 creates a safe discovery plan and read-only surface model only. It does not connect, login, inspect schemas, read ERP data, generate capabilities, activate connectors or write to ERPs.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Fingerprint Plan ID:</label><br>
+        <input id="sdFingerprintPlanId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Selected Adapter Type:</label>
+        <select id="sdSelectedAdapterType"><option value="">highest confidence</option><option value="odoo">odoo</option><option value="holded">holded</option><option value="sap">sap</option><option value="dynamics">dynamics</option><option value="netsuite">netsuite</option><option value="custom_rest">custom_rest</option><option value="unknown">unknown</option></select><br>
+        <label style="font-size:0.85em;">Created By:</label>
+        <input id="sdCreatedBy" style="width:200px;" value="operator_1"><br>
+        <label style="font-size:0.85em;">Discovery Plan ID:</label>
+        <input id="sdDiscoveryPlanId" style="width:400px;" value=""><br>
+        <button id="sdCreatePlan">Create safe discovery plan</button>
+        <button id="sdGetPlan">Get safe discovery plan</button>
+        <button id="sdListPlans">List safe discovery plans</button>
+        <button id="sdAudit">Safe discovery audit</button>
+      </div>
+      <pre id="sdOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""

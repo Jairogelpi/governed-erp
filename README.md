@@ -701,6 +701,37 @@ Safety invariants:
 - `capability_generation_performed=false`, `read_only_activation_performed=false`
 - `credentials_exposed=false`, `raw_secret_accessed=false`
 
+## Sprint 57 Safe Discovery Plan & Read-Only Surface Model
+
+Sprint 57 creates a safe discovery plan and static read-only surface model from a Sprint 56 fingerprinting plan. It is still plan/model only.
+
+Safe discovery endpoints:
+
+- `POST /v1/operator-console/connectors/fingerprinting-plan/{fingerprint_plan_id}/safe-discovery-plan` - create safe discovery plan
+- `GET /v1/operator-console/connectors/safe-discovery-plan/{discovery_plan_id}` - get plan and surface model
+- `GET /v1/operator-console/connectors/safe-discovery-plans` - list plans
+- `GET /v1/operator-console/connectors/safe-discovery-audit` - audit trail
+
+The read-only surface model contains static object candidates, field candidates, and permission-surface candidates for the selected adapter type. Adapter templates cover Odoo, Holded, SAP, Dynamics, NetSuite, custom REST, and unknown systems without contacting any ERP.
+
+The blocked write surface model marks all write-like operations as blocked:
+
+- `create_object`
+- `update_object`
+- `delete_object`
+- `post_document`
+- `confirm_document`
+- `reconcile_payment`
+- `produce_manufacturing_order`
+
+Plan-only boundary:
+
+- `will_connect=false`, `external_http_performed=false`, `login_attempted=false`
+- `schema_inspection_performed=false`, `permission_inspection_performed=false`, `sample_data_read=false`
+- `capability_generation_performed=false`, `read_only_activation_performed=false`, `erp_write_performed=false`
+- `credentials_exposed=false`, `raw_secret_accessed=false`
+- No network, login, schema inspection, permission inspection, ERP reads, capability generation, connector activation, browser automation, MCP, scheduler, real ERP adapter, or writes are performed.
+
 ## Next Phase Candidate
 
 The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.

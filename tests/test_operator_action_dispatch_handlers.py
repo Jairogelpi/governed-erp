@@ -99,5 +99,6 @@ def test_dispatchable_actions_allowlist(db):
         "inspect_lifecycle",
         "recommend_next_step",
         "reuse_suggestions",
+        "run_preview",
         "search_skills",
     ])

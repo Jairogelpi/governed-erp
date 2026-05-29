@@ -71,6 +71,7 @@ from apps.api.routes.connector_setup import router as connector_setup_router
 from apps.api.routes.connector_auth import router as connector_auth_router
 from apps.api.routes.connector_credentials import router as connector_credentials_router
 from apps.api.routes.erp_fingerprinting import router as erp_fingerprinting_router  # noqa: E402
+from apps.api.routes.safe_discovery import router as safe_discovery_router  # noqa: E402
 from apps.api.routes.external_connectors import router as external_connectors_router
 from apps.api.routes.google_calendar_oauth import router as google_calendar_oauth_router
 from apps.api.routes.skill_compilation import router as skill_compilation_router
@@ -135,6 +136,7 @@ app.include_router(connector_setup_router)
 app.include_router(connector_auth_router)
 app.include_router(connector_credentials_router)
 app.include_router(erp_fingerprinting_router)
+app.include_router(safe_discovery_router)
 app.include_router(external_connectors_router)
 app.include_router(google_calendar_oauth_router)
 app.include_router(record_to_skill_router)
