@@ -117,6 +117,8 @@ from erpguard.db.models import (
     ReadOnlyConnectorActivationRequest,
     ReadOnlyConnectorActivation,
     ReadOnlyConnectorActivationAuditEvent,
+    OdooReadOnlyAdapterSession,
+    OdooReadOnlyAdapterAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -5698,6 +5700,104 @@ def list_read_only_activation_audit_events(
     return list(
         session.query(ReadOnlyConnectorActivationAuditEvent)
         .order_by(ReadOnlyConnectorActivationAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_odoo_read_only_adapter_session(
+    session: Session,
+    *,
+    adapter_session_id: str,
+    activation_id: str,
+    capability_set_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    adapter_id: str,
+    adapter_type: str,
+    mode: str,
+    status: str,
+    created_by: str,
+    blocking_reasons_json: str = "[]",
+) -> OdooReadOnlyAdapterSession:
+    row = OdooReadOnlyAdapterSession(
+        id=adapter_session_id,
+        adapter_session_id=adapter_session_id,
+        activation_id=activation_id,
+        capability_set_id=capability_set_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        adapter_id=adapter_id,
+        adapter_type=adapter_type,
+        mode=mode,
+        status=status,
+        created_by=created_by,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_odoo_read_only_adapter_session_by_id(
+    session: Session, adapter_session_id: str
+) -> OdooReadOnlyAdapterSession | None:
+    return (
+        session.query(OdooReadOnlyAdapterSession)
+        .filter(OdooReadOnlyAdapterSession.adapter_session_id == adapter_session_id)
+        .first()
+    )
+
+
+def list_odoo_read_only_adapter_sessions(
+    session: Session, *, limit: int = 50
+) -> list[OdooReadOnlyAdapterSession]:
+    return list(
+        session.query(OdooReadOnlyAdapterSession)
+        .order_by(OdooReadOnlyAdapterSession.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_odoo_read_only_adapter_audit_event(
+    session: Session,
+    *,
+    adapter_session_id: str,
+    activation_id: str,
+    capability_set_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    event_type: str,
+    status: str,
+    actor: str,
+    details_json: str = "{}",
+) -> OdooReadOnlyAdapterAuditEvent:
+    row = OdooReadOnlyAdapterAuditEvent(
+        id=f"odooaudit_{uuid4().hex[:12]}",
+        adapter_session_id=adapter_session_id,
+        activation_id=activation_id,
+        capability_set_id=capability_set_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        event_type=event_type,
+        status=status,
+        actor=actor,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_odoo_read_only_adapter_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[OdooReadOnlyAdapterAuditEvent]:
+    return list(
+        session.query(OdooReadOnlyAdapterAuditEvent)
+        .order_by(OdooReadOnlyAdapterAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )

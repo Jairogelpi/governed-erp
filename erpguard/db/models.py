@@ -2478,3 +2478,37 @@ class ReadOnlyConnectorActivationAuditEvent(Base):
     actor: Mapped[str] = mapped_column(Text, nullable=False)
     details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class OdooReadOnlyAdapterSession(Base):
+    __tablename__ = "odoo_read_only_adapter_sessions"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    adapter_session_id: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    activation_id: Mapped[str] = mapped_column(Text, nullable=False)
+    capability_set_id: Mapped[str] = mapped_column(Text, nullable=False)
+    setup_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    adapter_id: Mapped[str] = mapped_column(Text, nullable=False)
+    adapter_type: Mapped[str] = mapped_column(Text, nullable=False, default="odoo")
+    mode: Mapped[str] = mapped_column(Text, nullable=False, default="read_only")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="prepared")
+    created_by: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+
+
+class OdooReadOnlyAdapterAuditEvent(Base):
+    __tablename__ = "odoo_read_only_adapter_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    adapter_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    activation_id: Mapped[str] = mapped_column(Text, nullable=False)
+    capability_set_id: Mapped[str] = mapped_column(Text, nullable=False)
+    setup_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    actor: Mapped[str] = mapped_column(Text, nullable=False)
+    details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

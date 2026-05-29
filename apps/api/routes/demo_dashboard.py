@@ -5857,5 +5857,24 @@ selectors captured: none</pre>
       </div>
       <pre id="roOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
+
+    <!-- Sprint 74 - Odoo Read-Only Adapter Shell -->
+    <div style="border:1px solid #9333ea;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Odoo Read-Only Adapter Shell</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 74 creates an Odoo read-only adapter shell only. It does not connect to Odoo, perform HTTP/XML-RPC/JSON-RPC, login, read Odoo data, inspect schemas, inspect permissions, write to Odoo or expose credentials.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Activation ID:</label><br>
+        <input id="odooRoActivationId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Adapter Session ID:</label>
+        <input id="odooRoAdapterSessionId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Created By:</label>
+        <input id="odooRoCreatedBy" style="width:200px;" value="operator_1"><br>
+        <button id="odooRoCreate">Create Odoo read-only adapter session</button>
+        <button id="odooRoGet">Get Odoo read-only adapter session</button>
+        <button id="odooRoList">List Odoo read-only adapter sessions</button>
+        <button id="odooRoAudit">Odoo adapter audit</button>
+      </div>
+      <pre id="odooRoOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""

@@ -801,6 +801,35 @@ Sprint 59 safety boundary:
 
 Block D is now complete as a safe internal artifact pipeline. The next phase should not treat these artifacts as live ERP connectivity until a separate read-only adapter sprint explicitly implements and verifies that boundary.
 
+## Sprint 74 Odoo Read-Only Adapter Shell
+
+Sprint 74 starts Block G by adding the first Odoo read-only adapter shell. It converts a Block D `active_read_only` connector artifact into an `OdooReadOnlyAdapter` session record, but it still does not connect to Odoo.
+
+Boundary:
+
+- Block D `active_read_only` means an internal connector artifact has been approved by a human.
+- Sprint 74 `odoo_ro_...` means ERPGuard has prepared an Odoo adapter shell for a future controlled connection test.
+- Neither state means live Odoo connectivity, login, reads, schema inspection, permission inspection, or writes.
+
+Odoo read-only adapter endpoints:
+
+- `POST /v1/operator-console/connectors/read-only-activation/{activation_id}/odoo-adapter-session`
+- `GET /v1/operator-console/connectors/odoo-adapter-session/{adapter_session_id}`
+- `GET /v1/operator-console/connectors/odoo-adapter-sessions`
+- `GET /v1/operator-console/connectors/odoo-adapter-audit`
+
+Sprint 74 shell-only boundary:
+
+- `can_connect_later=true` only when the shell is prepared.
+- `will_connect_now=false`
+- `external_http_performed=false`, `login_attempted=false`
+- `odoo_rpc_performed=false`, `odoo_read_performed=false`, `odoo_write_performed=false`
+- `schema_inspection_performed=false`, `permission_inspection_performed=false`
+- `credentials_exposed=false`, `raw_secret_accessed=false`
+- No HTTP, XML-RPC, JSON-RPC, login, Odoo read, Odoo write, real schema inspection, real permission inspection, browser automation, MCP, scheduler, or raw secret access is introduced.
+
+Sprint 75 should be a separate controlled connection test, not bundled into this shell.
+
 ## Next Phase Candidate
 
 The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.
