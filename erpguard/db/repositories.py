@@ -114,6 +114,9 @@ from erpguard.db.models import (
     SafeDiscoveryAuditEvent,
     GeneratedCapabilitySet,
     GeneratedCapabilityAuditEvent,
+    ReadOnlyConnectorActivationRequest,
+    ReadOnlyConnectorActivation,
+    ReadOnlyConnectorActivationAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -5540,6 +5543,161 @@ def list_generated_capability_audit_events(
     return list(
         session.query(GeneratedCapabilityAuditEvent)
         .order_by(GeneratedCapabilityAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_read_only_activation_request(
+    session: Session,
+    *,
+    activation_request_id: str,
+    capability_set_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    adapter_id: str,
+    adapter_type: str,
+    mode: str,
+    requested_by: str,
+    status: str,
+    requires_human_approval: bool = True,
+    blocking_reasons_json: str = "[]",
+) -> ReadOnlyConnectorActivationRequest:
+    row = ReadOnlyConnectorActivationRequest(
+        id=activation_request_id,
+        activation_request_id=activation_request_id,
+        capability_set_id=capability_set_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        adapter_id=adapter_id,
+        adapter_type=adapter_type,
+        mode=mode,
+        requested_by=requested_by,
+        status=status,
+        requires_human_approval=requires_human_approval,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_read_only_activation_request_by_id(
+    session: Session, activation_request_id: str
+) -> ReadOnlyConnectorActivationRequest | None:
+    return (
+        session.query(ReadOnlyConnectorActivationRequest)
+        .filter(ReadOnlyConnectorActivationRequest.activation_request_id == activation_request_id)
+        .first()
+    )
+
+
+def update_read_only_activation_request_status(
+    session: Session, activation_request_id: str, status: str
+) -> ReadOnlyConnectorActivationRequest | None:
+    row = get_read_only_activation_request_by_id(session, activation_request_id)
+    if row is None:
+        return None
+    row.status = status
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def create_read_only_connector_activation(
+    session: Session,
+    *,
+    activation_id: str,
+    activation_request_id: str,
+    capability_set_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    adapter_id: str,
+    adapter_type: str,
+    mode: str,
+    status: str,
+    approved_by: str,
+    blocking_reasons_json: str = "[]",
+) -> ReadOnlyConnectorActivation:
+    row = ReadOnlyConnectorActivation(
+        id=activation_id,
+        activation_id=activation_id,
+        activation_request_id=activation_request_id,
+        capability_set_id=capability_set_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        adapter_id=adapter_id,
+        adapter_type=adapter_type,
+        mode=mode,
+        status=status,
+        approved_by=approved_by,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_read_only_connector_activation_by_id(
+    session: Session, activation_id: str
+) -> ReadOnlyConnectorActivation | None:
+    return (
+        session.query(ReadOnlyConnectorActivation)
+        .filter(ReadOnlyConnectorActivation.activation_id == activation_id)
+        .first()
+    )
+
+
+def list_read_only_connector_activations(
+    session: Session, *, limit: int = 50
+) -> list[ReadOnlyConnectorActivation]:
+    return list(
+        session.query(ReadOnlyConnectorActivation)
+        .order_by(ReadOnlyConnectorActivation.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_read_only_activation_audit_event(
+    session: Session,
+    *,
+    activation_request_id: str,
+    activation_id: str,
+    capability_set_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    event_type: str,
+    status: str,
+    actor: str,
+    details_json: str = "{}",
+) -> ReadOnlyConnectorActivationAuditEvent:
+    row = ReadOnlyConnectorActivationAuditEvent(
+        id=f"roaudit_{uuid4().hex[:12]}",
+        activation_request_id=activation_request_id,
+        activation_id=activation_id,
+        capability_set_id=capability_set_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        event_type=event_type,
+        status=status,
+        actor=actor,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_read_only_activation_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[ReadOnlyConnectorActivationAuditEvent]:
+    return list(
+        session.query(ReadOnlyConnectorActivationAuditEvent)
+        .order_by(ReadOnlyConnectorActivationAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )

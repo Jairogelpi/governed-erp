@@ -768,6 +768,39 @@ Generation-only boundary:
 - `read_only_activation_performed=false`, `erp_write_performed=false`, `credentials_exposed=false`, `raw_secret_accessed=false`
 - No ERP connection, login, schema inspection, permission inspection, ERP reads, connector activation, real ERP implementation, browser automation, MCP, scheduler, or writes are performed.
 
+## Sprint 59 Read-Only Connector Activation
+
+Sprint 59 closes Block D by creating a governed internal read-only connector activation artifact from the full Connector Autopilot chain:
+
+`setup_session -> credential_ref -> fingerprinting_plan -> safe_discovery_plan -> generated_capability_set -> human approval -> read_only_connector_activation`
+
+Activation lifecycle:
+
+- Create an activation request from a generated capability set.
+- Keep `status=requested` and `requires_human_approval=true`.
+- Require an explicit approval actor.
+- Create an activation with `status=active_read_only` only after approval.
+
+`active_read_only` does not mean ERPGuard opened a connection to the ERP. It means the internal connector artifact is approved and ready for future read-only adapter work.
+
+Read-only activation endpoints:
+
+- `POST /v1/operator-console/connectors/generated-capabilities/{capability_set_id}/read-only-activation-request`
+- `POST /v1/operator-console/connectors/read-only-activation/{activation_request_id}/approve`
+- `GET /v1/operator-console/connectors/read-only-activation/{activation_id}`
+- `GET /v1/operator-console/connectors/read-only-activations`
+- `GET /v1/operator-console/connectors/read-only-activation-audit`
+
+Sprint 59 safety boundary:
+
+- `external_http_performed=false`, `login_attempted=false`
+- `real_erp_connection_established=false`, `real_erp_read_enabled=false`, `real_erp_write_enabled=false`
+- `browser_control_performed=false`, `mcp_execution_performed=false`, `scheduler_used=false`
+- `credentials_exposed=false`, `raw_secret_accessed=false`
+- No Block E, real Odoo, real ERP adapter, network call, login, schema/permission inspection, ERP read, browser automation, MCP, scheduler, write, or raw secret access is introduced.
+
+Block D is now complete as a safe internal artifact pipeline. The next phase should not treat these artifacts as live ERP connectivity until a separate read-only adapter sprint explicitly implements and verifies that boundary.
+
 ## Next Phase Candidate
 
 The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.

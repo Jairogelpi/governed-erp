@@ -5831,5 +5831,31 @@ selectors captured: none</pre>
       </div>
       <pre id="gcOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
+
+    <!-- Sprint 59 - Read-Only Connector Activation -->
+    <div style="border:1px solid #059669;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Connector Autopilot — Read-Only Connector Activation</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 59 activates only an internal read-only connector artifact. It does not connect to the ERP, login, read ERP data, enable real reads, enable writes or expose credentials.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Capability Set ID:</label><br>
+        <input id="roCapabilitySetId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Activation Request ID:</label>
+        <input id="roActivationRequestId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Activation ID:</label>
+        <input id="roActivationId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Requested By:</label>
+        <input id="roRequestedBy" style="width:200px;" value="operator_1"><br>
+        <label style="font-size:0.85em;">Approved By:</label>
+        <input id="roApprovedBy" style="width:200px;" value="operator_1"><br>
+        <label style="font-size:0.85em;">Mode:</label>
+        <input id="roMode" style="width:160px;" value="read_only"><br>
+        <button id="roCreateRequest">Create read-only activation request</button>
+        <button id="roApprove">Approve read-only activation</button>
+        <button id="roGet">Get read-only activation</button>
+        <button id="roList">List read-only activations</button>
+        <button id="roAudit">Read-only activation audit</button>
+      </div>
+      <pre id="roOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""

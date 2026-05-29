@@ -2425,3 +2425,56 @@ class GeneratedCapabilityAuditEvent(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, nullable=False
     )
+
+
+class ReadOnlyConnectorActivationRequest(Base):
+    __tablename__ = "read_only_connector_activation_requests"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    activation_request_id: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    capability_set_id: Mapped[str] = mapped_column(Text, nullable=False)
+    setup_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    adapter_id: Mapped[str] = mapped_column(Text, nullable=False)
+    adapter_type: Mapped[str] = mapped_column(Text, nullable=False)
+    mode: Mapped[str] = mapped_column(Text, nullable=False, default="read_only")
+    requested_by: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="requested")
+    requires_human_approval: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+
+
+class ReadOnlyConnectorActivation(Base):
+    __tablename__ = "read_only_connector_activations"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    activation_id: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    activation_request_id: Mapped[str] = mapped_column(Text, nullable=False)
+    capability_set_id: Mapped[str] = mapped_column(Text, nullable=False)
+    setup_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    adapter_id: Mapped[str] = mapped_column(Text, nullable=False)
+    adapter_type: Mapped[str] = mapped_column(Text, nullable=False)
+    mode: Mapped[str] = mapped_column(Text, nullable=False, default="read_only")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="active_read_only")
+    approved_by: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+
+
+class ReadOnlyConnectorActivationAuditEvent(Base):
+    __tablename__ = "read_only_connector_activation_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    activation_request_id: Mapped[str] = mapped_column(Text, nullable=False)
+    activation_id: Mapped[str] = mapped_column(Text, nullable=False)
+    capability_set_id: Mapped[str] = mapped_column(Text, nullable=False)
+    setup_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    actor: Mapped[str] = mapped_column(Text, nullable=False)
+    details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
