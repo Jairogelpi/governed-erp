@@ -557,3 +557,12 @@
 - Invariants kept: no partners, products, sale orders, invoices, stock, MRP, business records, business schemas, real permissions, create/update/delete/write/unlink, order confirmation, invoice posting, stock movement, manufacturing completion, browser automation, MCP, scheduler, raw secret exposure, prompt credential exposure, or LLM credential access.
 - Verification: Sprint 75 targeted tests and requested Block G/Block D/Block C regression slices were executed during this session; final results are recorded by the agent response.
 - Explicitly did not add Sprint 76.
+
+### 2026-05-30 - Sprint 76 Odoo Partner/Product/Sale Order Read Mapping (agent)
+
+- What changed: added controlled Odoo read mapping for `partner`, `product`, and `sale_order` after a passed Sprint 75 connection test. New files: `erpguard/product/odoo_read_mapping.py`, `erpguard/product/odoo_read_mapping_audit.py`, `apps/api/schemas/odoo_read_mapping.py`, `apps/api/routes/odoo_read_mapping.py`, and tests `tests/test_odoo_read_mapping.py`, `tests/test_odoo_read_mapping_api.py`, `tests/test_odoo_read_mapping_audit.py`, `tests/test_odoo_read_mapping_ui.py`. Updated `erpguard/db/models.py`, `erpguard/db/repositories.py`, `apps/api/main.py`, `apps/api/routes/demo_dashboard.py`, `README.md`, and `AGENTS.md`.
+- Why: Block G needs the first safe business-data read surface, but only after the full Connector Autopilot chain has produced an active read-only artifact, Odoo shell, and passed connection test.
+- Sprint 76 behavior: passed `odoo_ct_...` connection test -> `odoo_map_...` read mapping. `allow_business_read=false` blocks by default without calling the read client. With explicit allow, only an injectable/mocked read client may read one allowlisted object and lookup key, then map to canonical ERP objects.
+- Invariants kept: no invoice, stock, MRP, journal entry, payment, custom object, arbitrary model, arbitrary field, user domain, write/create/update/delete/unlink, order confirmation, invoice posting, payment reconciliation, stock movement, manufacturing completion, browser automation, MCP, scheduler, raw secret exposure, prompt credential exposure, or LLM credential access.
+- Verification: Sprint 76 targeted tests and requested Block G/Block D/Block C regression slices were executed during this session; final results are recorded by the agent response.
+- Explicitly did not add Sprint 77.

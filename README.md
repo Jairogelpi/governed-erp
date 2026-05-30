@@ -857,6 +857,43 @@ Boundary:
 
 Sprint 76 must remain separate from this connection test.
 
+## Sprint 76 Odoo Partner/Product/Sale Order Read Mapping
+
+Sprint 76 adds the first controlled business-data read mapping after a passed Odoo connection test.
+
+Allowed object types:
+
+- `partner`
+- `product`
+- `sale_order`
+
+Read mapping endpoints:
+
+- `POST /v1/operator-console/connectors/odoo-connection-test/{connection_test_id}/read-mapping`
+- `GET /v1/operator-console/connectors/odoo-read-mapping/{read_mapping_id}`
+- `GET /v1/operator-console/connectors/odoo-read-mappings`
+- `GET /v1/operator-console/connectors/odoo-read-mapping-audit`
+
+Boundary:
+
+- `allow_business_read=false` is the default and blocks without calling the read client.
+- Only one allowlisted lookup key is accepted per request.
+- No arbitrary Odoo model names, arbitrary fields, or user-supplied domains are executed.
+- Invoice, stock, MRP, journal entry, payment, and custom object reads remain out of scope for Sprint 76.
+- No create, update, delete, write, unlink, confirmation, invoice posting, payment reconciliation, stock movement, or manufacturing completion is allowed.
+
+Field allowlists:
+
+- `partner`: `id`, `display_name`, `name`, `email`, `phone`, `company_name`, `country`, `country_id`, `external_reference`
+- `product`: `id`, `display_name`, `name`, `default_code`, `sale_ok`, `purchase_ok`, `external_reference`
+- `sale_order`: `id`, `display_name`, `name`, `partner_id`, `state`, `amount_total`, `currency_id`, `date_order`, `order_line`, `external_reference`
+
+Any source field outside the allowlist is redacted in `source_snapshot_redacted` as `<redacted>` and is not mapped into the canonical object. Canonical objects are adapter-neutral `partner`, `product`, and `sale_order` records with Odoo source hints only.
+
+Raw credentials are never returned, audited, logged, exposed to prompts, or made available to the LLM. Public responses keep `raw_secret_accessed=false`.
+
+Sprint 77 must remain separate for any invoice, stock, or MRP scope.
+
 ## Next Phase Candidate
 
 The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.

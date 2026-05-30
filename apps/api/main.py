@@ -76,6 +76,7 @@ from apps.api.routes.generated_capabilities import router as generated_capabilit
 from apps.api.routes.read_only_connector_activation import router as read_only_connector_activation_router  # noqa: E402
 from apps.api.routes.odoo_read_only_adapter import router as odoo_read_only_adapter_router  # noqa: E402
 from apps.api.routes.odoo_connection_test import router as odoo_connection_test_router  # noqa: E402
+from apps.api.routes.odoo_read_mapping import router as odoo_read_mapping_router  # noqa: E402
 from apps.api.routes.external_connectors import router as external_connectors_router
 from apps.api.routes.google_calendar_oauth import router as google_calendar_oauth_router
 from apps.api.routes.skill_compilation import router as skill_compilation_router
@@ -145,6 +146,7 @@ app.include_router(generated_capabilities_router)
 app.include_router(read_only_connector_activation_router)
 app.include_router(odoo_read_only_adapter_router)
 app.include_router(odoo_connection_test_router)
+app.include_router(odoo_read_mapping_router)
 app.include_router(external_connectors_router)
 app.include_router(google_calendar_oauth_router)
 app.include_router(record_to_skill_router)

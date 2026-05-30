@@ -5897,5 +5897,30 @@ selectors captured: none</pre>
       </div>
       <pre id="odooCtOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
+
+    <!-- Sprint 76 - Odoo Read Mapping -->
+    <div style="border:1px solid #059669;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Odoo Read Mapping - Partner/Product/Sale Order</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 76 reads only partner, product and sale order data through an explicitly allowed read-only mapping. It does not read invoices, stock, MRP, arbitrary models/domains, or perform writes.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Connection Test ID:</label><br>
+        <input id="odooMapConnectionTestId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Object Type:</label>
+        <input id="odooMapObjectType" style="width:180px;" value="sale_order"><br>
+        <label style="font-size:0.85em;">Lookup JSON:</label><br>
+        <textarea id="odooMapLookupJson" style="width:400px;height:60px;">{"reference":"S00001"}</textarea><br>
+        <label style="font-size:0.85em;">Allow Business Read:</label>
+        <input id="odooMapAllowBusinessRead" type="checkbox"><br>
+        <label style="font-size:0.85em;">Requested By:</label>
+        <input id="odooMapRequestedBy" style="width:200px;" value="operator_1"><br>
+        <label style="font-size:0.85em;">Read Mapping ID:</label>
+        <input id="odooMapReadMappingId" style="width:400px;" value=""><br>
+        <button id="odooMapRun">Run Odoo read mapping</button>
+        <button id="odooMapGet">Get Odoo read mapping</button>
+        <button id="odooMapList">List Odoo read mappings</button>
+        <button id="odooMapAudit">Odoo read mapping audit</button>
+      </div>
+      <pre id="odooMapOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""

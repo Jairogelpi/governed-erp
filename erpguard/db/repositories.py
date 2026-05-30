@@ -121,6 +121,8 @@ from erpguard.db.models import (
     OdooReadOnlyAdapterAuditEvent,
     OdooConnectionTest,
     OdooConnectionTestAuditEvent,
+    OdooReadMapping,
+    OdooReadMappingAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -5912,6 +5914,129 @@ def list_odoo_connection_test_audit_events(
     return list(
         session.query(OdooConnectionTestAuditEvent)
         .order_by(OdooConnectionTestAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_odoo_read_mapping(
+    session: Session,
+    *,
+    read_mapping_id: str,
+    connection_test_id: str,
+    adapter_session_id: str,
+    activation_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    object_type: str,
+    status: str,
+    allow_business_read: bool,
+    business_data_read: bool,
+    canonical_object_json: str,
+    source_snapshot_redacted_json: str,
+    field_allowlist_used_json: str,
+    redacted_fields_json: str,
+    external_http_performed: bool,
+    odoo_rpc_performed: bool,
+    odoo_read_performed: bool,
+    requested_by: str,
+    blocking_reasons_json: str = "[]",
+) -> OdooReadMapping:
+    row = OdooReadMapping(
+        id=read_mapping_id,
+        read_mapping_id=read_mapping_id,
+        connection_test_id=connection_test_id,
+        adapter_session_id=adapter_session_id,
+        activation_id=activation_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        object_type=object_type,
+        status=status,
+        allow_business_read=allow_business_read,
+        business_data_read=business_data_read,
+        canonical_object_json=canonical_object_json,
+        source_snapshot_redacted_json=source_snapshot_redacted_json,
+        field_allowlist_used_json=field_allowlist_used_json,
+        redacted_fields_json=redacted_fields_json,
+        external_http_performed=external_http_performed,
+        odoo_rpc_performed=odoo_rpc_performed,
+        odoo_read_performed=odoo_read_performed,
+        odoo_write_performed=False,
+        schema_inspection_performed=False,
+        permission_inspection_performed=False,
+        credentials_exposed=False,
+        raw_secret_accessed=False,
+        requested_by=requested_by,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_odoo_read_mapping_by_id(
+    session: Session, read_mapping_id: str
+) -> OdooReadMapping | None:
+    return (
+        session.query(OdooReadMapping)
+        .filter(OdooReadMapping.read_mapping_id == read_mapping_id)
+        .first()
+    )
+
+
+def list_odoo_read_mappings(
+    session: Session, *, limit: int = 50
+) -> list[OdooReadMapping]:
+    return list(
+        session.query(OdooReadMapping)
+        .order_by(OdooReadMapping.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_odoo_read_mapping_audit_event(
+    session: Session,
+    *,
+    read_mapping_id: str,
+    connection_test_id: str,
+    adapter_session_id: str,
+    activation_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    object_type: str,
+    event_type: str,
+    status: str,
+    actor: str,
+    details_json: str = "{}",
+) -> OdooReadMappingAuditEvent:
+    row = OdooReadMappingAuditEvent(
+        id=f"odoomapaudit_{uuid4().hex[:12]}",
+        read_mapping_id=read_mapping_id,
+        connection_test_id=connection_test_id,
+        adapter_session_id=adapter_session_id,
+        activation_id=activation_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        object_type=object_type,
+        event_type=event_type,
+        status=status,
+        actor=actor,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_odoo_read_mapping_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[OdooReadMappingAuditEvent]:
+    return list(
+        session.query(OdooReadMappingAuditEvent)
+        .order_by(OdooReadMappingAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )
