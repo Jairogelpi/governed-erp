@@ -952,7 +952,30 @@ Safety summary includes `evidence_only=true`, `new_erp_read_performed=false`, `n
 
 Chain summary records the safe lineage: setup session, credential ref, activation, adapter session, connection test, read mapping, object type, `source_adapter=odoo`, and `evidence_source=odoo_read_mapping`. Secrets are never included.
 
-Sprint 79 must remain separate.
+## Sprint 79 Odoo Read-Only Demo Flow
+
+Sprint 79 closes Block G with an operator-facing demo flow that orchestrates the existing read-only chain:
+
+`active_read_only -> Odoo adapter shell -> Odoo connection test -> Odoo read mapping -> Odoo read evidence pack -> demo summary`
+
+Demo flow endpoints:
+
+- `POST /v1/operator-console/connectors/read-only-activation/{activation_id}/odoo-read-only-demo-flow`
+- `GET /v1/operator-console/connectors/odoo-read-only-demo-flow/{demo_flow_id}`
+- `GET /v1/operator-console/connectors/odoo-read-only-demo-flows`
+- `GET /v1/operator-console/connectors/odoo-read-only-demo-audit`
+
+Boundary:
+
+- Defaults are safe: `allow_network_test=false` and `allow_business_read=false`.
+- Supported demo object types are only `partner`, `product`, `sale_order`, `invoice`, `stock_item`, and `manufacturing_order`.
+- The flow uses fixed safe lookup fixtures and the existing Sprint 74-78 services; it does not create a parallel runtime.
+- No payment, journal entry, stock move, purchase order, custom object, arbitrary model, arbitrary domain, write preview, or write path is added.
+- No create, update, delete, write, unlink, invoice posting, order confirmation, stock movement, manufacturing completion, browser automation, MCP, scheduler, raw secret exposure, prompt credential exposure, or LLM credential access is introduced.
+
+The demo summary records object-level read mapping and evidence pack IDs plus `demo_only=true`, `odoo_write_performed=false`, `write_preview_performed=false`, `arbitrary_model_access=false`, `arbitrary_domain_execution=false`, `credentials_exposed=false`, and `raw_secret_accessed=false`.
+
+Block G is now complete as a read-only Odoo adapter chain with shell, gated connection test, controlled mapping, evidence packs, and an operator-facing demo flow. Block H must remain a separate future block.
 
 ## Next Phase Candidate
 

@@ -2648,3 +2648,37 @@ class OdooReadEvidenceAuditEvent(Base):
     actor: Mapped[str] = mapped_column(Text, nullable=False)
     details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class OdooReadOnlyDemoFlow(Base):
+    __tablename__ = "odoo_read_only_demo_flows"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    demo_flow_id: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    activation_id: Mapped[str] = mapped_column(Text, nullable=False)
+    adapter_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    connection_test_id: Mapped[str] = mapped_column(Text, nullable=False)
+    read_mapping_ids_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    evidence_pack_ids_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    requested_object_types_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    object_summaries_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="blocked")
+    safety_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_by: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+
+
+class OdooReadOnlyDemoAuditEvent(Base):
+    __tablename__ = "odoo_read_only_demo_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    demo_flow_id: Mapped[str] = mapped_column(Text, nullable=False)
+    activation_id: Mapped[str] = mapped_column(Text, nullable=False)
+    adapter_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    connection_test_id: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    actor: Mapped[str] = mapped_column(Text, nullable=False)
+    details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

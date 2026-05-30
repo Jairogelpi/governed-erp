@@ -125,6 +125,8 @@ from erpguard.db.models import (
     OdooReadMappingAuditEvent,
     OdooReadEvidencePack,
     OdooReadEvidenceAuditEvent,
+    OdooReadOnlyDemoFlow,
+    OdooReadOnlyDemoAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -6155,6 +6157,104 @@ def list_odoo_read_evidence_audit_events(
     return list(
         session.query(OdooReadEvidenceAuditEvent)
         .order_by(OdooReadEvidenceAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_odoo_read_only_demo_flow(
+    session: Session,
+    *,
+    demo_flow_id: str,
+    activation_id: str,
+    adapter_session_id: str,
+    connection_test_id: str,
+    read_mapping_ids_json: str,
+    evidence_pack_ids_json: str,
+    requested_object_types_json: str,
+    object_summaries_json: str,
+    status: str,
+    safety_summary_json: str,
+    created_by: str,
+    blocking_reasons_json: str = "[]",
+) -> OdooReadOnlyDemoFlow:
+    row = OdooReadOnlyDemoFlow(
+        id=demo_flow_id,
+        demo_flow_id=demo_flow_id,
+        activation_id=activation_id,
+        adapter_session_id=adapter_session_id,
+        connection_test_id=connection_test_id,
+        read_mapping_ids_json=read_mapping_ids_json,
+        evidence_pack_ids_json=evidence_pack_ids_json,
+        requested_object_types_json=requested_object_types_json,
+        object_summaries_json=object_summaries_json,
+        status=status,
+        safety_summary_json=safety_summary_json,
+        created_by=created_by,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_odoo_read_only_demo_flow_by_id(
+    session: Session, demo_flow_id: str
+) -> OdooReadOnlyDemoFlow | None:
+    return (
+        session.query(OdooReadOnlyDemoFlow)
+        .filter(OdooReadOnlyDemoFlow.demo_flow_id == demo_flow_id)
+        .first()
+    )
+
+
+def list_odoo_read_only_demo_flows(
+    session: Session, *, limit: int = 50
+) -> list[OdooReadOnlyDemoFlow]:
+    return list(
+        session.query(OdooReadOnlyDemoFlow)
+        .order_by(OdooReadOnlyDemoFlow.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_odoo_read_only_demo_audit_event(
+    session: Session,
+    *,
+    demo_flow_id: str,
+    activation_id: str,
+    adapter_session_id: str,
+    connection_test_id: str,
+    event_type: str,
+    status: str,
+    actor: str,
+    details_json: str = "{}",
+) -> OdooReadOnlyDemoAuditEvent:
+    row = OdooReadOnlyDemoAuditEvent(
+        id=f"odoodemoaudit_{uuid4().hex[:12]}",
+        demo_flow_id=demo_flow_id,
+        activation_id=activation_id,
+        adapter_session_id=adapter_session_id,
+        connection_test_id=connection_test_id,
+        event_type=event_type,
+        status=status,
+        actor=actor,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_odoo_read_only_demo_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[OdooReadOnlyDemoAuditEvent]:
+    return list(
+        session.query(OdooReadOnlyDemoAuditEvent)
+        .order_by(OdooReadOnlyDemoAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )

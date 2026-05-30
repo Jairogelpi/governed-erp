@@ -5941,5 +5941,30 @@ selectors captured: none</pre>
       </div>
       <pre id="odooEvOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
+
+    <!-- Sprint 79 - Odoo Read-Only Demo Flow -->
+    <div style="border:1px solid #7c3aed;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Odoo Read-Only Demo Flow</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 79 runs an operator-facing read-only Odoo demo flow using existing shell, connection test, read mapping and evidence services. It does not write, run arbitrary models/domains, use browser/MCP/scheduler or expose credentials.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Activation ID:</label><br>
+        <input id="odooDemoActivationId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Object Types:</label><br>
+        <input id="odooDemoObjectTypes" style="width:400px;" value="partner,product,sale_order"><br>
+        <label style="font-size:0.85em;">Allow Network Test:</label>
+        <input id="odooDemoAllowNetworkTest" type="checkbox"><br>
+        <label style="font-size:0.85em;">Allow Business Read:</label>
+        <input id="odooDemoAllowBusinessRead" type="checkbox"><br>
+        <label style="font-size:0.85em;">Requested By:</label>
+        <input id="odooDemoRequestedBy" style="width:200px;" value="operator_1"><br>
+        <label style="font-size:0.85em;">Demo Flow ID:</label>
+        <input id="odooDemoFlowId" style="width:400px;" value=""><br>
+        <button id="odooDemoRun">Run Odoo read-only demo flow</button>
+        <button id="odooDemoGet">Get Odoo read-only demo flow</button>
+        <button id="odooDemoList">List Odoo read-only demo flows</button>
+        <button id="odooDemoAudit">Odoo read-only demo audit</button>
+      </div>
+      <pre id="odooDemoOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""
