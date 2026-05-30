@@ -566,3 +566,12 @@
 - Invariants kept: no invoice, stock, MRP, journal entry, payment, custom object, arbitrary model, arbitrary field, user domain, write/create/update/delete/unlink, order confirmation, invoice posting, payment reconciliation, stock movement, manufacturing completion, browser automation, MCP, scheduler, raw secret exposure, prompt credential exposure, or LLM credential access.
 - Verification: Sprint 76 targeted tests and requested Block G/Block D/Block C regression slices were executed during this session; final results are recorded by the agent response.
 - Explicitly did not add Sprint 77.
+
+### 2026-05-30 - Sprint 77 Odoo Invoice/Stock/MRP Read Mapping (agent)
+
+- What changed: extended the existing Sprint 76 Odoo read mapping runtime to allow `invoice`, `stock_item`, and `manufacturing_order`, with strict lookup allowlists, field allowlists, redaction of fields outside allowlists, canonical object mappings, and updated `/demo`, README, AGENTS, and tests.
+- Why: Block G needs a broader first real read-only Odoo surface, but still only through the same controlled read request pipeline after a passed connection test.
+- Sprint 77 behavior: passed `odoo_ct_...` connection test -> `odoo_map_...` read mapping for `partner`, `product`, `sale_order`, `invoice`, `stock_item`, or `manufacturing_order`. Payment, journal entry, stock move, purchase order, custom object, arbitrary model names, arbitrary fields, and arbitrary user domains remain blocked.
+- Invariants kept: no writes, create/update/delete/unlink, order confirmation, invoice posting, payment reconciliation, stock movement, manufacturing completion, journal posting, browser automation, MCP, scheduler, evidence packs, write preview, raw secret exposure, prompt credential exposure, or LLM credential access.
+- Verification: Sprint 77 targeted tests and requested Block G/Block D/Block C regression slices were executed during this session; final results are recorded by the agent response.
+- Explicitly did not add Sprint 78.

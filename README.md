@@ -894,6 +894,42 @@ Raw credentials are never returned, audited, logged, exposed to prompts, or made
 
 Sprint 77 must remain separate for any invoice, stock, or MRP scope.
 
+## Sprint 77 Odoo Invoice/Stock/MRP Read Mapping
+
+Sprint 77 extends the same Sprint 76 read-mapping runtime; it does not create a parallel adapter or new endpoint family.
+
+New allowed object types:
+
+- `invoice`
+- `stock_item`
+- `manufacturing_order`
+
+Still allowed from Sprint 76:
+
+- `partner`
+- `product`
+- `sale_order`
+
+Canonical mappings:
+
+- `invoice` maps Odoo-shaped `account.move` fields into a neutral invoice object with partner, state, move type, totals, residual, currency, and invoice date.
+- `stock_item` maps Odoo-shaped `stock.quant` fields into a neutral stock item object with product, location, quantity, and reserved quantity.
+- `manufacturing_order` maps Odoo-shaped `mrp.production` fields into a neutral manufacturing order object with product, state, planned quantity, produced quantity, and BOM reference.
+
+Sprint 77 field allowlists:
+
+- `invoice`: `id`, `display_name`, `name`, `ref`, `partner_id`, `state`, `move_type`, `amount_total`, `amount_residual`, `currency_id`, `invoice_date`, `external_reference`
+- `stock_item`: `id`, `display_name`, `product_id`, `location_id`, `quantity`, `reserved_quantity`, `external_reference`
+- `manufacturing_order`: `id`, `display_name`, `name`, `product_id`, `state`, `product_qty`, `qty_produced`, `bom_id`, `external_reference`
+
+Boundary:
+
+- No payment, journal entry, stock move, purchase order, or custom object read mapping is added.
+- No arbitrary models, arbitrary fields, or user-supplied domains are accepted.
+- No create, update, delete, write, unlink, invoice posting, payment reconciliation, stock moves, manufacturing completion, journal posting, browser automation, MCP, scheduler, or raw secret exposure is introduced.
+
+Sprint 78 must remain separate for evidence packs or any write-preview scope.
+
 ## Next Phase Candidate
 
 The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.

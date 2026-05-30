@@ -1,4 +1,4 @@
-"""Tests for Sprint 76 - Odoo partner/product/sale order read mapping."""
+"""Tests for Sprint 76/77 - controlled Odoo read mapping."""
 
 import pytest
 from sqlalchemy import create_engine
@@ -104,7 +104,7 @@ def test_blocks_non_passed_connection_test(db):
     assert "connection_test_not_passed" in result.blocking_reasons
 
 
-@pytest.mark.parametrize("object_type", ["invoice", "stock_item", "manufacturing_order"])
+@pytest.mark.parametrize("object_type", ["payment", "journal_entry", "stock_move", "purchase_order"])
 def test_blocks_unsupported_object_types(db, object_type):
     connection = _passed_connection_test(db, session_id=f"csess_odoo_map_{object_type}")
 
@@ -119,6 +119,30 @@ def test_blocks_unsupported_object_types(db, object_type):
 
     assert result.status == "blocked"
     assert "object_type_not_allowed" in result.blocking_reasons
+
+
+@pytest.mark.parametrize(
+    ("object_type", "lookup"),
+    [
+        ("invoice", {"email": "not-supported@example.com"}),
+        ("stock_item", {"name": "not-supported"}),
+        ("manufacturing_order", {"product_code": "not-supported"}),
+    ],
+)
+def test_blocks_unsupported_sprint_77_lookup_keys(db, object_type, lookup):
+    connection = _passed_connection_test(db, session_id=f"csess_odoo_map_lookup_{object_type}")
+
+    result = _map(
+        db,
+        connection.connection_test_id,
+        object_type=object_type,
+        lookup=lookup,
+        allow=True,
+        client=MockOdooReadClient(),
+    )
+
+    assert result.status == "blocked"
+    assert "lookup_not_supported" in result.blocking_reasons
 
 
 def test_blocks_missing_lookup(db):
@@ -265,6 +289,124 @@ def test_maps_sale_order_to_canonical_sale_order(db):
     assert result.canonical_object["partner_ref"] == "7"
     assert result.canonical_object["line_count"] == 3
     assert result.canonical_object["source_model_hint"] == "sale.order"
+
+
+def test_maps_invoice_to_canonical_invoice_and_redacts_extra_fields(db):
+    connection = _passed_connection_test(db)
+    client = MockOdooReadClient(
+        {
+            "invoice": {
+                "id": 301,
+                "name": "INV/2026/001",
+                "ref": "INV/2026/001",
+                "partner_id": [7, "Acme SL"],
+                "state": "posted",
+                "move_type": "out_invoice",
+                "amount_total": 240.0,
+                "amount_residual": 40.0,
+                "currency_id": [1, "EUR"],
+                "invoice_date": "2026-05-30",
+                "payment_token": "must-not-leak",
+            }
+        }
+    )
+
+    result = _map(
+        db,
+        connection.connection_test_id,
+        object_type="invoice",
+        lookup={"reference": "INV/2026/001"},
+        allow=True,
+        client=client,
+    )
+
+    assert result.status == "passed"
+    assert result.canonical_object["object_type"] == "invoice"
+    assert result.canonical_object["external_id"] == "301"
+    assert result.canonical_object["display_name"] == "INV/2026/001"
+    assert result.canonical_object["partner_ref"] == "7"
+    assert result.canonical_object["move_type"] == "out_invoice"
+    assert result.canonical_object["amount_residual"] == 40.0
+    assert result.canonical_object["currency"] == "1"
+    assert result.canonical_object["invoice_date"] == "2026-05-30"
+    assert result.canonical_object["source_model_hint"] == "account.move"
+    assert result.source_snapshot_redacted["payment_token"] == "<redacted>"
+
+
+def test_maps_stock_item_to_canonical_stock_item_and_redacts_extra_fields(db):
+    connection = _passed_connection_test(db)
+    client = MockOdooReadClient(
+        {
+            "stock_item": {
+                "id": 88,
+                "display_name": "WH/Stock - SKU-001",
+                "product_id": [42, "SKU-001"],
+                "location_id": [3, "WH/Stock"],
+                "quantity": 12.5,
+                "reserved_quantity": 2.0,
+                "cost_secret": "must-not-leak",
+            }
+        }
+    )
+
+    result = _map(
+        db,
+        connection.connection_test_id,
+        object_type="stock_item",
+        lookup={"product_code": "SKU-001"},
+        allow=True,
+        client=client,
+    )
+
+    assert result.status == "passed"
+    assert result.canonical_object["object_type"] == "stock_item"
+    assert result.canonical_object["external_id"] == "88"
+    assert result.canonical_object["display_name"] == "WH/Stock - SKU-001"
+    assert result.canonical_object["product_ref"] == "42"
+    assert result.canonical_object["location_ref"] == "3"
+    assert result.canonical_object["quantity"] == 12.5
+    assert result.canonical_object["reserved_quantity"] == 2.0
+    assert result.canonical_object["source_model_hint"] == "stock.quant"
+    assert result.source_snapshot_redacted["cost_secret"] == "<redacted>"
+
+
+def test_maps_manufacturing_order_to_canonical_manufacturing_order_and_redacts_extra_fields(db):
+    connection = _passed_connection_test(db)
+    client = MockOdooReadClient(
+        {
+            "manufacturing_order": {
+                "id": 500,
+                "name": "MO/2026/001",
+                "product_id": [42, "SKU-001"],
+                "state": "confirmed",
+                "product_qty": 10.0,
+                "qty_produced": 4.0,
+                "bom_id": [11, "BOM/SKU-001"],
+                "workorder_token": "must-not-leak",
+            }
+        }
+    )
+
+    result = _map(
+        db,
+        connection.connection_test_id,
+        object_type="manufacturing_order",
+        lookup={"reference": "MO/2026/001"},
+        allow=True,
+        client=client,
+    )
+
+    assert result.status == "passed"
+    assert result.canonical_object["object_type"] == "manufacturing_order"
+    assert result.canonical_object["external_id"] == "500"
+    assert result.canonical_object["display_name"] == "MO/2026/001"
+    assert result.canonical_object["product_ref"] == "42"
+    assert result.canonical_object["state"] == "confirmed"
+    assert result.canonical_object["product_qty"] == 10.0
+    assert result.canonical_object["qty_produced"] == 4.0
+    assert result.canonical_object["bom_ref"] == "11"
+    assert result.canonical_object["source_model_hint"] == "mrp.production"
+    assert result.source_snapshot_redacted["workorder_token"] == "<redacted>"
 
 
 def test_read_client_used_only_when_business_read_allowed(db):

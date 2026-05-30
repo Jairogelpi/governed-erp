@@ -1,4 +1,4 @@
-"""Sprint 76 - controlled Odoo partner/product/sale order read mapping.
+"""Sprint 76/77 - controlled Odoo business object read mapping.
 
 Reads are available only through an explicitly injected/read-only client and
 only for allowlisted objects, lookup keys, and source fields. No arbitrary
@@ -27,20 +27,28 @@ from erpguard.db.repositories import (
 )
 
 
-ALLOWED_OBJECT_TYPES = {"partner", "product", "sale_order"}
-BLOCKED_OBJECT_TYPES = {
+ALLOWED_OBJECT_TYPES = {
+    "partner",
+    "product",
+    "sale_order",
     "invoice",
     "stock_item",
-    "stock_move",
     "manufacturing_order",
+}
+BLOCKED_OBJECT_TYPES = {
+    "stock_move",
     "journal_entry",
     "payment",
+    "purchase_order",
     "custom_object",
 }
 LOOKUP_ALLOWLISTS = {
     "partner": {"id", "email", "name", "external_reference"},
     "product": {"id", "default_code", "name", "external_reference"},
     "sale_order": {"id", "name", "reference", "external_reference"},
+    "invoice": {"id", "name", "reference", "external_reference"},
+    "stock_item": {"id", "product_id", "product_code", "external_reference"},
+    "manufacturing_order": {"id", "name", "reference", "external_reference"},
 }
 FIELD_ALLOWLISTS = {
     "partner": {
@@ -73,6 +81,40 @@ FIELD_ALLOWLISTS = {
         "currency_id",
         "date_order",
         "order_line",
+        "external_reference",
+    },
+    "invoice": {
+        "id",
+        "display_name",
+        "name",
+        "ref",
+        "partner_id",
+        "state",
+        "move_type",
+        "amount_total",
+        "amount_residual",
+        "currency_id",
+        "invoice_date",
+        "external_reference",
+    },
+    "stock_item": {
+        "id",
+        "display_name",
+        "product_id",
+        "location_id",
+        "quantity",
+        "reserved_quantity",
+        "external_reference",
+    },
+    "manufacturing_order": {
+        "id",
+        "display_name",
+        "name",
+        "product_id",
+        "state",
+        "product_qty",
+        "qty_produced",
+        "bom_id",
         "external_reference",
     },
 }
@@ -432,19 +474,59 @@ def _canonicalize(object_type: str, source: dict[str, Any]) -> dict[str, Any]:
             "source_adapter": "odoo",
             "source_model_hint": "product.template/product.product",
         }
-    order_line = source.get("order_line")
+    if object_type == "sale_order":
+        order_line = source.get("order_line")
+        return {
+            "object_type": "sale_order",
+            "external_id": _external_id(source),
+            "display_name": _display_name(source),
+            "partner_ref": _many2one_ref(source.get("partner_id")),
+            "state": source.get("state"),
+            "amount_total": source.get("amount_total"),
+            "currency": _many2one_ref(source.get("currency_id")),
+            "order_date": source.get("date_order"),
+            "line_count": len(order_line) if isinstance(order_line, list) else None,
+            "source_adapter": "odoo",
+            "source_model_hint": "sale.order",
+        }
+    if object_type == "invoice":
+        return {
+            "object_type": "invoice",
+            "external_id": _external_id(source),
+            "display_name": _display_name(source),
+            "partner_ref": _many2one_ref(source.get("partner_id")),
+            "state": source.get("state"),
+            "move_type": source.get("move_type"),
+            "amount_total": source.get("amount_total"),
+            "amount_residual": source.get("amount_residual"),
+            "currency": _many2one_ref(source.get("currency_id")),
+            "invoice_date": source.get("invoice_date"),
+            "source_adapter": "odoo",
+            "source_model_hint": "account.move",
+        }
+    if object_type == "stock_item":
+        return {
+            "object_type": "stock_item",
+            "external_id": _external_id(source),
+            "display_name": _display_name(source),
+            "product_ref": _many2one_ref(source.get("product_id")),
+            "location_ref": _many2one_ref(source.get("location_id")),
+            "quantity": source.get("quantity"),
+            "reserved_quantity": source.get("reserved_quantity"),
+            "source_adapter": "odoo",
+            "source_model_hint": "stock.quant",
+        }
     return {
-        "object_type": "sale_order",
+        "object_type": "manufacturing_order",
         "external_id": _external_id(source),
         "display_name": _display_name(source),
-        "partner_ref": _many2one_ref(source.get("partner_id")),
+        "product_ref": _many2one_ref(source.get("product_id")),
         "state": source.get("state"),
-        "amount_total": source.get("amount_total"),
-        "currency": _many2one_ref(source.get("currency_id")),
-        "order_date": source.get("date_order"),
-        "line_count": len(order_line) if isinstance(order_line, list) else None,
+        "product_qty": source.get("product_qty"),
+        "qty_produced": source.get("qty_produced"),
+        "bom_ref": _many2one_ref(source.get("bom_id")),
         "source_adapter": "odoo",
-        "source_model_hint": "sale.order",
+        "source_model_hint": "mrp.production",
     }
 
 

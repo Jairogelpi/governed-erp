@@ -50,7 +50,7 @@ def test_audit_records_blocked_mapping():
         OdooReadMappingInput(
             connection_test_id=connection.connection_test_id,
             requested_by="operator_1",
-            object_type="invoice",
+            object_type="payment",
             lookup={"id": 1},
             allow_business_read=True,
         )
