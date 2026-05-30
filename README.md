@@ -830,6 +830,33 @@ Sprint 74 shell-only boundary:
 
 Sprint 75 should be a separate controlled connection test, not bundled into this shell.
 
+## Sprint 75 Odoo Connection Test
+
+Sprint 75 adds the first controlled Odoo connection/auth test after the Sprint 74 shell.
+
+Difference from Sprint 74:
+
+- Sprint 74 prepares an `odoo_ro_...` adapter session and performs no network work.
+- Sprint 75 creates an `odoo_ct_...` connection-test artifact from that prepared shell.
+- Network/auth is gated by `allow_network_test`; the default is `false`.
+
+Connection test endpoints:
+
+- `POST /v1/operator-console/connectors/odoo-adapter-session/{adapter_session_id}/connection-test`
+- `GET /v1/operator-console/connectors/odoo-connection-test/{connection_test_id}`
+- `GET /v1/operator-console/connectors/odoo-connection-tests`
+- `GET /v1/operator-console/connectors/odoo-connection-test-audit`
+
+Boundary:
+
+- `allow_network_test=false` records a blocked/planned-safe artifact and performs no HTTP/RPC/login.
+- `allow_network_test=true` permits only a narrow connection/auth client path.
+- No partners, products, sale orders, invoices, stock, MRP, business schemas, permission surfaces, or business records are read.
+- No create, update, delete, write, unlink, confirmation, posting, stock movement, or manufacturing completion is allowed.
+- Raw credentials are never returned, audited, logged, exposed to prompts, or made available to the LLM. Public responses keep `raw_secret_accessed=false`.
+
+Sprint 76 must remain separate from this connection test.
+
 ## Next Phase Candidate
 
 The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.

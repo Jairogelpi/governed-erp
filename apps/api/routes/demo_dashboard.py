@@ -5876,5 +5876,26 @@ selectors captured: none</pre>
       </div>
       <pre id="odooRoOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
+
+    <!-- Sprint 75 - Odoo Read-Only Connection Test -->
+    <div style="border:1px solid #2563eb;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Odoo Read-Only Connection Test</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 75 performs only a controlled Odoo connection/auth test when explicitly allowed. It does not read business data, inspect business schemas, write to Odoo, use browser/MCP/scheduler or expose credentials.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Adapter Session ID:</label><br>
+        <input id="odooCtAdapterSessionId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Requested By:</label>
+        <input id="odooCtRequestedBy" style="width:200px;" value="operator_1"><br>
+        <label style="font-size:0.85em;">Allow Network Test:</label>
+        <input id="odooCtAllowNetworkTest" type="checkbox"><br>
+        <label style="font-size:0.85em;">Connection Test ID:</label>
+        <input id="odooCtConnectionTestId" style="width:400px;" value=""><br>
+        <button id="odooCtRun">Run Odoo connection test</button>
+        <button id="odooCtGet">Get Odoo connection test</button>
+        <button id="odooCtList">List Odoo connection tests</button>
+        <button id="odooCtAudit">Odoo connection test audit</button>
+      </div>
+      <pre id="odooCtOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""

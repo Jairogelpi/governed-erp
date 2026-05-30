@@ -2512,3 +2512,47 @@ class OdooReadOnlyAdapterAuditEvent(Base):
     actor: Mapped[str] = mapped_column(Text, nullable=False)
     details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class OdooConnectionTest(Base):
+    __tablename__ = "odoo_connection_tests"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    connection_test_id: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    adapter_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    activation_id: Mapped[str] = mapped_column(Text, nullable=False)
+    setup_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    adapter_type: Mapped[str] = mapped_column(Text, nullable=False, default="odoo")
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    network_test_allowed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    external_http_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    login_attempted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    login_succeeded: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    odoo_rpc_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    odoo_server_version: Mapped[str | None] = mapped_column(Text, nullable=True)
+    business_data_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    schema_inspection_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    permission_inspection_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    odoo_write_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    credentials_exposed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    raw_secret_accessed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    requested_by: Mapped[str] = mapped_column(Text, nullable=False)
+    blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class OdooConnectionTestAuditEvent(Base):
+    __tablename__ = "odoo_connection_test_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    connection_test_id: Mapped[str] = mapped_column(Text, nullable=False)
+    adapter_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    activation_id: Mapped[str] = mapped_column(Text, nullable=False)
+    setup_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    actor: Mapped[str] = mapped_column(Text, nullable=False)
+    details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

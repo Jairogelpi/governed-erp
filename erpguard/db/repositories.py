@@ -119,6 +119,8 @@ from erpguard.db.models import (
     ReadOnlyConnectorActivationAuditEvent,
     OdooReadOnlyAdapterSession,
     OdooReadOnlyAdapterAuditEvent,
+    OdooConnectionTest,
+    OdooConnectionTestAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -5798,6 +5800,118 @@ def list_odoo_read_only_adapter_audit_events(
     return list(
         session.query(OdooReadOnlyAdapterAuditEvent)
         .order_by(OdooReadOnlyAdapterAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_odoo_connection_test(
+    session: Session,
+    *,
+    connection_test_id: str,
+    adapter_session_id: str,
+    activation_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    adapter_type: str,
+    status: str,
+    network_test_allowed: bool,
+    external_http_performed: bool,
+    login_attempted: bool,
+    login_succeeded: bool,
+    odoo_rpc_performed: bool,
+    odoo_server_version: str | None,
+    requested_by: str,
+    blocking_reasons_json: str = "[]",
+) -> OdooConnectionTest:
+    row = OdooConnectionTest(
+        id=connection_test_id,
+        connection_test_id=connection_test_id,
+        adapter_session_id=adapter_session_id,
+        activation_id=activation_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        adapter_type=adapter_type,
+        status=status,
+        network_test_allowed=network_test_allowed,
+        external_http_performed=external_http_performed,
+        login_attempted=login_attempted,
+        login_succeeded=login_succeeded,
+        odoo_rpc_performed=odoo_rpc_performed,
+        odoo_server_version=odoo_server_version,
+        business_data_read=False,
+        schema_inspection_performed=False,
+        permission_inspection_performed=False,
+        odoo_write_performed=False,
+        credentials_exposed=False,
+        raw_secret_accessed=False,
+        requested_by=requested_by,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_odoo_connection_test_by_id(
+    session: Session, connection_test_id: str
+) -> OdooConnectionTest | None:
+    return (
+        session.query(OdooConnectionTest)
+        .filter(OdooConnectionTest.connection_test_id == connection_test_id)
+        .first()
+    )
+
+
+def list_odoo_connection_tests(
+    session: Session, *, limit: int = 50
+) -> list[OdooConnectionTest]:
+    return list(
+        session.query(OdooConnectionTest)
+        .order_by(OdooConnectionTest.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_odoo_connection_test_audit_event(
+    session: Session,
+    *,
+    connection_test_id: str,
+    adapter_session_id: str,
+    activation_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    event_type: str,
+    status: str,
+    actor: str,
+    details_json: str = "{}",
+) -> OdooConnectionTestAuditEvent:
+    row = OdooConnectionTestAuditEvent(
+        id=f"odooctaudit_{uuid4().hex[:12]}",
+        connection_test_id=connection_test_id,
+        adapter_session_id=adapter_session_id,
+        activation_id=activation_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        event_type=event_type,
+        status=status,
+        actor=actor,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_odoo_connection_test_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[OdooConnectionTestAuditEvent]:
+    return list(
+        session.query(OdooConnectionTestAuditEvent)
+        .order_by(OdooConnectionTestAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )
