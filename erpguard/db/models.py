@@ -2605,3 +2605,46 @@ class OdooReadMappingAuditEvent(Base):
     actor: Mapped[str] = mapped_column(Text, nullable=False)
     details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class OdooReadEvidencePack(Base):
+    __tablename__ = "odoo_read_evidence_packs"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    evidence_pack_id: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    read_mapping_id: Mapped[str] = mapped_column(Text, nullable=False)
+    connection_test_id: Mapped[str] = mapped_column(Text, nullable=False)
+    adapter_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    activation_id: Mapped[str] = mapped_column(Text, nullable=False)
+    setup_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    object_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="created")
+    canonical_object_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    source_snapshot_redacted_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    field_allowlist_used_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    redacted_fields_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    safety_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    chain_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_by: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+
+
+class OdooReadEvidenceAuditEvent(Base):
+    __tablename__ = "odoo_read_evidence_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    evidence_pack_id: Mapped[str] = mapped_column(Text, nullable=False)
+    read_mapping_id: Mapped[str] = mapped_column(Text, nullable=False)
+    connection_test_id: Mapped[str] = mapped_column(Text, nullable=False)
+    adapter_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    activation_id: Mapped[str] = mapped_column(Text, nullable=False)
+    setup_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    credential_ref: Mapped[str] = mapped_column(Text, nullable=False)
+    object_type: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    actor: Mapped[str] = mapped_column(Text, nullable=False)
+    details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

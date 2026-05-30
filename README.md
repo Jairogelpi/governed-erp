@@ -930,6 +930,30 @@ Boundary:
 
 Sprint 78 must remain separate for evidence packs or any write-preview scope.
 
+## Sprint 78 Odoo Read Evidence Packs
+
+Sprint 78 creates evidence-only packs from existing Odoo read mappings. It freezes the already persisted canonical object snapshot, redacted source snapshot, field allowlist, redacted fields, safety summary, and chain summary.
+
+Evidence pack endpoints:
+
+- `POST /v1/operator-console/connectors/odoo-read-mapping/{read_mapping_id}/evidence-pack`
+- `GET /v1/operator-console/connectors/odoo-read-evidence-pack/{evidence_pack_id}`
+- `GET /v1/operator-console/connectors/odoo-read-evidence-packs`
+- `GET /v1/operator-console/connectors/odoo-read-evidence-audit`
+
+Boundary:
+
+- No Odoo read client call is made.
+- No new ERP read, HTTP/RPC, schema inspection, permission inspection, write, browser automation, MCP, scheduler, or raw secret access is introduced.
+- Supported evidence sources are passed read mappings for `partner`, `product`, `sale_order`, `invoice`, `stock_item`, and `manufacturing_order`.
+- No new ERP object types are added.
+
+Safety summary includes `evidence_only=true`, `new_erp_read_performed=false`, `new_external_http_performed=false`, `read_client_called=false`, and all write/schema/permission/credential exposure flags false.
+
+Chain summary records the safe lineage: setup session, credential ref, activation, adapter session, connection test, read mapping, object type, `source_adapter=odoo`, and `evidence_source=odoo_read_mapping`. Secrets are never included.
+
+Sprint 79 must remain separate.
+
 ## Next Phase Candidate
 
 The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.

@@ -575,3 +575,12 @@
 - Invariants kept: no writes, create/update/delete/unlink, order confirmation, invoice posting, payment reconciliation, stock movement, manufacturing completion, journal posting, browser automation, MCP, scheduler, evidence packs, write preview, raw secret exposure, prompt credential exposure, or LLM credential access.
 - Verification: Sprint 77 targeted tests and requested Block G/Block D/Block C regression slices were executed during this session; final results are recorded by the agent response.
 - Explicitly did not add Sprint 78.
+
+### 2026-05-30 - Sprint 78 Odoo Read Evidence Packs (agent)
+
+- What changed: added evidence-only packs for existing Odoo read mappings. New files: `erpguard/product/odoo_read_evidence_pack.py`, `erpguard/product/odoo_read_evidence_audit.py`, `apps/api/schemas/odoo_read_evidence.py`, `apps/api/routes/odoo_read_evidence.py`, and tests `tests/test_odoo_read_evidence_pack.py`, `tests/test_odoo_read_evidence_api.py`, `tests/test_odoo_read_evidence_audit.py`, `tests/test_odoo_read_evidence_ui.py`. Updated `erpguard/db/models.py`, `erpguard/db/repositories.py`, `apps/api/main.py`, `apps/api/routes/demo_dashboard.py`, `README.md`, and `AGENTS.md`.
+- Why: Block G needs frozen read evidence after controlled mapping, without re-reading Odoo or touching the ERP again.
+- Sprint 78 behavior: passed `odoo_map_...` read mapping -> `odoo_ev_...` evidence pack. It copies canonical object snapshot, redacted source snapshot, field allowlist, redacted fields, safety summary, and chain summary from persisted data.
+- Invariants kept: no new ERP objects, no read client call, no new Odoo read, no HTTP/RPC, no writes, no schema inspection, no permission inspection, no browser automation, MCP, scheduler, raw secret exposure, prompt credential exposure, or LLM credential access.
+- Verification: Sprint 78 targeted tests and requested Block G/Block D/Block C regression slices were executed during this session; final results are recorded by the agent response.
+- Explicitly did not add Sprint 79.

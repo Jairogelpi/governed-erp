@@ -5922,5 +5922,24 @@ selectors captured: none</pre>
       </div>
       <pre id="odooMapOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
+
+    <!-- Sprint 78 - Odoo Read Evidence Packs -->
+    <div style="border:1px solid #0f766e;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Odoo Read Evidence Packs</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 78 creates evidence packs from existing Odoo read mappings. It does not call Odoo again, does not read new ERP data, does not write, and does not expose credentials.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Read Mapping ID:</label><br>
+        <input id="odooEvReadMappingId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Evidence Pack ID:</label>
+        <input id="odooEvEvidencePackId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Created By:</label>
+        <input id="odooEvCreatedBy" style="width:200px;" value="operator_1"><br>
+        <button id="odooEvCreate">Create Odoo read evidence pack</button>
+        <button id="odooEvGet">Get Odoo read evidence pack</button>
+        <button id="odooEvList">List Odoo read evidence packs</button>
+        <button id="odooEvAudit">Odoo read evidence audit</button>
+      </div>
+      <pre id="odooEvOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""

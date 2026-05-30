@@ -123,6 +123,8 @@ from erpguard.db.models import (
     OdooConnectionTestAuditEvent,
     OdooReadMapping,
     OdooReadMappingAuditEvent,
+    OdooReadEvidencePack,
+    OdooReadEvidenceAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -6037,6 +6039,122 @@ def list_odoo_read_mapping_audit_events(
     return list(
         session.query(OdooReadMappingAuditEvent)
         .order_by(OdooReadMappingAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_odoo_read_evidence_pack(
+    session: Session,
+    *,
+    evidence_pack_id: str,
+    read_mapping_id: str,
+    connection_test_id: str,
+    adapter_session_id: str,
+    activation_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    object_type: str,
+    status: str,
+    canonical_object_snapshot_json: str,
+    source_snapshot_redacted_json: str,
+    field_allowlist_used_json: str,
+    redacted_fields_json: str,
+    safety_summary_json: str,
+    chain_summary_json: str,
+    created_by: str,
+    blocking_reasons_json: str = "[]",
+) -> OdooReadEvidencePack:
+    row = OdooReadEvidencePack(
+        id=evidence_pack_id,
+        evidence_pack_id=evidence_pack_id,
+        read_mapping_id=read_mapping_id,
+        connection_test_id=connection_test_id,
+        adapter_session_id=adapter_session_id,
+        activation_id=activation_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        object_type=object_type,
+        status=status,
+        canonical_object_snapshot_json=canonical_object_snapshot_json,
+        source_snapshot_redacted_json=source_snapshot_redacted_json,
+        field_allowlist_used_json=field_allowlist_used_json,
+        redacted_fields_json=redacted_fields_json,
+        safety_summary_json=safety_summary_json,
+        chain_summary_json=chain_summary_json,
+        created_by=created_by,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_odoo_read_evidence_pack_by_id(
+    session: Session, evidence_pack_id: str
+) -> OdooReadEvidencePack | None:
+    return (
+        session.query(OdooReadEvidencePack)
+        .filter(OdooReadEvidencePack.evidence_pack_id == evidence_pack_id)
+        .first()
+    )
+
+
+def list_odoo_read_evidence_packs(
+    session: Session, *, limit: int = 50
+) -> list[OdooReadEvidencePack]:
+    return list(
+        session.query(OdooReadEvidencePack)
+        .order_by(OdooReadEvidencePack.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_odoo_read_evidence_audit_event(
+    session: Session,
+    *,
+    evidence_pack_id: str,
+    read_mapping_id: str,
+    connection_test_id: str,
+    adapter_session_id: str,
+    activation_id: str,
+    setup_session_id: str,
+    credential_ref: str,
+    object_type: str,
+    event_type: str,
+    status: str,
+    actor: str,
+    details_json: str = "{}",
+) -> OdooReadEvidenceAuditEvent:
+    row = OdooReadEvidenceAuditEvent(
+        id=f"odooevaudit_{uuid4().hex[:12]}",
+        evidence_pack_id=evidence_pack_id,
+        read_mapping_id=read_mapping_id,
+        connection_test_id=connection_test_id,
+        adapter_session_id=adapter_session_id,
+        activation_id=activation_id,
+        setup_session_id=setup_session_id,
+        credential_ref=credential_ref,
+        object_type=object_type,
+        event_type=event_type,
+        status=status,
+        actor=actor,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_odoo_read_evidence_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[OdooReadEvidenceAuditEvent]:
+    return list(
+        session.query(OdooReadEvidenceAuditEvent)
+        .order_by(OdooReadEvidenceAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )
