@@ -1052,6 +1052,28 @@ Boundary:
 - Credential values and raw secret payloads block the trace.
 - Text-like workflow fields are redacted when secret markers are present.
 
+## Sprint 83 Visual Table/Form Extraction
+
+Sprint 83 derives structured table, form, button, field, and business-surface hints from existing sanitized observation snapshots and optional workflow traces. It does not observe the browser itself and it reuses the Sprint 81-82 artifacts as input.
+
+Table/form extraction endpoints:
+
+- `POST /v1/operator-console/visual-browser/observation-snapshot/{observation_id}/table-form-extraction`
+- `GET /v1/operator-console/visual-browser/table-form-extraction/{extraction_id}`
+- `GET /v1/operator-console/visual-browser/table-form-extractions`
+- `GET /v1/operator-console/visual-browser/table-form-extraction-audit`
+
+The extraction produces hints only. Table columns can infer likely object types such as `sale_order`, `invoice`, `stock_item`, `manufacturing_order`, `partner`, and `product`, but those are not treated as facts or executable instructions.
+
+Boundary:
+
+- No real browser is launched.
+- No real DOM inspection or real screen capture occurs.
+- No click, form submission, action execution, workflow recording, MCP, scheduler use, or ERP write is introduced.
+- Form field values are never persisted; only metadata such as field label, type, required hint, `value_present`, and `value_redacted` is retained.
+- Secret markers such as `password`, `api_key`, `token`, `secret`, `authorization`, `bearer`, and `credential` are redacted or blocked if they represent a credential value.
+- Every extracted button has `auto_execute_allowed=false`; dangerous labels stay high-risk and require human approval.
+
 ## Next Phase Candidate
 
 The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.

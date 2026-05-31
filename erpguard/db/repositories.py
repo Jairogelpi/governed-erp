@@ -133,6 +133,8 @@ from erpguard.db.models import (
     VisualObservationAuditEvent,
     VisualWorkflowTrace,
     VisualWorkflowTraceAuditEvent,
+    VisualTableFormExtraction,
+    VisualTableFormExtractionAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -6573,6 +6575,108 @@ def list_visual_workflow_trace_audit_events(
     return list(
         session.query(VisualWorkflowTraceAuditEvent)
         .order_by(VisualWorkflowTraceAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_visual_table_form_extraction(
+    session: Session,
+    *,
+    extraction_id: str,
+    visual_session_id: str,
+    observation_id: str,
+    workflow_trace_id: str,
+    created_by: str,
+    status: str,
+    extraction_goal: str,
+    table_structures_json: str,
+    form_structures_json: str,
+    button_structures_json: str,
+    field_candidates_json: str,
+    business_surface_hints_json: str,
+    redaction_summary_json: str,
+    safety_summary_json: str,
+    blocking_reasons_json: str = "[]",
+) -> VisualTableFormExtraction:
+    row = VisualTableFormExtraction(
+        id=extraction_id,
+        extraction_id=extraction_id,
+        visual_session_id=visual_session_id,
+        observation_id=observation_id,
+        workflow_trace_id=workflow_trace_id,
+        created_by=created_by,
+        status=status,
+        extraction_goal=extraction_goal,
+        table_structures_json=table_structures_json,
+        form_structures_json=form_structures_json,
+        button_structures_json=button_structures_json,
+        field_candidates_json=field_candidates_json,
+        business_surface_hints_json=business_surface_hints_json,
+        redaction_summary_json=redaction_summary_json,
+        safety_summary_json=safety_summary_json,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_visual_table_form_extraction_by_id(
+    session: Session, extraction_id: str
+) -> VisualTableFormExtraction | None:
+    return (
+        session.query(VisualTableFormExtraction)
+        .filter(VisualTableFormExtraction.extraction_id == extraction_id)
+        .first()
+    )
+
+
+def list_visual_table_form_extractions(
+    session: Session, *, limit: int = 50
+) -> list[VisualTableFormExtraction]:
+    return list(
+        session.query(VisualTableFormExtraction)
+        .order_by(VisualTableFormExtraction.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_visual_table_form_extraction_audit_event(
+    session: Session,
+    *,
+    extraction_id: str,
+    visual_session_id: str,
+    observation_id: str,
+    event_type: str,
+    status: str,
+    actor: str,
+    details_json: str = "{}",
+) -> VisualTableFormExtractionAuditEvent:
+    row = VisualTableFormExtractionAuditEvent(
+        id=f"vextractaudit_{uuid4().hex[:12]}",
+        extraction_id=extraction_id,
+        visual_session_id=visual_session_id,
+        observation_id=observation_id,
+        event_type=event_type,
+        status=status,
+        actor=actor,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_visual_table_form_extraction_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[VisualTableFormExtractionAuditEvent]:
+    return list(
+        session.query(VisualTableFormExtractionAuditEvent)
+        .order_by(VisualTableFormExtractionAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )

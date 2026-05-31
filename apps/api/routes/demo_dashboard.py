@@ -6038,5 +6038,28 @@ selectors captured: none</pre>
       </div>
       <pre id="visualWorkflowOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
+
+    <!-- Sprint 83 - Visual Table/Form Extraction -->
+    <div style="border:1px solid #be123c;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Visual Table/Form Extraction</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 83 derives sanitized table/form structures from existing observation snapshots and workflow traces. It does not launch a browser, capture the screen, inspect a real DOM, click, submit forms, execute actions, expose credentials, use MCP or run scheduled browser automation.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Observation ID:</label><br>
+        <input id="visualExtractionObservationId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Workflow Trace ID:</label>
+        <input id="visualExtractionWorkflowTraceId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Created By:</label>
+        <input id="visualExtractionCreatedBy" style="width:200px;" value="operator_1"><br>
+        <label style="font-size:0.85em;">Extraction Goal:</label>
+        <input id="visualExtractionGoal" style="width:520px;" value="Extract visible order list structure"><br>
+        <label style="font-size:0.85em;">Extraction ID:</label>
+        <input id="visualExtractionId" style="width:400px;" value=""><br>
+        <button id="visualExtractionCreate">Create table/form extraction</button>
+        <button id="visualExtractionGet">Get table/form extraction</button>
+        <button id="visualExtractionList">List table/form extractions</button>
+        <button id="visualExtractionAudit">Table/form extraction audit</button>
+      </div>
+      <pre id="visualExtractionOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""

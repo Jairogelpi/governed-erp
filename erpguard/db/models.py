@@ -2793,3 +2793,39 @@ class VisualWorkflowTraceAuditEvent(Base):
     actor: Mapped[str] = mapped_column(Text, nullable=False)
     details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class VisualTableFormExtraction(Base):
+    __tablename__ = "visual_table_form_extractions"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    extraction_id: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    visual_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    observation_id: Mapped[str] = mapped_column(Text, nullable=False)
+    workflow_trace_id: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_by: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="created")
+    extraction_goal: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    table_structures_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    form_structures_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    button_structures_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    field_candidates_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    business_surface_hints_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    redaction_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    safety_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+
+
+class VisualTableFormExtractionAuditEvent(Base):
+    __tablename__ = "visual_table_form_extraction_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    extraction_id: Mapped[str] = mapped_column(Text, nullable=False)
+    visual_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    observation_id: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    actor: Mapped[str] = mapped_column(Text, nullable=False)
+    details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
