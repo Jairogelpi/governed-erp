@@ -131,6 +131,8 @@ from erpguard.db.models import (
     VisualBrowserSessionAuditEvent,
     VisualObservationSnapshot,
     VisualObservationAuditEvent,
+    VisualWorkflowTrace,
+    VisualWorkflowTraceAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -6475,6 +6477,102 @@ def list_visual_observation_audit_events(
     return list(
         session.query(VisualObservationAuditEvent)
         .order_by(VisualObservationAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_visual_workflow_trace(
+    session: Session,
+    *,
+    workflow_trace_id: str,
+    visual_session_id: str,
+    created_by: str,
+    status: str,
+    workflow_name: str,
+    workflow_goal: str,
+    observation_ids_json: str,
+    steps_json: str,
+    dangerous_action_steps_json: str,
+    credential_touchpoints_json: str,
+    redaction_summary_json: str,
+    safety_summary_json: str,
+    blocking_reasons_json: str = "[]",
+) -> VisualWorkflowTrace:
+    row = VisualWorkflowTrace(
+        id=workflow_trace_id,
+        workflow_trace_id=workflow_trace_id,
+        visual_session_id=visual_session_id,
+        created_by=created_by,
+        status=status,
+        workflow_name=workflow_name,
+        workflow_goal=workflow_goal,
+        observation_ids_json=observation_ids_json,
+        steps_json=steps_json,
+        dangerous_action_steps_json=dangerous_action_steps_json,
+        credential_touchpoints_json=credential_touchpoints_json,
+        redaction_summary_json=redaction_summary_json,
+        safety_summary_json=safety_summary_json,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_visual_workflow_trace_by_id(
+    session: Session, workflow_trace_id: str
+) -> VisualWorkflowTrace | None:
+    return (
+        session.query(VisualWorkflowTrace)
+        .filter(VisualWorkflowTrace.workflow_trace_id == workflow_trace_id)
+        .first()
+    )
+
+
+def list_visual_workflow_traces(
+    session: Session, *, limit: int = 50
+) -> list[VisualWorkflowTrace]:
+    return list(
+        session.query(VisualWorkflowTrace)
+        .order_by(VisualWorkflowTrace.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_visual_workflow_trace_audit_event(
+    session: Session,
+    *,
+    workflow_trace_id: str,
+    visual_session_id: str,
+    event_type: str,
+    status: str,
+    actor: str,
+    details_json: str = "{}",
+) -> VisualWorkflowTraceAuditEvent:
+    row = VisualWorkflowTraceAuditEvent(
+        id=f"vtraceaudit_{uuid4().hex[:12]}",
+        workflow_trace_id=workflow_trace_id,
+        visual_session_id=visual_session_id,
+        event_type=event_type,
+        status=status,
+        actor=actor,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_visual_workflow_trace_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[VisualWorkflowTraceAuditEvent]:
+    return list(
+        session.query(VisualWorkflowTraceAuditEvent)
+        .order_by(VisualWorkflowTraceAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )

@@ -1029,6 +1029,29 @@ Boundary:
 - Visible credential values or raw credential payload attempts block the snapshot.
 - Dangerous labels such as Confirmar, Publicar, Eliminar/Delete, Post, Validate, Pay, and Send are detected as high-risk candidates requiring human approval, with `auto_execute_allowed=false`.
 
+## Sprint 82 Workflow Recording Trace
+
+Sprint 82 creates sanitized workflow traces from supplied/mock semantic events. It links a visual browser session and existing observation snapshots to a persisted trace, but it still does not record real browser events.
+
+Workflow trace endpoints:
+
+- `POST /v1/operator-console/visual-browser/session/{visual_session_id}/workflow-trace`
+- `GET /v1/operator-console/visual-browser/workflow-trace/{workflow_trace_id}`
+- `GET /v1/operator-console/visual-browser/workflow-traces`
+- `GET /v1/operator-console/visual-browser/workflow-trace-audit`
+
+Allowed supplied step types are `navigate`, `filter`, `search`, `open_record`, `read_table`, `read_form`, `read_field`, `compare_value`, `human_decision`, and `note`.
+
+Blocked step types include `click`, `submit_form`, `write_field`, `create_record`, `update_record`, `delete_record`, `confirm_order`, `post_invoice`, `reconcile_payment`, `move_stock`, `complete_manufacturing`, and `send_email`.
+
+Boundary:
+
+- No real browser recording is performed.
+- No browser launch, DOM/screen capture, clicks, form submission, action execution, MCP, scheduler use, or writes are introduced.
+- Credential touchpoints are metadata only: step index, field label, touchpoint type, `value_present`, and `value_stored=false`.
+- Credential values and raw secret payloads block the trace.
+- Text-like workflow fields are redacted when secret markers are present.
+
 ## Next Phase Candidate
 
 The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.

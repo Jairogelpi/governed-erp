@@ -6011,5 +6011,32 @@ selectors captured: none</pre>
       </div>
       <pre id="visualObservationOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
+
+    <!-- Sprint 82 - Visual Workflow Recording Trace -->
+    <div style="border:1px solid #4f46e5;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Visual Workflow Recording Trace</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 82 creates sanitized workflow traces from supplied/mock events only. It does not launch a browser, capture the screen, inspect a real DOM, click, submit forms, execute actions, expose credentials, use MCP or run scheduled browser automation.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Visual Session ID:</label><br>
+        <input id="visualWorkflowSessionId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Created By:</label>
+        <input id="visualWorkflowCreatedBy" style="width:200px;" value="operator_1"><br>
+        <label style="font-size:0.85em;">Workflow Name:</label>
+        <input id="visualWorkflowName" style="width:360px;" value="Revisar pedidos pendientes"><br>
+        <label style="font-size:0.85em;">Workflow Goal:</label>
+        <input id="visualWorkflowGoal" style="width:520px;" value="Detectar pedidos que no se pueden servir"><br>
+        <label style="font-size:0.85em;">Observation IDs JSON:</label><br>
+        <textarea id="visualWorkflowObservationIdsJson" style="width:520px;height:45px;">[]</textarea><br>
+        <label style="font-size:0.85em;">Steps JSON:</label><br>
+        <textarea id="visualWorkflowStepsJson" style="width:520px;height:90px;">[{"step_type":"navigate","label":"Ir a Ventas > Pedidos"},{"step_type":"read_field","label":"Leer estado","field_hint":"Estado"}]</textarea><br>
+        <label style="font-size:0.85em;">Workflow Trace ID:</label>
+        <input id="visualWorkflowTraceId" style="width:400px;" value=""><br>
+        <button id="visualWorkflowCreate">Create workflow trace</button>
+        <button id="visualWorkflowGet">Get workflow trace</button>
+        <button id="visualWorkflowList">List workflow traces</button>
+        <button id="visualWorkflowAudit">Workflow trace audit</button>
+      </div>
+      <pre id="visualWorkflowOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""
