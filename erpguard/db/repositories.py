@@ -129,6 +129,8 @@ from erpguard.db.models import (
     OdooReadOnlyDemoAuditEvent,
     VisualBrowserSession,
     VisualBrowserSessionAuditEvent,
+    VisualObservationSnapshot,
+    VisualObservationAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -6367,6 +6369,112 @@ def list_visual_browser_session_audit_events(
     return list(
         session.query(VisualBrowserSessionAuditEvent)
         .order_by(VisualBrowserSessionAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_visual_observation_snapshot(
+    session: Session,
+    *,
+    observation_id: str,
+    visual_session_id: str,
+    created_by: str,
+    target_url: str,
+    target_host: str,
+    status: str,
+    observation_source: str,
+    screen_summary_json: str,
+    dom_summary_json: str,
+    visible_text_redacted_json: str,
+    detected_tables_json: str,
+    detected_forms_json: str,
+    detected_buttons_json: str,
+    credential_fields_detected_json: str,
+    dangerous_action_candidates_json: str,
+    redaction_summary_json: str,
+    safety_summary_json: str,
+    blocking_reasons_json: str = "[]",
+) -> VisualObservationSnapshot:
+    row = VisualObservationSnapshot(
+        id=observation_id,
+        observation_id=observation_id,
+        visual_session_id=visual_session_id,
+        created_by=created_by,
+        target_url=target_url,
+        target_host=target_host,
+        status=status,
+        observation_source=observation_source,
+        screen_summary_json=screen_summary_json,
+        dom_summary_json=dom_summary_json,
+        visible_text_redacted_json=visible_text_redacted_json,
+        detected_tables_json=detected_tables_json,
+        detected_forms_json=detected_forms_json,
+        detected_buttons_json=detected_buttons_json,
+        credential_fields_detected_json=credential_fields_detected_json,
+        dangerous_action_candidates_json=dangerous_action_candidates_json,
+        redaction_summary_json=redaction_summary_json,
+        safety_summary_json=safety_summary_json,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_visual_observation_snapshot_by_id(
+    session: Session, observation_id: str
+) -> VisualObservationSnapshot | None:
+    return (
+        session.query(VisualObservationSnapshot)
+        .filter(VisualObservationSnapshot.observation_id == observation_id)
+        .first()
+    )
+
+
+def list_visual_observation_snapshots(
+    session: Session, *, limit: int = 50
+) -> list[VisualObservationSnapshot]:
+    return list(
+        session.query(VisualObservationSnapshot)
+        .order_by(VisualObservationSnapshot.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_visual_observation_audit_event(
+    session: Session,
+    *,
+    observation_id: str,
+    visual_session_id: str,
+    event_type: str,
+    status: str,
+    actor: str,
+    details_json: str = "{}",
+) -> VisualObservationAuditEvent:
+    row = VisualObservationAuditEvent(
+        id=f"vobsaudit_{uuid4().hex[:12]}",
+        observation_id=observation_id,
+        visual_session_id=visual_session_id,
+        event_type=event_type,
+        status=status,
+        actor=actor,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_visual_observation_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[VisualObservationAuditEvent]:
+    return list(
+        session.query(VisualObservationAuditEvent)
+        .order_by(VisualObservationAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )

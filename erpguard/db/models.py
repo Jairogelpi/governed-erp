@@ -2722,3 +2722,41 @@ class VisualBrowserSessionAuditEvent(Base):
     actor: Mapped[str] = mapped_column(Text, nullable=False)
     details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class VisualObservationSnapshot(Base):
+    __tablename__ = "visual_observation_snapshots"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    observation_id: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    visual_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    created_by: Mapped[str] = mapped_column(Text, nullable=False)
+    target_url: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    target_host: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="created")
+    observation_source: Mapped[str] = mapped_column(Text, nullable=False, default="mocked_payload")
+    screen_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    dom_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    visible_text_redacted_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    detected_tables_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    detected_forms_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    detected_buttons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    credential_fields_detected_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    dangerous_action_candidates_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    redaction_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    safety_summary_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+
+
+class VisualObservationAuditEvent(Base):
+    __tablename__ = "visual_observation_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    observation_id: Mapped[str] = mapped_column(Text, nullable=False)
+    visual_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    actor: Mapped[str] = mapped_column(Text, nullable=False)
+    details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

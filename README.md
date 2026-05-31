@@ -1007,6 +1007,28 @@ Boundary:
 - `https://` targets are allowed, empty target URL is allowed for later navigation, and `http://localhost` / `http://127.0.0.1` are allowed for tests. External `http://` and unsafe schemes are blocked.
 - Reserved future states exist conceptually, but Sprint 80 only creates `created`, `blocked`, and `revoked` records.
 
+## Sprint 81 Screen/DOM Observation Snapshot
+
+Sprint 81 adds a safe observation artifact for visual browser sessions. It accepts only supplied/mock payloads that represent what a future browser observer might see, sanitizes them, persists a snapshot, and exposes retrieval/audit APIs.
+
+Observation endpoints:
+
+- `POST /v1/operator-console/visual-browser/session/{visual_session_id}/observation-snapshot`
+- `GET /v1/operator-console/visual-browser/observation-snapshot/{observation_id}`
+- `GET /v1/operator-console/visual-browser/observation-snapshots`
+- `GET /v1/operator-console/visual-browser/observation-audit`
+
+Boundary:
+
+- No real browser is launched.
+- No real DOM inspection or real screen capture occurs.
+- No clicks, form submissions, action execution, workflow recording, MCP, scheduler use, or writes are introduced.
+- Observation source is `mocked_payload` / supplied data only.
+- Secret markers such as `password`, `api_key`, `token`, `secret`, `authorization`, `bearer`, and `credential` are redacted from text-like fields.
+- Credential field detections store metadata only (`field_label`, `field_type`, redacted selector hint, `value_present`) and never values.
+- Visible credential values or raw credential payload attempts block the snapshot.
+- Dangerous labels such as Confirmar, Publicar, Eliminar/Delete, Post, Validate, Pay, and Send are detected as high-risk candidates requiring human approval, with `auto_execute_allowed=false`.
+
 ## Next Phase Candidate
 
 The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.

@@ -5990,5 +5990,26 @@ selectors captured: none</pre>
       </div>
       <pre id="visualBrowserOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
+
+    <!-- Sprint 81 - Visual Observation Snapshot -->
+    <div style="border:1px solid #0d9488;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Visual Observation Snapshot</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 81 creates sanitized screen/DOM observation snapshots from supplied/mock payloads only. It does not launch a browser, capture a real screen, inspect a real DOM, click, submit forms, execute actions, expose credentials, use MCP or run scheduled browser automation.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Visual Session ID:</label><br>
+        <input id="visualObservationSessionId" style="width:400px;" value=""><br>
+        <label style="font-size:0.85em;">Created By:</label>
+        <input id="visualObservationCreatedBy" style="width:200px;" value="operator_1"><br>
+        <label style="font-size:0.85em;">Observation JSON:</label><br>
+        <textarea id="visualObservationJson" style="width:520px;height:100px;">{"screen_summary":{"title":"Pedidos","url_path":"/web#model=sale.order"},"dom_summary":{"page_type":"list","framework_hint":"odoo"},"visible_text":["Pedidos","S00001"],"tables":[],"forms":[],"buttons":[{"label":"Confirmar"}],"credential_fields_detected":[],"dangerous_action_candidates":[]}</textarea><br>
+        <label style="font-size:0.85em;">Observation ID:</label>
+        <input id="visualObservationId" style="width:400px;" value=""><br>
+        <button id="visualObservationCreate">Create observation snapshot</button>
+        <button id="visualObservationGet">Get observation snapshot</button>
+        <button id="visualObservationList">List observation snapshots</button>
+        <button id="visualObservationAudit">Visual observation audit</button>
+      </div>
+      <pre id="visualObservationOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""
