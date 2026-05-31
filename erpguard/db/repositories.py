@@ -127,6 +127,8 @@ from erpguard.db.models import (
     OdooReadEvidenceAuditEvent,
     OdooReadOnlyDemoFlow,
     OdooReadOnlyDemoAuditEvent,
+    VisualBrowserSession,
+    VisualBrowserSessionAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
 
@@ -6255,6 +6257,116 @@ def list_odoo_read_only_demo_audit_events(
     return list(
         session.query(OdooReadOnlyDemoAuditEvent)
         .order_by(OdooReadOnlyDemoAuditEvent.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def create_visual_browser_session(
+    session: Session,
+    *,
+    visual_session_id: str,
+    created_by: str,
+    target_url: str,
+    target_host: str,
+    intended_erp_hint: str,
+    workspace_mode: str,
+    status: str,
+    blocking_reasons_json: str = "[]",
+) -> VisualBrowserSession:
+    row = VisualBrowserSession(
+        id=visual_session_id,
+        visual_session_id=visual_session_id,
+        created_by=created_by,
+        target_url=target_url,
+        target_host=target_host,
+        intended_erp_hint=intended_erp_hint,
+        workspace_mode=workspace_mode,
+        status=status,
+        credential_capture_allowed=False,
+        llm_can_see_credentials=False,
+        automatic_clicks_allowed=False,
+        automatic_form_submit_allowed=False,
+        dom_observation_allowed=False,
+        screen_capture_allowed=False,
+        workflow_recording_allowed=False,
+        browser_launched=False,
+        action_execution_allowed=False,
+        external_http_performed=False,
+        browser_control_performed=False,
+        mcp_execution_performed=False,
+        scheduler_used=False,
+        blocking_reasons_json=blocking_reasons_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def get_visual_browser_session_by_id(
+    session: Session, visual_session_id: str
+) -> VisualBrowserSession | None:
+    return (
+        session.query(VisualBrowserSession)
+        .filter(VisualBrowserSession.visual_session_id == visual_session_id)
+        .first()
+    )
+
+
+def list_visual_browser_sessions(
+    session: Session, *, limit: int = 50
+) -> list[VisualBrowserSession]:
+    return list(
+        session.query(VisualBrowserSession)
+        .order_by(VisualBrowserSession.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def update_visual_browser_session_status(
+    session: Session, visual_session_id: str, *, status: str
+) -> VisualBrowserSession | None:
+    row = get_visual_browser_session_by_id(session, visual_session_id)
+    if row is None:
+        return None
+    row.status = status
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def create_visual_browser_session_audit_event(
+    session: Session,
+    *,
+    visual_session_id: str,
+    event_type: str,
+    status: str,
+    actor: str,
+    details_json: str = "{}",
+) -> VisualBrowserSessionAuditEvent:
+    row = VisualBrowserSessionAuditEvent(
+        id=f"vbsaudit_{uuid4().hex[:12]}",
+        visual_session_id=visual_session_id,
+        event_type=event_type,
+        status=status,
+        actor=actor,
+        details_json=details_json,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+def list_visual_browser_session_audit_events(
+    session: Session, *, limit: int = 50
+) -> list[VisualBrowserSessionAuditEvent]:
+    return list(
+        session.query(VisualBrowserSessionAuditEvent)
+        .order_by(VisualBrowserSessionAuditEvent.created_at.desc())
         .limit(limit)
         .all()
     )

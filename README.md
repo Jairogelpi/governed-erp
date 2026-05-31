@@ -977,6 +977,36 @@ The demo summary records object-level read mapping and evidence pack IDs plus `d
 
 Block G is now complete as a read-only Odoo adapter chain with shell, gated connection test, controlled mapping, evidence packs, and an operator-facing demo flow. Block H must remain a separate future block.
 
+## Block H Visual ERP Connector / Browser Workspace
+
+Block H starts the browser-first, API-optional path. The product goal is that a business operator can eventually open an ERP in a controlled browser workspace and teach a flow on screen without hunting for API keys, endpoints, or ERP-specific integration details.
+
+## Sprint 80 Visual Browser Session Shell
+
+Sprint 80 creates only the safe visual browser session shell:
+
+- session contract and lifecycle;
+- persistence and audit;
+- API and `/demo` card;
+- safety flags that keep every browser/observation/execution capability disabled.
+
+Visual browser endpoints:
+
+- `POST /v1/operator-console/visual-browser/sessions`
+- `GET /v1/operator-console/visual-browser/session/{visual_session_id}`
+- `GET /v1/operator-console/visual-browser/sessions`
+- `POST /v1/operator-console/visual-browser/session/{visual_session_id}/revoke`
+- `GET /v1/operator-console/visual-browser/audit`
+
+Boundary:
+
+- No browser is launched.
+- No DOM inspection, screen capture, click control, workflow recording, UI parsing, action execution, form submission, MCP execution, scheduler use, or writes are introduced.
+- Credential capture is forbidden.
+- The LLM cannot see credentials.
+- `https://` targets are allowed, empty target URL is allowed for later navigation, and `http://localhost` / `http://127.0.0.1` are allowed for tests. External `http://` and unsafe schemes are blocked.
+- Reserved future states exist conceptually, but Sprint 80 only creates `created`, `blocked`, and `revoked` records.
+
 ## Next Phase Candidate
 
 The next possible phase is `v0.8`, framed as a real Odoo read-only adapter plus an Odoo preflight demo.

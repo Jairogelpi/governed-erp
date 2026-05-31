@@ -2682,3 +2682,43 @@ class OdooReadOnlyDemoAuditEvent(Base):
     actor: Mapped[str] = mapped_column(Text, nullable=False)
     details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+
+class VisualBrowserSession(Base):
+    __tablename__ = "visual_browser_sessions"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    visual_session_id: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    created_by: Mapped[str] = mapped_column(Text, nullable=False)
+    target_url: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    target_host: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    intended_erp_hint: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    workspace_mode: Mapped[str] = mapped_column(Text, nullable=False, default="observe_only")
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="created")
+    credential_capture_allowed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    llm_can_see_credentials: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    automatic_clicks_allowed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    automatic_form_submit_allowed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    dom_observation_allowed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    screen_capture_allowed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    workflow_recording_allowed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    browser_launched: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    action_execution_allowed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    external_http_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    browser_control_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    mcp_execution_performed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    scheduler_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    blocking_reasons_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+
+
+class VisualBrowserSessionAuditEvent(Base):
+    __tablename__ = "visual_browser_session_audit_events"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    visual_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    actor: Mapped[str] = mapped_column(Text, nullable=False)
+    details_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

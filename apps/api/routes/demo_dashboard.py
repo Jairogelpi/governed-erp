@@ -5966,5 +5966,29 @@ selectors captured: none</pre>
       </div>
       <pre id="odooDemoOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
+
+    <!-- Sprint 80 - Visual Browser Session Shell -->
+    <div style="border:1px solid #0891b2;border-radius:8px;padding:16px;margin:16px 0;max-width:700px;">
+      <h2>Visual Browser Session Shell</h2>
+      <p style="font-size:0.85em;color:#666;">Sprint 80 creates a safe visual browser session shell only. It does not launch a browser, capture the screen, inspect DOM, record clicks, execute actions, submit forms, expose credentials, use MCP or run scheduled browser automation.</p>
+      <div style="margin:8px 0;">
+        <label style="font-size:0.85em;">Target URL:</label><br>
+        <input id="visualBrowserTargetUrl" style="width:400px;" value="https://my-erp.example.com"><br>
+        <label style="font-size:0.85em;">ERP Hint:</label>
+        <input id="visualBrowserErpHint" style="width:160px;" value="odoo"><br>
+        <label style="font-size:0.85em;">Workspace Mode:</label>
+        <input id="visualBrowserWorkspaceMode" style="width:180px;" value="observe_only"><br>
+        <label style="font-size:0.85em;">Created By:</label>
+        <input id="visualBrowserCreatedBy" style="width:200px;" value="operator_1"><br>
+        <label style="font-size:0.85em;">Visual Session ID:</label>
+        <input id="visualBrowserSessionId" style="width:400px;" value=""><br>
+        <button id="visualBrowserCreate">Create visual browser session</button>
+        <button id="visualBrowserGet">Get visual browser session</button>
+        <button id="visualBrowserList">List visual browser sessions</button>
+        <button id="visualBrowserRevoke">Revoke visual browser session</button>
+        <button id="visualBrowserAudit">Visual browser audit</button>
+      </div>
+      <pre id="visualBrowserOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
+    </div>
 </body>
 </html>"""
