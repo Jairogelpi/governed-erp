@@ -5,12 +5,40 @@ from sqlalchemy.orm import Session
 
 from apps.api.dependencies.identity import get_db, require_role
 from apps.api.schemas.events import CursorRequest, CursorResponse, OcelImportRequest, OcelImportResponse
+from apps.api.schemas.odoo_events import OdooBridgeEventRequest, OdooIngestionResponse, OdooPollRequest, OdooPollResponse
 from erpguard.domain.events.fake_generator import build_fake_ocel
+from erpguard.domain.events.odoo_bridge import OdooEventIngestionService
 from erpguard.domain.events.ocel_service import OcelEventService
 from erpguard.domain.identity.auth import Principal
 
 
 router = APIRouter(prefix="/v1/events", tags=["events"])
+
+
+@router.post("/odoo/webhook", response_model=OdooIngestionResponse, status_code=status.HTTP_201_CREATED)
+def ingest_odoo_webhook(
+    request: OdooBridgeEventRequest,
+    db: Session = Depends(get_db),
+    principal: Principal = Depends(require_role("operator")),
+) -> OdooIngestionResponse:
+    result = OdooEventIngestionService(db).ingest_event(
+        tenant_id=principal.tenant_id, payload=request.model_dump()
+    )
+    return OdooIngestionResponse(**result.__dict__)
+
+
+@router.post("/odoo/poll", response_model=OdooPollResponse, status_code=status.HTTP_201_CREATED)
+def ingest_odoo_poll(
+    request: OdooPollRequest,
+    db: Session = Depends(get_db),
+    principal: Principal = Depends(require_role("operator")),
+) -> OdooPollResponse:
+    result = OdooEventIngestionService(db).ingest_poll(
+        tenant_id=principal.tenant_id,
+        payloads=[event.model_dump() for event in request.events],
+        cursor=request.cursor,
+    )
+    return OdooPollResponse(**result.__dict__)
 
 
 @router.post("/ocel/import", response_model=OcelImportResponse, status_code=status.HTTP_201_CREATED)

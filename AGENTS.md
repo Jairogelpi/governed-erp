@@ -711,3 +711,13 @@
 - Reality labels: plugin contracts, transport seams and local contract tests are `real`; XML-RPC compatibility is `staging_only`; JSON-2 live transport and Odoo staging smoke are `planned/pending`; reads use injected test transport locally.
 - Safety boundary: no ERP write, raw ERP execution, Phase 8 bridge, event ingestion, webhook or polling behavior was added.
 - Exact next allowed phase: Phase 8, Odoo bridge and event ingestion, only after staging read-only smoke and CI/full regression are green. Do not implement Phase 9 or later work in the Phase 8 change.
+
+### 2026-07-28 — Phase 8 Odoo Bridge and Event Ingestion
+
+- What changed: added validated Odoo bridge event normalization, correlation IDs, historical/synthetic labeling, credential-field redaction, idempotent webhook ingestion, controlled batch/poll ingestion with cursor advancement, focused API/service tests and architecture documentation over the Phase 6 canonical event store.
+- Why: make Odoo-origin event payloads appear canonically without starting the Phase 9 process package or adding an autonomous poller.
+- Behavior: bridge event retries create no duplicate canonical events; tenant scope is enforced by the authenticated principal; unsupported write-like event types are blocked; supplied poll batches advance the Odoo event cursor after processing.
+- Verification: Phase 8 focused slice passed (`3 passed`); changed-file Ruff and mypy passed; `uv lock --check` and `git diff --check` passed. Full regression and live staging integration were not run at the user's direction/environment.
+- Reality labels: normalization, persistence, retry idempotency, cursor update and protected API are `real`; bridge payloads are `controlled`; real Odoo addon/webhook and background polling are `planned`.
+- Safety boundary: no Phase 9 process definitions, real webhook listener, network poller, ERP write, raw ERP execution or later phase behavior was added.
+- Exact next allowed phase: Phase 9, Quote-to-Order process package, only after bridge tests, staging read-only smoke, CI and full regression are green. Do not implement Phase 10 or later work in the Phase 9 change.
