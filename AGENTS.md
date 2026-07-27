@@ -731,3 +731,13 @@
 - Reality labels: YAML contract, validation, persistence, registry, diff and API are `real`; baseline data and happy-path fixture are `fixture`; variant discovery, replay, branching and process mining are `planned`.
 - Safety boundary: no Phase 10 variant discovery, Phase 11 branching, ERP execution, ERP write or later phase behavior was added.
 - Exact next allowed phase: Phase 10, Variant discovery, only after bridge/staging checks, CI and full regression are green. Do not implement Phase 11 or later work in the Phase 10 change.
+
+### 2026-07-28 — Phase 10 Variant Discovery
+
+- What changed: added tenant-scoped case projection from canonical objects/events, event sequence normalization, variant grouping, case counts, duration metrics, selected trace inspection, protected API endpoints and a minimal read-only dashboard.
+- Why: expose actual process variants from the Phase 6/8 event substrate before candidate branching.
+- Behavior: equal normalized sequences share a stable variant ID; traces are tenant-filtered; durations are computed from ordered timestamps; unknown cases return controlled 404 responses.
+- Verification: Phase 9 + Phase 10 focused slice passed (`6 passed`); changed-file Ruff and mypy passed; `uv lock --check` and `git diff --check` passed. Full regression was not run at the user's direction.
+- Reality labels: projection, grouping, metrics, trace API and dashboard are `real`; source data is `fixture` in local tests; live Odoo variant discovery remains `staging_only/pending`.
+- Safety boundary: no Phase 11 candidate branching, process mutation, replay, LLM proposal, ERP execution or ERP write was added.
+- Exact next allowed phase: Phase 11, Candidate branching, only after CI and full regression are green. Do not implement Phase 12 or later work in the Phase 11 change.
