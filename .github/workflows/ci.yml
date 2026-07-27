@@ -16,7 +16,7 @@ jobs:
       - name: Install package and development tools
         run: python -m pip install -e ".[dev]"
       - name: Lint
-        run: ruff check erpguard/version.py erpguard/db/migrate.py erpguard/db/model_packages migrations tests/test_phase1_project_hygiene.py tests/test_phase2_migrations.py apps/api/main.py apps/api/routes/release.py erpguard/product/release_readiness.py
+        run: ruff check erpguard/version.py erpguard/config.py erpguard/db/migrate.py erpguard/db/model_packages erpguard/domain/identity apps/api/dependencies/identity.py apps/api/routes/identity.py apps/api/schemas/identity.py migrations tests/test_phase1_project_hygiene.py tests/test_phase2_migrations.py tests/test_phase3_identity.py apps/api/main.py apps/api/routes/release.py erpguard/product/release_readiness.py
       - name: Type check
         run: mypy
       - name: Tests

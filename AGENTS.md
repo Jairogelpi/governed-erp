@@ -661,3 +661,13 @@
 - PostgreSQL reality: metadata compilation passed locally without network access; actual PostgreSQL 16 upgrade is configured in CI but could not be run locally because no PostgreSQL daemon was available. It is labeled `staging_only` in `docs/architecture/migrations.md`.
 - Safety boundary: no API, identity, tenant enforcement, connector, replay, process activation, raw ERP execution or ERP write was added.
 - Exact next allowed phase: Phase 3, identity and tenant enforcement, only after CI PostgreSQL migration and Docker jobs are green. Do not implement Phase 4 or later work in the Phase 3 change.
+
+### 2026-07-27 - Phase 3 Identity and Tenant Enforcement
+
+- What changed: added bounded `IdentityUser`, `IdentityRole` and `IdentityMembership` models plus Alembic revision `0002_identity`; added signed local bearer-token verification, FastAPI current-principal/RBAC dependencies, `/v1/identity/me`, and protected tenant membership mutation; added identity architecture documentation and security tests.
+- Why: make actor and tenant trustworthy at a new explicit public boundary without rewriting all legacy routes in one change.
+- Security behavior: missing/invalid/expired/tampered credentials fail; active membership is reloaded server-side; cross-tenant path/body overrides fail; non-admin mutations fail; response `actor_id` is always derived from the authenticated principal.
+- Verification: Phase 2 + Phase 3 focused slice passed (`8 passed`); Ruff and mypy passed; final full suite passed (`2718 passed, 2 skipped, 1 warning` in 512.35s). The two skips are existing browser-dependent tests.
+- Reality labels: local HMAC identity and protected membership API are `real`; external SSO, key rotation, session revocation and broad legacy-route enforcement are `planned`/`staging_only`.
+- Safety boundary: no raw ERP execution, connector change, secret provider, replay, process activation or ERP write was added.
+- Exact next allowed phase: Phase 4, unified connections and real secret provider, only after CI PostgreSQL/Docker jobs and the full regression suite are green. Do not implement Phase 5 or later work in the Phase 4 change.

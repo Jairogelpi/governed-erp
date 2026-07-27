@@ -5,6 +5,7 @@ from apps.api.routes.connections import router as connections_router
 from apps.api.routes.demo import router as demo_router
 from apps.api.routes.demo_dashboard import router as demo_dashboard_router
 from apps.api.routes.health import router as health_router
+from apps.api.routes.identity import router as identity_router
 from apps.api.routes.product import router as product_router
 from apps.api.routes.approval_workflow import router as approval_workflow_router
 from apps.api.routes.execution_sandbox import router as execution_sandbox_router
@@ -101,6 +102,7 @@ from erpguard.version import __version__
 
 app = FastAPI(title="ERPGuard API", version=__version__)
 app.include_router(health_router)
+app.include_router(identity_router)
 app.include_router(connections_router)
 app.include_router(demo_router)
 app.include_router(demo_dashboard_router)
