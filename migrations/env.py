@@ -9,6 +9,7 @@ from sqlalchemy import engine_from_config, pool
 from erpguard.db.base import Base
 import erpguard.db.model_packages  # noqa: F401
 import erpguard.db.model_packages.identity  # noqa: F401
+import erpguard.db.model_packages.connections  # noqa: F401
 import erpguard.db.models  # noqa: F401
 
 

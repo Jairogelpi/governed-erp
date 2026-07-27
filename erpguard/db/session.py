@@ -46,5 +46,6 @@ def init_db() -> None:
     import erpguard.db.models  # noqa: F401
     import erpguard.db.model_packages  # noqa: F401
     import erpguard.db.model_packages.identity  # noqa: F401
+    import erpguard.db.model_packages.connections  # noqa: F401
 
     Base.metadata.create_all(bind=engine)

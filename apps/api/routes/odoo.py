@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from xmlrpc.client import Fault
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 from fastapi.responses import JSONResponse
 
 from apps.api.schemas.odoo import (
@@ -27,7 +27,8 @@ router = APIRouter(prefix="/v1/odoo", tags=["odoo"])
 
 
 @router.post("/connections", response_model=OdooConnectionCreateResponse)
-def create_odoo_connection(request: OdooConnectionCreateRequest):
+def create_odoo_connection(request: OdooConnectionCreateRequest, response: Response):
+    _mark_deprecated(response)
     init_db()
     session = SessionLocal()
     try:
@@ -56,7 +57,8 @@ def create_odoo_connection(request: OdooConnectionCreateRequest):
 
 
 @router.post("/connections/{connection_id}/test", response_model=OdooConnectionTestResponse)
-def test_odoo_connection(connection_id: str):
+def test_odoo_connection(connection_id: str, response: Response):
+    _mark_deprecated(response)
     init_db()
     session = SessionLocal()
     try:
@@ -84,7 +86,8 @@ def test_odoo_connection(connection_id: str):
 
 
 @router.post("/connections/{connection_id}/diagnose", response_model=OdooDiagnosisResponse)
-def diagnose_odoo_connection(connection_id: str, request: OdooDiagnosisRequest):
+def diagnose_odoo_connection(connection_id: str, request: OdooDiagnosisRequest, response: Response):
+    _mark_deprecated(response)
     init_db()
     session = SessionLocal()
     try:
@@ -264,3 +267,8 @@ def _many2one_name(value):
     if isinstance(value, (list, tuple)) and len(value) >= 2:
         return value[1]
     return None
+
+
+def _mark_deprecated(response: Response) -> None:
+    response.headers["Deprecation"] = "true"
+    response.headers["Link"] = '</v1/unified/connections>; rel="successor-version"'

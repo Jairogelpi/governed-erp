@@ -662,7 +662,7 @@
 - Safety boundary: no API, identity, tenant enforcement, connector, replay, process activation, raw ERP execution or ERP write was added.
 - Exact next allowed phase: Phase 3, identity and tenant enforcement, only after CI PostgreSQL migration and Docker jobs are green. Do not implement Phase 4 or later work in the Phase 3 change.
 
-### 2026-07-27 - Phase 3 Identity and Tenant Enforcement
+### 2026-07-27 — Phase 3 Identity and Tenant Enforcement
 
 - What changed: added bounded `IdentityUser`, `IdentityRole` and `IdentityMembership` models plus Alembic revision `0002_identity`; added signed local bearer-token verification, FastAPI current-principal/RBAC dependencies, `/v1/identity/me`, and protected tenant membership mutation; added identity architecture documentation and security tests.
 - Why: make actor and tenant trustworthy at a new explicit public boundary without rewriting all legacy routes in one change.
@@ -671,3 +671,13 @@
 - Reality labels: local HMAC identity and protected membership API are `real`; external SSO, key rotation, session revocation and broad legacy-route enforcement are `planned`/`staging_only`.
 - Safety boundary: no raw ERP execution, connector change, secret provider, replay, process activation or ERP write was added.
 - Exact next allowed phase: Phase 4, unified connections and real secret provider, only after CI PostgreSQL/Docker jobs and the full regression suite are green. Do not implement Phase 5 or later work in the Phase 4 change.
+
+### 2026-07-27 — Phase 4 Unified Connections and Encrypted Local Secrets
+
+- What changed: added the bounded `UnifiedConnection` and `EncryptedSecret` model package plus Alembic revision `0003_unified_connections`; added the Fernet-backed local `SecretProvider`; added the tenant-scoped canonical `/v1/unified/connections` API; marked `/v1/connections` and legacy `/v1/odoo/connections*` paths deprecated; and added an idempotent legacy-connection migration utility that encrypts secrets and redacts the old JSON config.
+- Why: converge duplicated connection creation paths and establish a real local encrypted secret boundary without adding connector SDK v2 or ERP execution.
+- Security behavior: canonical responses expose only `secret_ref`, a short fingerprint and `secret_redacted=true`; plaintext secrets are not persisted by the new provider/API; cross-tenant reads are filtered by the authenticated Phase 3 principal; missing/invalid local keys fail in a controlled way.
+- Reality labels: local Fernet provider and unified persistence/API are `real` for single-node/staging use; the existing Odoo read-only test remains `staging_only`; managed secret backends and downstream connector consumption are `planned`.
+- Verification: Phase 2 + Phase 4 focused slice passed (`8 passed`); changed-file Ruff and mypy passed; `uv lock --check` passed; full suite passed (`2723 passed, 2 skipped, 2 warnings` in 864.91s). The two skips are the existing browser-dependent tests.
+- Safety boundary: no raw ERP execution, ERP write, credential reveal endpoint, new connector SDK, or later phase behavior was added.
+- Exact next allowed phase: Phase 5, Connector SDK v2 and capability contracts, only after CI PostgreSQL/Docker jobs and the full regression suite are green. Do not implement Phase 6 or later work in the Phase 5 change.

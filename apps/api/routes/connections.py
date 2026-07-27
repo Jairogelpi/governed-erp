@@ -1,6 +1,6 @@
 import json
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 from fastapi.responses import JSONResponse
 
 from apps.api.schemas.connections import ConnectionCreateRequest, ConnectionResponse
@@ -14,7 +14,8 @@ router = APIRouter(prefix="/v1", tags=["connections"])
 
 
 @router.post("/connections", response_model=ConnectionResponse)
-def create_connection_route(request: ConnectionCreateRequest):
+def create_connection_route(request: ConnectionCreateRequest, response: Response):
+    _mark_deprecated(response)
     erp_type = _parse_erp_type(request.erp_type)
     if isinstance(erp_type, JSONResponse):
         return erp_type
@@ -35,7 +36,8 @@ def create_connection_route(request: ConnectionCreateRequest):
 
 
 @router.get("/connections/{connection_id}", response_model=ConnectionResponse)
-def get_connection_route(connection_id: str):
+def get_connection_route(connection_id: str, response: Response):
+    _mark_deprecated(response)
     init_db()
     session = SessionLocal()
     try:
@@ -51,7 +53,8 @@ def get_connection_route(connection_id: str):
 
 
 @router.get("/connections", response_model=list[ConnectionResponse])
-def list_connections_route():
+def list_connections_route(response: Response):
+    _mark_deprecated(response)
     init_db()
     session = SessionLocal()
     try:
@@ -92,3 +95,8 @@ def _redact_config(config: dict) -> dict:
         if key in redacted:
             redacted[key] = "***REDACTED***"
     return redacted
+
+
+def _mark_deprecated(response: Response) -> None:
+    response.headers["Deprecation"] = "true"
+    response.headers["Link"] = '</v1/unified/connections>; rel="successor-version"'
