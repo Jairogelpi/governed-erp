@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from apps.api.routes.audit import router as audit_router
 from apps.api.routes.connections import router as connections_router
 from apps.api.routes.unified_connections import router as unified_connections_router
+from apps.api.routes.events import router as events_router
 from apps.api.routes.demo import router as demo_router
 from apps.api.routes.demo_dashboard import router as demo_dashboard_router
 from apps.api.routes.health import router as health_router
@@ -106,6 +107,7 @@ app.include_router(health_router)
 app.include_router(identity_router)
 app.include_router(connections_router)
 app.include_router(unified_connections_router)
+app.include_router(events_router)
 app.include_router(demo_router)
 app.include_router(demo_dashboard_router)
 app.include_router(recordings_router)

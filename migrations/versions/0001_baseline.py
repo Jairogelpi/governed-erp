@@ -26,7 +26,7 @@ def upgrade() -> None:
     baseline_tables = [
         table
         for table in Base.metadata.sorted_tables
-        if not table.name.startswith(("identity_", "unified_", "encrypted_"))
+        if not table.name.startswith(("identity_", "unified_", "encrypted_", "canonical_", "ingestion_"))
     ]
     Base.metadata.create_all(bind=bind, tables=baseline_tables)
 

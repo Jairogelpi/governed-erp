@@ -691,3 +691,13 @@
 - Reality labels: SDK contracts, registry and entry-point metadata are `real`; FakeConnector and its data are `fixture`; LegacyAdapterShim is `deprecated compatibility`; connector execution and Odoo SDK v2 remain `planned`.
 - Safety boundary: no Phase 6 events/OCEL, Odoo Connector v2, real ERP execution, ERP write, external HTTP, or arbitrary capability was added.
 - Exact next allowed phase: Phase 6, canonical events and OCEL import/export, only after CI and full regression are green. Do not implement Phase 7 or later work in the Phase 6 change.
+
+### 2026-07-28 — Phase 6 Canonical Events and OCEL Import/Export
+
+- What changed: added tenant-scoped `CanonicalObject`, `CanonicalEvent` and `IngestionCursor` models with Alembic revision `0004_events`; added idempotent OCEL-shaped import/export, cursor persistence, deterministic Fake event generation, protected event API endpoints, tests and architecture documentation.
+- Why: create the operational event substrate without starting Odoo Connector v2 or real event ingestion.
+- Behavior: duplicate event keys within a tenant are ignored on repeated import; export is tenant-filtered; cursors are tenant/connector/stream scoped; Fake generation is deterministic and local.
+- Verification: Phase 2 migration + Phase 6 focused slice passed (`6 passed`); changed-file Ruff and mypy passed; `uv lock --check` and `git diff --check` passed. Full regression was intentionally not run at the user's direction.
+- Reality labels: storage, import/export, cursor API and tenant filtering are `real`; Fake events are `fixture`; real ERP ingestion, webhooks, polling and OCEL-from-Odoo are `planned`.
+- Safety boundary: no Phase 7 Odoo JSON-2 transport, external HTTP, ERP execution, ERP write or later phase behavior was added.
+- Exact next allowed phase: Phase 7, Odoo Connector v2 read path, only after CI and the full regression suite are green. Do not implement Phase 8 or later work in the Phase 7 change.
