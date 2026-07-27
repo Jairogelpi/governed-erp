@@ -721,3 +721,13 @@
 - Reality labels: normalization, persistence, retry idempotency, cursor update and protected API are `real`; bridge payloads are `controlled`; real Odoo addon/webhook and background polling are `planned`.
 - Safety boundary: no Phase 9 process definitions, real webhook listener, network poller, ERP write, raw ERP execution or later phase behavior was added.
 - Exact next allowed phase: Phase 9, Quote-to-Order process package, only after bridge tests, staging read-only smoke, CI and full regression are green. Do not implement Phase 10 or later work in the Phase 9 change.
+
+### 2026-07-28 — Phase 9 Quote-to-Order Process Package
+
+- What changed: added the validated `quote_to_order` v1 YAML definition with objects/events/decisions/metrics/policies/fixtures; added process document validation, immutable registry/versioning, version diff, protected process API, unique process key/version index and focused tests.
+- Why: define the baseline process contract before variant discovery or branching.
+- Behavior: invalid definitions and missing references are blocked; identical registration is idempotent; existing versions cannot be changed; diffs report changed top-level sections; admin registration and viewer reads use the Phase 3 identity boundary.
+- Verification: Phase 2 migration + Phase 9 focused slice passed (`7 passed`); changed-file Ruff and mypy passed; `uv lock --check` and `git diff --check` passed. Full regression was not run at the user's direction.
+- Reality labels: YAML contract, validation, persistence, registry, diff and API are `real`; baseline data and happy-path fixture are `fixture`; variant discovery, replay, branching and process mining are `planned`.
+- Safety boundary: no Phase 10 variant discovery, Phase 11 branching, ERP execution, ERP write or later phase behavior was added.
+- Exact next allowed phase: Phase 10, Variant discovery, only after bridge/staging checks, CI and full regression are green. Do not implement Phase 11 or later work in the Phase 10 change.

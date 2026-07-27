@@ -1,0 +1,44 @@
+process_key: quote_to_order
+version: 1.0.0
+name: Quote-to-Order baseline
+objects:
+  - name: customer
+    external_types: [res.partner]
+  - name: product
+    external_types: [product.product]
+  - name: quotation
+    external_types: [sale.order]
+  - name: sales_order
+    external_types: [sale.order]
+events:
+  - name: quotation_created
+    object: quotation
+  - name: quotation_reviewed
+    object: quotation
+  - name: sales_order_created
+    object: sales_order
+  - name: sales_order_confirmed
+    object: sales_order
+decisions:
+  - name: formula_guard
+    applies_to: quotation_reviewed
+    outcomes: [allow, block]
+  - name: approval_gate
+    applies_to: sales_order_confirmed
+    outcomes: [approved, rejected]
+metrics:
+  - name: quote_to_order_duration
+    kind: duration
+    start_event: quotation_created
+    end_event: sales_order_created
+  - name: formula_block_rate
+    kind: ratio
+    numerator: formula_guard.block
+    denominator: quotation_reviewed
+policies:
+  - name: no_unapproved_confirmation
+    decision: approval_gate
+    blocking: true
+fixtures:
+  - name: happy_path
+    events: [quotation_created, quotation_reviewed, sales_order_created]

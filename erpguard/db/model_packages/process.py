@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, String, Text
+from sqlalchemy import DateTime, String, Text, event
 from sqlalchemy.orm import Mapped, mapped_column
 
 from erpguard.db.base import Base
@@ -29,3 +29,7 @@ class ProcessDefinition(Base):
     definition_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
 
+
+@event.listens_for(ProcessDefinition, "before_update")
+def reject_process_definition_update(mapper, connection, target) -> None:
+    raise ValueError("process_definition_immutable")
