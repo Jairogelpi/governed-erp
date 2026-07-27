@@ -10,6 +10,7 @@ from erpguard.connectors.sdk.models import (
 )
 from erpguard.connectors.sdk.plugin import ConnectorPlugin
 from erpguard.connectors.sdk.registry import ConnectorRegistry, discover_connectors
+from erpguard.connectors.sdk.runtime import ConnectorRuntime
 
 __all__ = [
     "CapabilityDefinition",
@@ -20,5 +21,6 @@ __all__ = [
     "ConnectorPlugin",
     "ConnectorRegistry",
     "ExecutionPermit",
+    "ConnectorRuntime",
     "discover_connectors",
 ]

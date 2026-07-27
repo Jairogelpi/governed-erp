@@ -751,3 +751,11 @@
 - Reality labels: candidate persistence, validation and protected API are `real`; structured proposals are `advisory data`; LLM proposal generation, replay and activation are `planned/blocked`.
 - Safety boundary: no Phase 12 historical replay, Phase 13 regression gate, LLM runtime, process activation, ERP execution or ERP write was added.
 - Exact next allowed phase: Phase 12, Historical replay, only after CI and full regression are green. Do not implement Phase 13 or later work in the Phase 12 change.
+
+### 2026-07-28 — Variant/README Integration Hardening
+
+- What changed: added relational `canonical_event_objects` storage and Alembic revision `0007_event_object_links` with legacy backfill; changed OCEL import to write links transactionally; changed Variant Discovery to one tenant/object join and to exclude empty cases; aligned Odoo bridge, process YAML, fixtures and variants on the shared `sales.*` event vocabulary and canonical `sales_order` object type; added runtime service injection for discovered connector plugins; moved the old README to `docs/legacy/releases.md` and rewrote the root README around the current Phase 11 product state.
+- Why: close integration debt identified before replay/branching benchmarks and make GitHub presentation reflect the actual ERPGuard Evolution state.
+- Verification: focused integration/release slice passed (`26 passed`); changed-surface Ruff and mypy passed; `uv lock --check` and `git diff --check` passed. Full regression was not run at the user's direction.
+- Reality labels: relational links, canonical vocabulary, runtime injection seam and README are `real`; Odoo live runtime remains `staging_only`; large-scale benchmark remains pending.
+- Safety boundary: no Phase 12 replay, candidate activation, ERP write or raw ERP execution was added.

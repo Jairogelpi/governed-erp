@@ -11,34 +11,34 @@ objects:
   - name: sales_order
     external_types: [sale.order]
 events:
-  - name: quotation_created
+  - name: sales.quote.created
     object: quotation
-  - name: quotation_reviewed
+  - name: sales.quote.reviewed
     object: quotation
-  - name: sales_order_created
+  - name: sales.order.created
     object: sales_order
-  - name: sales_order_confirmed
+  - name: sales.order.confirmed
     object: sales_order
 decisions:
   - name: formula_guard
-    applies_to: quotation_reviewed
+    applies_to: sales.quote.reviewed
     outcomes: [allow, block]
   - name: approval_gate
-    applies_to: sales_order_confirmed
+    applies_to: sales.order.confirmed
     outcomes: [approved, rejected]
 metrics:
   - name: quote_to_order_duration
     kind: duration
-    start_event: quotation_created
-    end_event: sales_order_created
+    start_event: sales.quote.created
+    end_event: sales.order.created
   - name: formula_block_rate
     kind: ratio
     numerator: formula_guard.block
-    denominator: quotation_reviewed
+    denominator: sales.quote.reviewed
 policies:
   - name: no_unapproved_confirmation
     decision: approval_gate
     blocking: true
 fixtures:
   - name: happy_path
-    events: [quotation_created, quotation_reviewed, sales_order_created]
+    events: [sales.quote.created, sales.quote.reviewed, sales.order.created]

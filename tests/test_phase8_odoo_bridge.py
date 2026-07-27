@@ -39,9 +39,13 @@ def test_odoo_bridge_normalizes_idempotently_and_preserves_labels():
         assert first.correlation_id == "corr-42"
         exported = service.export_events(tenant_id=tenant_id)
         event = next(iter(exported["ocel:events"].values()))
+        assert event["ocel:activity"] == "sales.quote.created"
         assert event["ocel:vmap"]["historical"] is True
         assert event["ocel:vmap"]["synthetic"] is False
         assert event["ocel:vmap"]["correlation_id"] == "corr-42"
+        obj = next(iter(exported["ocel:objects"].values()))
+        assert obj["ocel:type"] == "sales_order"
+        assert obj["ocel:ovmap"]["native"]["model"] == "sale.order"
     finally:
         db.close()
 

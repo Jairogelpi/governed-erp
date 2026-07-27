@@ -16,6 +16,17 @@ SUPPORTED_EVENT_TYPES = {
     "res.partner.created",
     "product.product.updated",
 }
+CANONICAL_EVENT_TYPES = {
+    "sales.quote.created",
+    "sales.quote.reviewed",
+    "sales.quote.sent",
+    "sales.order.created",
+    "sales.order.confirmed",
+    "sales.order.cancelled",
+    "approval.requested",
+    "approval.approved",
+    "approval.rejected",
+}
 BLOCKED_EVENT_WORDS = {"create", "write", "update", "delete", "confirm", "post", "cancel"}
 SECRET_KEYS = {"api_key", "password", "token", "secret"}
 
@@ -64,17 +75,36 @@ def _safe_values(values: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in values.items() if key.lower() not in SECRET_KEYS}
 
 
+def canonical_event_type(event: OdooBridgeEvent) -> str:
+    if event.event_type in CANONICAL_EVENT_TYPES:
+        return event.event_type
+    state = str(event.values.get("state", "")).lower()
+    if event.event_type == "sale.order.created":
+        return "sales.order.created" if state in {"sale", "done"} else "sales.quote.created"
+    if event.event_type == "sale.order.confirmed":
+        return "sales.order.confirmed"
+    if event.event_type == "sale.order.updated":
+        return "sales.quote.reviewed"
+    return event.event_type
+
+
 def normalize_odoo_event(event: OdooBridgeEvent) -> dict[str, Any]:
     correlation_id = event.correlation_id or f"odoo:{event.event_id}"
     object_key = f"odoo:{event.model}:{event.record_id}"
     return {
         "ocel:global-event": {"ocel:activity": "erpguard.odoo_bridge", "ocel:version": "2.0"},
         "ocel:objects": {
-            object_key: {"ocel:type": event.model, "ocel:ovmap": {"id": event.record_id}}
+            object_key: {
+                "ocel:type": "sales_order" if event.model == "sale.order" else event.model,
+                "ocel:ovmap": {
+                    "id": event.record_id,
+                    "native": {"connector": "odoo", "model": event.model, "record_id": event.record_id},
+                },
+            }
         },
         "ocel:events": {
             f"odoo:{event.event_id}": {
-                "ocel:activity": event.event_type,
+                "ocel:activity": canonical_event_type(event),
                 "ocel:timestamp": event.occurred_at,
                 "ocel:omap": [object_key],
                 "ocel:vmap": {
@@ -84,6 +114,7 @@ def normalize_odoo_event(event: OdooBridgeEvent) -> dict[str, Any]:
                     "synthetic": event.synthetic,
                     "source_model": event.model,
                     "source_record_id": event.record_id,
+                    "source_event_type": event.event_type,
                 },
             }
         },

@@ -15,7 +15,7 @@ router = APIRouter(prefix="/v1/variants", tags=["variants"])
 
 @router.get("", response_model=list[VariantSummaryResponse])
 def list_variants(
-    object_type: str = "sale_order",
+    object_type: str = "sales_order",
     db: Session = Depends(get_db),
     principal: Principal = Depends(require_role("viewer")),
 ) -> list[VariantSummaryResponse]:
@@ -36,7 +36,7 @@ def list_variants(
 @router.get("/cases/{case_id}", response_model=CaseTraceResponse)
 def get_case_trace(
     case_id: str,
-    object_type: str = "sale_order",
+    object_type: str = "sales_order",
     db: Session = Depends(get_db),
     principal: Principal = Depends(require_role("viewer")),
 ) -> CaseTraceResponse:

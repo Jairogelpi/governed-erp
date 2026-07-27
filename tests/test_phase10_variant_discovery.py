@@ -19,6 +19,7 @@ def _document() -> dict:
             "so-1": {"ocel:type": "sale_order", "ocel:ovmap": {}},
             "so-2": {"ocel:type": "sale_order", "ocel:ovmap": {}},
             "so-3": {"ocel:type": "sale_order", "ocel:ovmap": {}},
+            "so-empty": {"ocel:type": "sale_order", "ocel:ovmap": {}},
         },
         "ocel:events": {
             "e-1": {"ocel:activity": "quote.created", "ocel:timestamp": "2026-01-01T00:00:00Z", "ocel:omap": ["so-1"], "ocel:vmap": {}},
@@ -38,17 +39,18 @@ def test_variant_discovery_groups_sequences_and_calculates_duration():
     try:
         OcelEventService(db).import_ocel(tenant_id=tenant, document=_document(), source="fixture")
         service = VariantDiscoveryService(db)
-        variants = service.discover(tenant_id=tenant, object_type="sale_order")
+        variants = service.discover(tenant_id=tenant, object_type="sales_order")
         assert [(item.sequence, item.case_count) for item in variants] == [
-            (("quote.created", "quote.reviewed", "order.created"), 1),
-            (("quote.created", "order.created"), 1),
-            (("quote.created",), 1),
+            (("sales.quote.created", "sales.quote.reviewed", "sales.order.created"), 1),
+            (("sales.quote.created", "sales.order.created"), 1),
+            (("sales.quote.created",), 1),
         ]
         assert variants[0].duration_seconds == 120.0
         assert variants[1].duration_seconds == 180.0
-        trace = service.case_trace(tenant_id=tenant, case_id="so-1", object_type="sale_order")
+        assert all("so-empty" not in item.case_ids for item in variants)
+        trace = service.case_trace(tenant_id=tenant, case_id="so-1", object_type="sales_order")
         assert [event.event_type for event in trace.events] == [
-            "quote.created", "quote.reviewed", "order.created"
+            "sales.quote.created", "sales.quote.reviewed", "sales.order.created"
         ]
     finally:
         db.close()
@@ -68,10 +70,10 @@ def test_variant_api_is_tenant_scoped_and_dashboard_is_present(monkeypatch):
     db.close()
     headers = {"Authorization": f"Bearer {issue_token(user, tenant, 'phase10-auth')}"}
     client = TestClient(app)
-    response = client.get("/v1/variants?object_type=sale_order", headers=headers)
+    response = client.get("/v1/variants?object_type=sales_order", headers=headers)
     assert response.status_code == 200
     assert response.json()[0]["case_count"] == 1
-    trace = client.get("/v1/variants/cases/so-1?object_type=sale_order", headers=headers)
+    trace = client.get("/v1/variants/cases/so-1?object_type=sales_order", headers=headers)
     assert trace.status_code == 200
     assert trace.json()["case_id"] == "so-1"
     dashboard = client.get("/v1/variants/dashboard", headers=headers)

@@ -23,7 +23,7 @@ def test_quote_to_order_fixture_validates():
     definition = load_process_yaml(FIXTURE.read_text(encoding="utf-8"))
     assert definition.process_key == "quote_to_order"
     assert definition.version == "1.0.0"
-    assert "sales_order_created" in {event.name for event in definition.events}
+    assert "sales.order.created" in {event.name for event in definition.events}
     assert definition.metrics
 
 

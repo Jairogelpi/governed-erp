@@ -54,6 +54,7 @@ class ConnectorContext(SDKModel):
     connection_id: str = Field(min_length=1)
     credential_ref: str | None = None
     credentials: dict[str, Any] = Field(default_factory=dict)
+    services: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def reject_raw_credentials(self) -> "ConnectorContext":

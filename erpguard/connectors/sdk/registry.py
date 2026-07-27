@@ -7,8 +7,9 @@ from erpguard.connectors.sdk.plugin import ConnectorPlugin
 
 
 class ConnectorRegistry:
-    def __init__(self, plugins: Iterable[ConnectorPlugin]):
+    def __init__(self, plugins: Iterable[ConnectorPlugin], factories: dict[str, object] | None = None):
         self._plugins: dict[str, ConnectorPlugin] = {}
+        self._factories = factories or {}
         for plugin in plugins:
             connector_id = plugin.metadata.connector_id
             if connector_id in self._plugins:
@@ -24,11 +25,19 @@ class ConnectorRegistry:
     def list(self) -> list[ConnectorPlugin]:
         return [self._plugins[key] for key in sorted(self._plugins)]
 
+    def create(self, connector_id: str, **kwargs) -> ConnectorPlugin:
+        factory = self._factories.get(connector_id)
+        if factory is None:
+            return self.get(connector_id)
+        return factory(**kwargs) if callable(factory) else self.get(connector_id)
+
 
 def discover_connectors() -> ConnectorRegistry:
     discovered = []
+    factories: dict[str, object] = {}
     for entry_point in entry_points(group="erpguard.connectors"):
-        plugin = entry_point.load()
-        plugin = plugin() if isinstance(plugin, type) else plugin
+        factory = entry_point.load()
+        plugin = factory() if isinstance(factory, type) else factory
         discovered.append(plugin)
-    return ConnectorRegistry(discovered)
+        factories[plugin.metadata.connector_id] = factory
+    return ConnectorRegistry(discovered, factories)

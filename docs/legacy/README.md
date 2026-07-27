@@ -1,6 +1,5 @@
 # Legacy documentation
 
-This directory is the public marker for historical release-candidate and sprint documentation that remains in the repository for traceability. Files under `docs/release`, `docs/demo` and older architecture notes may describe `0.12.x`, `0.13.x` or sprint-era behavior.
+This directory contains historical release-candidate and sprint documentation preserved for traceability. The moved release history is in [releases.md](releases.md).
 
 Those documents are not the current public release contract. Use [the public documentation](../public/README.md), the current README and the master specification for current behavior.
-

@@ -7,6 +7,17 @@ from uuid import uuid4
 from sqlalchemy.orm import Session
 
 from erpguard.db.model_packages.events import CanonicalEvent, CanonicalObject, IngestionCursor
+from erpguard.db.model_packages.event_links import CanonicalEventObject
+
+
+OBJECT_TYPE_ALIASES = {
+    "sale.order": "sales_order",
+    "sale_order": "sales_order",
+    "res.partner": "customer",
+    "customer": "customer",
+    "product.product": "product",
+    "product": "product",
+}
 
 
 @dataclass(frozen=True)
@@ -34,13 +45,14 @@ class OcelEventService:
             if existing_object:
                 duplicate_objects += 1
                 continue
-            object_type = str(raw.get("ocel:type", "unknown"))
+            object_type = OBJECT_TYPE_ALIASES.get(str(raw.get("ocel:type", "unknown")), str(raw.get("ocel:type", "unknown")))
             self.session.add(CanonicalObject(
                 id=f"obj_{tenant_id}_{object_key}", tenant_id=tenant_id,
                 object_type=object_type, object_key=str(object_key),
                 attributes_json=json.dumps(raw.get("ocel:ovmap", {}), sort_keys=True),
             ))
             created_objects += 1
+        self.session.flush()
 
         created_events = duplicate_events = 0
         for event_key, raw in events.items():
@@ -53,13 +65,26 @@ class OcelEventService:
             if existing_event:
                 duplicate_events += 1
                 continue
-            self.session.add(CanonicalEvent(
+            canonical_event = CanonicalEvent(
                 id=f"evt_{tenant_id}_{event_key}", tenant_id=tenant_id, event_key=event_key,
                 event_type=str(raw.get("ocel:activity", "unknown")),
                 event_timestamp=str(raw.get("ocel:timestamp", "")), source=source,
                 object_keys_json=json.dumps([str(item) for item in raw.get("ocel:omap", [])]),
                 attributes_json=json.dumps(raw.get("ocel:vmap", {}), sort_keys=True),
-            ))
+            )
+            self.session.add(canonical_event)
+            for object_key in [str(item) for item in raw.get("ocel:omap", [])]:
+                object_row = (
+                    self.session.query(CanonicalObject)
+                    .filter_by(tenant_id=tenant_id, object_key=object_key)
+                    .one_or_none()
+                )
+                if object_row is not None:
+                    self.session.add(CanonicalEventObject(
+                        id=f"link_{canonical_event.id}_{object_row.id}",
+                        tenant_id=tenant_id, event_id=canonical_event.id,
+                        object_id=object_row.id, qualifier="",
+                    ))
             created_events += 1
         self.session.commit()
         return OcelImportSummary(created_events, duplicate_events, created_objects, duplicate_objects)

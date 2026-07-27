@@ -11,7 +11,9 @@ declaration, and stable fingerprinting. It supports two transport seams:
   coupling the plugin to HTTP or storing raw credentials.
 
 The plugin accepts only a `credential_ref` in `ConnectorContext`; callers must
-resolve credentials outside the plugin. All write-like capabilities, event
+resolve credentials through runtime services outside the plugin. The registry
+can instantiate the discovered plugin through `ConnectorRuntime`, which injects
+those services into the request context. All write-like capabilities, event
 pulling and execution remain blocked. The live Odoo smoke is intentionally not
 run in this local validation; staging credentials and network access are still
 required.

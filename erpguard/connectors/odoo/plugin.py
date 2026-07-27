@@ -63,9 +63,10 @@ class OdooConnectorPlugin(ConnectorTemplate):
         ]
 
     def _transport(self, context: ConnectorContext) -> OdooReadTransport:
-        if self._transport_factory is None:
+        factory = self._transport_factory or context.services.get("transport_factory")
+        if factory is None:
             raise RuntimeError("odoo_transport_factory_required")
-        return self._transport_factory(context)
+        return factory(context)
 
     async def test_connection(self, context: ConnectorContext) -> ConnectionTestResult:
         transport = self._transport(context)

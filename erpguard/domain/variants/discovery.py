@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import hashlib
-import json
 from dataclasses import dataclass
 from datetime import datetime
 
 from sqlalchemy.orm import Session
 
+from erpguard.db.model_packages.event_links import CanonicalEventObject
 from erpguard.db.model_packages.events import CanonicalEvent, CanonicalObject
 
 
@@ -36,7 +36,12 @@ class VariantSummary:
 
 
 def _normalize_event_type(value: str) -> str:
-    return ".".join(part.strip().lower().replace(" ", "_") for part in value.split(".") if part.strip())
+    normalized = ".".join(part.strip().lower().replace(" ", "_") for part in value.split(".") if part.strip())
+    return {
+        "quote.created": "sales.quote.created",
+        "quote.reviewed": "sales.quote.reviewed",
+        "order.created": "sales.order.created",
+    }.get(normalized, normalized)
 
 
 def _duration(events: tuple[TraceEvent, ...]) -> float | None:
@@ -55,30 +60,32 @@ class VariantDiscoveryService:
         self.session = session
 
     def _traces(self, tenant_id: str, object_type: str) -> list[CaseTrace]:
-        objects = (
-            self.session.query(CanonicalObject)
-            .filter_by(tenant_id=tenant_id, object_type=object_type)
+        rows = (
+            self.session.query(CanonicalObject, CanonicalEvent)
+            .join(CanonicalEventObject, CanonicalEventObject.object_id == CanonicalObject.id)
+            .join(CanonicalEvent, CanonicalEvent.id == CanonicalEventObject.event_id)
+            .filter(
+                CanonicalObject.tenant_id == tenant_id,
+                CanonicalObject.object_type == object_type,
+                CanonicalEventObject.tenant_id == tenant_id,
+                CanonicalEvent.tenant_id == tenant_id,
+            )
+            .order_by(CanonicalObject.object_key.asc(), CanonicalEvent.event_timestamp.asc(), CanonicalEvent.created_at.asc())
             .all()
         )
-        events = (
-            self.session.query(CanonicalEvent)
-            .filter_by(tenant_id=tenant_id)
-            .order_by(CanonicalEvent.event_timestamp.asc(), CanonicalEvent.created_at.asc())
-            .all()
-        )
-        result: list[CaseTrace] = []
-        for obj in objects:
-            trace_events = []
-            for event in events:
-                if obj.object_key not in json.loads(event.object_keys_json):
-                    continue
-                trace_events.append(
-                    TraceEvent(
-                        event_key=event.event_key,
-                        event_type=_normalize_event_type(event.event_type),
-                        timestamp=event.event_timestamp,
-                    )
+        grouped: dict[str, tuple[CanonicalObject, list[TraceEvent]]] = {}
+        for obj, event in rows:
+            if obj.object_key not in grouped:
+                grouped[obj.object_key] = (obj, [])
+            grouped[obj.object_key][1].append(
+                TraceEvent(
+                    event_key=event.event_key,
+                    event_type=_normalize_event_type(event.event_type),
+                    timestamp=event.event_timestamp,
                 )
+            )
+        result: list[CaseTrace] = []
+        for obj, trace_events in grouped.values():
             sequence = tuple(item.event_type for item in trace_events)
             variant_id = "variant_" + hashlib.sha256("|".join(sequence).encode()).hexdigest()[:16]
             result.append(CaseTrace(obj.object_key, object_type, variant_id, tuple(trace_events), _duration(tuple(trace_events))))

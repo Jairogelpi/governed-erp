@@ -7,6 +7,8 @@ import pytest
 from erpguard.connectors.odoo.plugin import OdooConnectorPlugin
 from erpguard.connectors.odoo.transports import Json2ReadTransport
 from erpguard.connectors.sdk.models import ConnectorContext, ReadObjectsRequest
+from erpguard.connectors.sdk.registry import discover_connectors
+from erpguard.connectors.sdk.runtime import ConnectorRuntime
 from erpguard.core.errors import ReadOnlyViolationError
 
 
@@ -68,3 +70,12 @@ def test_json2_transport_rejects_write_method():
     transport = Json2ReadTransport(lambda method, payload: {})
     with pytest.raises(ReadOnlyViolationError):
         transport.call("create", "sale.order", {})
+
+
+def test_discovered_odoo_plugin_gets_transport_from_runtime_services():
+    plugin, context = ConnectorRuntime(discover_connectors()).create_plugin(
+        "odoo",
+        ConnectorContext(tenant_id="tenant-1", connection_id="odoo-1", credential_ref="ref"),
+        {"transport_factory": lambda _: FakeReadTransport()},
+    )
+    assert asyncio.run(plugin.test_connection(context)).status == "ok"

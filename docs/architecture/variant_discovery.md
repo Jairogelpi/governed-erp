@@ -7,7 +7,7 @@ canonical object, normalizes event names, groups equal sequences, and computes
 case counts and elapsed duration. The API exposes variant summaries and a
 selected case trace:
 
-- `GET /v1/variants?object_type=sale_order`;
+- `GET /v1/variants?object_type=sales_order`;
 - `GET /v1/variants/cases/{case_id}`;
 - `GET /v1/variants/dashboard`.
 
