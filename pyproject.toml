@@ -28,6 +28,9 @@ dev = [
     "ruff>=0.9",
 ]
 
+[project.entry-points."erpguard.connectors"]
+fake = "erpguard.connectors.fake.plugin:FakeConnector"
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"

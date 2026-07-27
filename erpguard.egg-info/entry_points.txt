@@ -1,0 +1,2 @@
+[erpguard.connectors]
+fake = erpguard.connectors.fake.plugin:FakeConnector

@@ -681,3 +681,13 @@
 - Verification: Phase 2 + Phase 4 focused slice passed (`8 passed`); changed-file Ruff and mypy passed; `uv lock --check` passed; full suite passed (`2723 passed, 2 skipped, 2 warnings` in 864.91s). The two skips are the existing browser-dependent tests.
 - Safety boundary: no raw ERP execution, ERP write, credential reveal endpoint, new connector SDK, or later phase behavior was added.
 - Exact next allowed phase: Phase 5, Connector SDK v2 and capability contracts, only after CI PostgreSQL/Docker jobs and the full regression suite are green. Do not implement Phase 6 or later work in the Phase 5 change.
+
+### 2026-07-28 — Phase 5 Connector SDK v2 and Capability Contracts
+
+- What changed: added framework-neutral SDK models and `ConnectorPlugin` protocol under `erpguard/connectors/sdk`; added entry-point discovery and registry; added deterministic non-networking `FakeConnector`, `ConnectorTemplate`, and the deprecated read-only `LegacyAdapterShim`; added contract and registry tests plus SDK architecture documentation.
+- Why: make Odoo a plugin boundary without starting Odoo Connector v2, event storage, or capability execution.
+- Security behavior: connector contexts reject raw credentials and accept only `credential_ref`; FakeConnector has no external HTTP, ERP touch, write, or raw-secret behavior; execution is explicitly disabled and returns a controlled block even when passed a permit.
+- Verification: focused SDK/contract slice passed (`9 passed`); changed-file Ruff and mypy passed; `uv lock --check` and `git diff --check` passed. Full regression was intentionally not run in this phase at the user's direction; the prior Phase 4 baseline remains `2723 passed, 2 skipped, 2 warnings`.
+- Reality labels: SDK contracts, registry and entry-point metadata are `real`; FakeConnector and its data are `fixture`; LegacyAdapterShim is `deprecated compatibility`; connector execution and Odoo SDK v2 remain `planned`.
+- Safety boundary: no Phase 6 events/OCEL, Odoo Connector v2, real ERP execution, ERP write, external HTTP, or arbitrary capability was added.
+- Exact next allowed phase: Phase 6, canonical events and OCEL import/export, only after CI and full regression are green. Do not implement Phase 7 or later work in the Phase 6 change.
