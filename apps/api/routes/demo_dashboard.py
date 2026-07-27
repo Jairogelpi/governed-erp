@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
+from erpguard.version import __version__
+
 
 router = APIRouter(tags=["demo-dashboard"])
 
@@ -6062,4 +6064,4 @@ selectors captured: none</pre>
       <pre id="visualExtractionOutput" style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;font-size:0.8em;max-height:300px;overflow:auto;"></pre>
     </div>
 </body>
-</html>"""
+</html>""".replace("0.12.0-rc1", __version__)

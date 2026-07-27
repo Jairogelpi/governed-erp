@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from apps.api.main import app
 from erpguard.db.session import init_db
+from erpguard.version import __version__
 
 client = TestClient(app)
 
@@ -17,7 +18,7 @@ def _init():
 def test_dashboard_has_release_section():
     html = client.get("/demo").text
     assert "Release Candidate" in html
-    assert "v0.12.0-rc1" in html
+    assert f"v{__version__}" in html
     assert "Operator Demo Pack" in html
 
 

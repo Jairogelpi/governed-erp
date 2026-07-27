@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 from erpguard.product.operator_safety_report import OperatorSafetyReportService
 from erpguard.product.operator_runbook_summary import OperatorRunbookSummaryService
+from erpguard.version import __version__
 
 
 _SAFETY_SVC = OperatorSafetyReportService()
@@ -66,7 +67,7 @@ class OperatorDemoReportService:
         return DemoReport(
             generated_at=datetime.now(timezone.utc).isoformat(),
             product="ERPGuard — ERP Agent OS",
-            version="0.13.0-rc1",
+            version=__version__,
             sprint_chain="20-26",
             scenario_label="Fake ERP Formula Review — Full Operator Demo",
             seed_result=seed_result or {},

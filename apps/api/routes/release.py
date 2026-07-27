@@ -17,6 +17,7 @@ from erpguard.product.release_readiness import (
     _SAFETY_BOUNDARIES,
     _BLOCKED_OPERATIONS,
 )
+from erpguard.version import __version__
 
 router = APIRouter(prefix="/v1/release", tags=["release"])
 
@@ -35,7 +36,7 @@ def release_health():
 
         return {
             "status": "ok" if db_ok else "degraded",
-            "version": "0.12.0-rc1",
+            "version": __version__,
             "db_accessible": db_ok,
             "safety_boundaries_locked": all(not v for v in _SAFETY_BOUNDARIES.values()),
             "safety_boundaries": _SAFETY_BOUNDARIES,

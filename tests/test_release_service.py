@@ -6,6 +6,7 @@ from erpguard.db.session import SessionLocal, init_db
 from erpguard.product.release_readiness import ReleaseReadinessService, _SAFETY_BOUNDARIES, _SPRINT_CHAIN
 from erpguard.product.demo_seed import DemoSeedService
 from erpguard.product.operator_smoke import OperatorSmokeService
+from erpguard.version import __version__
 
 
 @pytest.fixture(autouse=True)
@@ -21,7 +22,7 @@ def db_session():
 class TestReleaseReadinessService:
     def test_report_returns_version(self, db_session):
         result = ReleaseReadinessService(db_session).report()
-        assert result["release_version"] == "0.12.0-rc1"
+        assert result["release_version"] == __version__
 
     def test_report_has_checks(self, db_session):
         result = ReleaseReadinessService(db_session).report()

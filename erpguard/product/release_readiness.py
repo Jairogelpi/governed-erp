@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from erpguard.db.session import SessionLocal, init_db
+from erpguard.version import __version__
 
 _SPRINT_CHAIN = [
     ("Sprint 1",  "Odoo read-only connection"),
@@ -52,7 +53,7 @@ class ReleaseReadinessService:
         status = "ready" if passed == len(checks) else "partial" if score >= 70 else "not_ready"
 
         return {
-            "release_version": "0.12.0-rc1",
+            "release_version": __version__,
             "status": status,
             "readiness_score": score,
             "checks_passed": passed,

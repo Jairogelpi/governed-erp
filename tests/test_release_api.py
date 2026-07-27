@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from apps.api.main import app
 from erpguard.db.session import init_db
+from erpguard.version import __version__
 
 client = TestClient(app)
 
@@ -21,7 +22,7 @@ def test_health_ok():
     assert resp.status_code == 200
     body = resp.json()
     assert body["status"] == "ok"
-    assert body["version"] == "0.12.0-rc1"
+    assert body["version"] == __version__
     assert body["db_accessible"] is True
     assert body["safety_boundaries_locked"] is True
 
@@ -41,7 +42,7 @@ def test_readiness_report():
     resp = client.get("/v1/release/readiness-report")
     assert resp.status_code == 200
     body = resp.json()
-    assert body["release_version"] == "0.12.0-rc1"
+    assert body["release_version"] == __version__
     assert body["status"] in ("ready", "partial", "not_ready")
     assert body["readiness_score"] >= 0
     assert len(body["checks"]) >= 8

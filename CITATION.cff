@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+title: "ERPGuard Evolution"
+message: "If you use this repository, please cite it as follows."
+type: software
+authors:
+  - family-names: Gelpi
+    given-names: Jairo
+version: 0.14.0
+date-released: 2026-07-27
+repository-code: "https://github.com/Jairogelpi/TFM"
+license: MIT
+

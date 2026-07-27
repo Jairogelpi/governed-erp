@@ -4,8 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "erpguard"
-version = "0.1.0"
+version = "0.14.0"
 description = "Semantic safety layer for ERP operations."
+license = {file = "LICENSE"}
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",
@@ -19,8 +20,27 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "httpx>=0.27",
+    "mypy>=1.13",
     "pytest>=8.0",
+    "ruff>=0.9",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["docs", "erpguard.egg-info"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+ignore = ["I001"]
+per-file-ignores = {"erpguard/product/release_readiness.py" = ["F401"]}
+
+[tool.mypy]
+python_version = "3.11"
+files = ["erpguard/version.py"]
+check_untyped_defs = true
+disallow_untyped_defs = false
+warn_unused_ignores = true
 
 [tool.setuptools.packages.find]
 include = ["apps*", "erpguard*"]

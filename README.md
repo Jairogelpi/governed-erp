@@ -1,6 +1,18 @@
-# ERPGuard
+# ERPGuard Evolution v0.14.0
 
-ERPGuard is a semantic safety layer for ERP operations. This repository is currently in Phase 1: the Odoo Preflight Core backend foundation.
+ERPGuard Evolution is the incremental migration of ERPGuard into a versioned, testable and governed platform for business processes. ERPGuard remains the mandatory safety kernel for effectful ERP operations.
+
+This release is **Phase 1 project hygiene**: the public version, package metadata, API metadata, CI, lockfile, install artifacts and community boundaries are converged. Historical release-candidate material remains available as [legacy documentation](docs/legacy/README.md).
+
+Canonical project entry point: [docs/public/README.md](docs/public/README.md).
+
+Current reality: the repository has real deterministic Fake ERP and read-only Odoo foundations; historical/simulated capabilities are labeled and real ERP writes remain disabled.
+
+## Current version
+
+`0.14.0` is the single public package/API version. The previous `0.12.x` and `0.13.x` release-candidate documents are historical records, not current release claims.
+
+## Legacy release history
 
 ## Release Candidate v0.13.0-rc1 — Validated & Accepted
 

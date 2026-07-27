@@ -96,9 +96,10 @@ from apps.api.routes.preflight import router as preflight_router
 from apps.api.routes.odoo import router as odoo_router
 from apps.api.routes.skills import router as skills_router
 from apps.fake_erp.routes import router as fake_erp_router
+from erpguard.version import __version__
 
 
-app = FastAPI(title="ERPGuard API", version="0.1.0")
+app = FastAPI(title="ERPGuard API", version=__version__)
 app.include_router(health_router)
 app.include_router(connections_router)
 app.include_router(demo_router)

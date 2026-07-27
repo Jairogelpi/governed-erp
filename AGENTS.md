@@ -640,3 +640,14 @@
 - Safety boundary: Phase 0 added no runtime behavior, no new API, no migration, no identity layer, no process mining/replay, no real ERP write, and no raw ERP execution.
 - Baseline verification: `python -m pytest` passed (`2705 passed, 2 skipped, 2 warnings` in 223.53s). Post-freeze verification passed (`2707 passed, 2 skipped, 2 warnings` in 224.40s); the two additional tests are the Phase 0 artifact contracts. The two skips are the existing browser-dependent paths; the initial 120-second run did not finish within the command window, so the suite was rerun with a longer bounded window.
 - Exact next allowed phase: Phase 1, version/package truthfulness and version/CI cleanup only. Do not begin Phase 2 or any later product/runtime phase until Phase 1 exits cleanly.
+
+### 2026-07-27 - Phase 1 Project Hygiene and Version Convergence
+
+- What changed: converged the public version to `0.14.0` through `erpguard/version.py`, `pyproject.toml`, FastAPI metadata, release health/readiness, operator report and README; added `uv.lock`; added Ruff and mypy configuration; added GitHub Actions CI; added a Dockerfile and CI Docker build step; added MIT license/community files, citation, changelog, roadmap, deprecation policy, public/legacy documentation markers, and Phase 1 contract tests.
+- Why: satisfy Phase 1 project hygiene without starting migrations, identity, connector SDK v2, process intelligence, replay or ERP execution work.
+- Compatibility: historical `0.12.x`/`0.13.x` release-candidate material remains traceable and is explicitly marked legacy; existing runtime behavior and safety defaults remain unchanged.
+- Verification: focused Phase 1/release slice passed (`45 passed`); Ruff passed on the Phase 1 quality surface; mypy passed; final full suite passed (`2710 passed, 2 skipped, 2 warnings` in 326.51s). The two skips are the existing browser-dependent tests.
+- Install verification: `uv lock` succeeded and editable installation succeeds. Local `docker build` could not run because Docker Desktop's Linux daemon was unavailable; the CI workflow now performs the Docker build on a runner. Static Docker contract tests pass.
+- Safety boundary: no raw ERP execution, new ERP connector, migration, tenant enforcement, process replay, autonomous promotion or real ERP write was added.
+- Reality labels: `real` version/packaging metadata, tests, CI definition and Docker build definition; historical product behavior remains `fixture`, `simulated`, `advisory`, `staging_only`, `planned` or `blocked` as documented.
+- Exact next allowed phase: Phase 2, database migrations and bounded persistence, only after CI (including Docker build) is green. Do not implement Phase 3 or later work in the Phase 2 change.
