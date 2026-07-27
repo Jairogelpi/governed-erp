@@ -11,6 +11,7 @@ import erpguard.db.model_packages  # noqa: F401
 import erpguard.db.model_packages.identity  # noqa: F401
 import erpguard.db.model_packages.connections  # noqa: F401
 import erpguard.db.model_packages.events  # noqa: F401
+import erpguard.db.model_packages.candidate  # noqa: F401
 import erpguard.db.models  # noqa: F401
 
 

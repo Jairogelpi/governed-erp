@@ -6,6 +6,7 @@ from apps.api.routes.unified_connections import router as unified_connections_ro
 from apps.api.routes.events import router as events_router
 from apps.api.routes.processes import router as processes_router
 from apps.api.routes.variants import router as variants_router
+from apps.api.routes.candidates import router as candidates_router
 from apps.api.routes.demo import router as demo_router
 from apps.api.routes.demo_dashboard import router as demo_dashboard_router
 from apps.api.routes.health import router as health_router
@@ -112,6 +113,7 @@ app.include_router(unified_connections_router)
 app.include_router(events_router)
 app.include_router(processes_router)
 app.include_router(variants_router)
+app.include_router(candidates_router)
 app.include_router(demo_router)
 app.include_router(demo_dashboard_router)
 app.include_router(recordings_router)

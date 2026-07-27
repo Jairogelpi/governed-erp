@@ -741,3 +741,13 @@
 - Reality labels: projection, grouping, metrics, trace API and dashboard are `real`; source data is `fixture` in local tests; live Odoo variant discovery remains `staging_only/pending`.
 - Safety boundary: no Phase 11 candidate branching, process mutation, replay, LLM proposal, ERP execution or ERP write was added.
 - Exact next allowed phase: Phase 11, Candidate branching, only after CI and full regression are green. Do not implement Phase 12 or later work in the Phase 11 change.
+
+### 2026-07-28 — Phase 11 Candidate Branching
+
+- What changed: added immutable-after-submission `ProcessCandidate` storage with Alembic revision `0006_process_candidates`; added manual candidate creation, evidence-reference validation, structured proposal data, explicit submit/retrieve API and focused tests.
+- Why: create a reviewable process candidate v2 without replay, activation or execution.
+- Behavior: base process versions must exist; changes and evidence references are required; submitted candidates cannot be mutated; evidence references use explicit `evt:`, `case:` or `variant:` prefixes; no activation path exists.
+- Verification: Phase 2 + Phase 9 + Phase 11 focused slice passed (`9 passed`); changed-file Ruff and mypy passed; `uv lock --check` and `git diff --check` passed. Full regression was not run at the user's direction.
+- Reality labels: candidate persistence, validation and protected API are `real`; structured proposals are `advisory data`; LLM proposal generation, replay and activation are `planned/blocked`.
+- Safety boundary: no Phase 12 historical replay, Phase 13 regression gate, LLM runtime, process activation, ERP execution or ERP write was added.
+- Exact next allowed phase: Phase 12, Historical replay, only after CI and full regression are green. Do not implement Phase 13 or later work in the Phase 12 change.
