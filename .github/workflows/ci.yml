@@ -16,10 +16,38 @@ jobs:
       - name: Install package and development tools
         run: python -m pip install -e ".[dev]"
       - name: Lint
-        run: ruff check erpguard/version.py apps/api/main.py apps/api/routes/release.py erpguard/product/release_readiness.py tests/test_phase1_project_hygiene.py
+        run: ruff check erpguard/version.py erpguard/db/migrate.py erpguard/db/model_packages migrations tests/test_phase1_project_hygiene.py tests/test_phase2_migrations.py apps/api/main.py apps/api/routes/release.py erpguard/product/release_readiness.py
       - name: Type check
         run: mypy
       - name: Tests
         run: python -m pytest
       - name: Docker image build
         run: docker build --tag erpguard-evolution:ci .
+
+  postgres-migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: erpguard
+          POSTGRES_PASSWORD: erpguard
+          POSTGRES_DB: erpguard
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U erpguard -d erpguard"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install package and migration tools
+        run: python -m pip install -e ".[dev]"
+      - name: Upgrade PostgreSQL baseline
+        env:
+          ERPGUARD_DATABASE_URL: postgresql+psycopg://erpguard:erpguard@localhost:5432/erpguard
+        run: python -m pytest tests/test_phase2_migrations.py -q

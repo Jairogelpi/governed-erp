@@ -651,3 +651,13 @@
 - Safety boundary: no raw ERP execution, new ERP connector, migration, tenant enforcement, process replay, autonomous promotion or real ERP write was added.
 - Reality labels: `real` version/packaging metadata, tests, CI definition and Docker build definition; historical product behavior remains `fixture`, `simulated`, `advisory`, `staging_only`, `planned` or `blocked` as documented.
 - Exact next allowed phase: Phase 2, database migrations and bounded persistence, only after CI (including Docker build) is green. Do not implement Phase 3 or later work in the Phase 2 change.
+
+### 2026-07-27 - Phase 2 Database Migrations and Bounded Persistence
+
+- What changed: added Alembic configuration and environment (`alembic.ini`, `migrations/env.py`, `migrations/versions/0001_baseline.py`), `erpguard.db.migrate.upgrade_database`, PostgreSQL support through `psycopg`, and the bounded `erpguard.db.model_packages` package containing storage-only `ProcessDefinition`. `init_db()` imports the package for compatibility. Added migration architecture documentation, migration tests and a PostgreSQL CI service job.
+- Why: establish a versioned, non-destructive database upgrade path without expanding the legacy `erpguard/db/models.py` monolith or starting later process lifecycle work.
+- Migration behavior: revision `0001_baseline` creates missing tables from current metadata and leaves existing rows untouched; downgrade is intentionally non-destructive. Future bounded models must live in model packages, not the legacy monolith.
+- Verification: Phase 2 migration slice passed (`3 passed`); Ruff passed on migration files; mypy passed; `uv lock --check` passed; full suite passed (`2713 passed, 2 skipped, 1 warning` in 313.60s). The two skips are existing browser-dependent tests.
+- PostgreSQL reality: metadata compilation passed locally without network access; actual PostgreSQL 16 upgrade is configured in CI but could not be run locally because no PostgreSQL daemon was available. It is labeled `staging_only` in `docs/architecture/migrations.md`.
+- Safety boundary: no API, identity, tenant enforcement, connector, replay, process activation, raw ERP execution or ERP write was added.
+- Exact next allowed phase: Phase 3, identity and tenant enforcement, only after CI PostgreSQL migration and Docker jobs are green. Do not implement Phase 4 or later work in the Phase 3 change.
