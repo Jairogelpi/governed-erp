@@ -1,2 +1,3 @@
 [erpguard.connectors]
 fake = erpguard.connectors.fake.plugin:FakeConnector
+odoo = erpguard.connectors.odoo.plugin:OdooConnectorPlugin

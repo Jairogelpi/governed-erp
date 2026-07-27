@@ -701,3 +701,13 @@
 - Reality labels: storage, import/export, cursor API and tenant filtering are `real`; Fake events are `fixture`; real ERP ingestion, webhooks, polling and OCEL-from-Odoo are `planned`.
 - Safety boundary: no Phase 7 Odoo JSON-2 transport, external HTTP, ERP execution, ERP write or later phase behavior was added.
 - Exact next allowed phase: Phase 7, Odoo Connector v2 read path, only after CI and the full regression suite are green. Do not implement Phase 8 or later work in the Phase 7 change.
+
+### 2026-07-28 — Phase 7 Odoo Connector v2 Read Path
+
+- What changed: added the `odoo` Connector SDK v2 entry point, read-only Odoo plugin, legacy XML-RPC transport adapter, JSON-2 transport seam, schema discovery, customer/product/quote reads, stable fingerprinting, read-only capabilities and contract tests.
+- Why: make Odoo a plugin while preserving the existing allowlisted XML-RPC compatibility path and keeping all writes outside the connector.
+- Security behavior: plugin contexts use only `credential_ref`; raw credentials are rejected by the SDK context; JSON-2 rejects non-read methods; execution, write-like capabilities and event pull remain blocked.
+- Verification: SDK v2 + Odoo v2 focused slice passed (`13 passed`); changed Odoo Ruff and mypy passed; `uv lock --check` and `git diff --check` passed. Full regression was intentionally not run at the user's direction.
+- Reality labels: plugin contracts, transport seams and local contract tests are `real`; XML-RPC compatibility is `staging_only`; JSON-2 live transport and Odoo staging smoke are `planned/pending`; reads use injected test transport locally.
+- Safety boundary: no ERP write, raw ERP execution, Phase 8 bridge, event ingestion, webhook or polling behavior was added.
+- Exact next allowed phase: Phase 8, Odoo bridge and event ingestion, only after staging read-only smoke and CI/full regression are green. Do not implement Phase 9 or later work in the Phase 8 change.

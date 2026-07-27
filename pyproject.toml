@@ -30,6 +30,7 @@ dev = [
 
 [project.entry-points."erpguard.connectors"]
 fake = "erpguard.connectors.fake.plugin:FakeConnector"
+odoo = "erpguard.connectors.odoo.plugin:OdooConnectorPlugin"
 
 [tool.ruff]
 line-length = 100
