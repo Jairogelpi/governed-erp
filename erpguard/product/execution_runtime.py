@@ -12,14 +12,12 @@ from erpguard.db.repositories import (
     get_execution_request,
     get_execution_run,
     get_latest_skill_version,
-    get_skill,
     list_execution_runs_for_request,
     list_execution_runs_for_skill,
 )
 from erpguard.product.execution_gate import ExecutionGateService
 from erpguard.product.execution_request import ExecutionRequestService
 from erpguard.product.models import (
-    BlockedWriteEvidenceModel,
     ExecutionRunModel,
     SimulatedExecutionPlanModel,
     SimulatedExecutionStepModel,

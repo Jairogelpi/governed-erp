@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 
 from erpguard.db.repositories import (
     create_agent_candidate_approval_event,
-    get_agent_candidate_approval_packet_by_version,
     get_ui_skill_version_record,
 )
 from erpguard.product.agent_candidate_approval_packet import create_approval_packet

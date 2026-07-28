@@ -43,6 +43,7 @@ class UISkillRollbackService:
         try:
             current = get_ui_skill_version_record(db, current_version_id)
             target = get_ui_skill_version_record(db, target_version_id)
+            assert current is not None and target is not None  # plan.is_executable already verified both exist
 
             update_ui_skill_version_status(db, current_version_id, status="rolled_back", is_active=False)
             create_ui_skill_version_lifecycle_event(

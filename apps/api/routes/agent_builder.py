@@ -69,7 +69,7 @@ def configure_inputs(session_id: str, request: ConfigureInputsRequest):
 def configure_steps(session_id: str, request: ConfigureStepsRequest):
     library = AgentBuilderStepLibrary()
     for item in request.steps:
-        step_type = item.get("type") if isinstance(item, dict) else str(item)
+        step_type = str(item.get("type", "")) if isinstance(item, dict) else str(item)
         if step_type in library.forbidden_step_types() or not library.is_allowed(step_type):
             return JSONResponse(
                 status_code=422,

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from erpguard.product.operator_action_plan_intent import PlanIntent
 from erpguard.product.operator_action_plan_prerequisites import PrerequisiteState

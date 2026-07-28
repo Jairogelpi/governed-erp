@@ -8,7 +8,6 @@ from erpguard.core.errors import ObjectNotFoundError
 from erpguard.db.repositories import (
     create_advisory_session,
     get_advisory_session,
-    list_advisory_proposals_for_session,
 )
 
 

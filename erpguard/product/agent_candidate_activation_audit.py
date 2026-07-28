@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from datetime import datetime
 
 from erpguard.db.repositories import (
     get_ui_skill_version_record,
@@ -17,7 +18,7 @@ class ActivationAuditEntry:
     step: str
     status: str
     detail: dict
-    created_at: object
+    created_at: datetime
     source: str  # "activation" or "lifecycle"
 
 
@@ -59,14 +60,14 @@ def get_candidate_activation_audit(
             created_at=r.created_at,
             source="activation",
         ))
-    for r in lifecycle_rows:
+    for lr in lifecycle_rows:
         entries.append(ActivationAuditEntry(
-            event_id=r.id,
-            version_id=r.version_id,
-            step=r.event_type,
-            status=f"{r.from_status}→{r.to_status}",
-            detail={"actor": r.actor, "reason": r.reason},
-            created_at=r.created_at,
+            event_id=lr.id,
+            version_id=lr.version_id,
+            step=lr.event_type,
+            status=f"{lr.from_status}→{lr.to_status}",
+            detail={"actor": lr.actor, "reason": lr.reason},
+            created_at=lr.created_at,
             source="lifecycle",
         ))
 

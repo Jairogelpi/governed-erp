@@ -58,7 +58,6 @@ def compile_recording_to_skill_package(recording, events) -> dict[str, Any]:
     if analysis.readiness != "ready":
         raise ValueError(analysis.diagnostics[0] if analysis.diagnostics else "unsupported_fake_erp_formula_flow")
 
-    order_reference = analysis.order_reference
 
     return {
         "skill_id": "recorded_fake_erp_formula_review",

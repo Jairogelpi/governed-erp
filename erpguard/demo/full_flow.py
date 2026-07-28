@@ -20,7 +20,7 @@ from erpguard.db.repositories import (
 )
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.policies.engine import PolicyEngine
-from erpguard.recorder.browser_recorder import BrowserRuntimeUnavailableError, record_fake_erp_formula_review_flow
+from erpguard.recorder.browser_recorder import record_fake_erp_formula_review_flow
 
 
 _TOKEN_ECONOMICS = {
@@ -169,7 +169,7 @@ def _run_deterministic_skill(*, session, skill_id: str, skill_version_id: str, o
             input_json=_dump({"policy_id": "formula_guard", "policy_version": "0.1.0"}),
             error_text=str(exc),
         )
-        output = {
+        output: dict[str, Any] = {
             "order_reference": order_reference,
             "policy_id": "formula_guard",
             "policy_version": "0.1.0",

@@ -7,7 +7,6 @@ from erpguard.db.repositories import (
     get_agent_draft_handoff_packet_by_id,
     get_agent_handoff_version_link_by_packet,
 )
-from erpguard.db.session import SessionLocal, init_db
 
 _GUARD_DISPLAY = {
     "no_generic_writes": "No generic ERP writes",
@@ -62,7 +61,7 @@ def preview_candidate_version(packet_id: str, session) -> HandoffCandidatePrevie
     packet_data = json.loads(packet.packet_json or "{}")
     sections = {s["section_id"]: s["content"] for s in packet_data.get("sections", [])}
 
-    proposal_data = sections.get("sec_proposal", {})
+    sections.get("sec_proposal", {})
     draft_data = sections.get("sec_draft", {})
     safety_data = sections.get("sec_safety", {})
     readiness_data = sections.get("sec_readiness", {})

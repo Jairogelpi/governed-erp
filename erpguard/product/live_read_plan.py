@@ -55,7 +55,7 @@ _STEPS_BY_OPPORTUNITY_CODE: dict[str, list[dict]] = {
     ],
 }
 
-_DEFAULT_STEPS = [
+_DEFAULT_STEPS: list[dict] = [
     {
         "step_id": "step_01", "odoo_model": "sale.order", "odoo_method": "search_read",
         "fields": ["id", "name", "state"], "domain": [], "limit": 3,

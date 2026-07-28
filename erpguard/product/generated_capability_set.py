@@ -11,6 +11,7 @@ import json
 import uuid
 from dataclasses import dataclass
 from typing import Any
+from typing import List as _List  # `list` is shadowed by GeneratedCapabilitySetService.list
 
 from sqlalchemy.orm import Session
 
@@ -330,9 +331,9 @@ class GeneratedCapabilitySetService:
         adapter_id: str,
         adapter_type: str,
         discovery_plan_id: str,
-        objects: list[dict[str, Any]],
-        fields: list[dict[str, Any]],
-    ) -> list[GeneratedAdapterCapability]:
+        objects: _List[dict[str, Any]],
+        fields: _List[dict[str, Any]],
+    ) -> _List[GeneratedAdapterCapability]:
         capabilities = []
         for obj in objects:
             object_type = obj["object_type"]
@@ -387,7 +388,7 @@ class GeneratedCapabilitySetService:
 
     def _build_blocked_capabilities(
         self, safe_plan: Any
-    ) -> list[GeneratedBlockedCapability]:
+    ) -> _List[GeneratedBlockedCapability]:
         blocked_surface = json.loads(safe_plan.blocked_write_surface_json)
         return [
             GeneratedBlockedCapability(

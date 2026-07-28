@@ -7,8 +7,6 @@ from erpguard.db.repositories import (
     get_ui_replay_run,
     get_ui_skill_version_record,
     list_ui_replay_failures,
-    list_ui_replay_step_audits,
-    list_ui_replay_verifications,
     update_ui_skill_version_status,
 )
 from erpguard.db.session import SessionLocal, init_db

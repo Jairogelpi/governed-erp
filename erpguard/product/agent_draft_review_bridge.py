@@ -56,7 +56,7 @@ def bridge_to_review(draft_id: str, session: Session) -> DraftReviewBridgeResult
     except Exception as exc:
         detail = str(exc)[:200]
         create_agent_draft_bridge_event(
-            session, draft_id, proposal_id, "review", "failed",
+            session, draft_id, proposal_id or draft_id, "review", "failed",
             json.dumps({"error": detail}),
         )
         return DraftReviewBridgeResult(
@@ -70,7 +70,7 @@ def bridge_to_review(draft_id: str, session: Session) -> DraftReviewBridgeResult
     test_cases_count = len(review.test_cases) if review.test_cases else 0
 
     create_agent_draft_bridge_event(
-        session, draft_id, proposal_id, "review", "passed",
+        session, draft_id, proposal_id or draft_id, "review", "passed",
         json.dumps({
             "review_id": review.review_id,
             "guards_count": guards_count,

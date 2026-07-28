@@ -3,12 +3,15 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 
 from apps.api.schemas.agent_candidate_activation_request import (
+    ActivationRequestAuditEventSchema,
     ActivationRequestAuditResponse,
     ActivationRequestBody,
     ActivationRequestEligibilityResponse,
     ActivationRequestResponse,
     ActivationRequestStatusResponse,
+    EligibilityCheckSchema,
     FinalActivationGateResponse,
+    FinalGateCheckSchema,
 )
 from erpguard.db.repositories import get_ui_skill_version_record
 from erpguard.db.session import SessionLocal, init_db
@@ -51,7 +54,7 @@ def get_activation_request_eligibility(version_id: str):
             skill_id=r.skill_id,
             eligible=r.eligible,
             checks=[
-                {"check": c.check, "passed": c.passed, "detail": c.detail}
+                EligibilityCheckSchema(check=c.check, passed=c.passed, detail=c.detail)
                 for c in r.checks
             ],
             blocking_reasons=r.blocking_reasons,
@@ -139,7 +142,7 @@ def get_final_activation_gate(version_id: str):
             gate_passed=r.gate_passed,
             activation_allowed=r.activation_allowed,
             checks=[
-                {"check": c.check, "passed": c.passed, "detail": c.detail}
+                FinalGateCheckSchema(check=c.check, passed=c.passed, detail=c.detail)
                 for c in r.checks
             ],
             blocking_reasons=r.blocking_reasons,
@@ -169,14 +172,14 @@ def get_candidate_activation_request_audit(version_id: str):
             skill_id=r.skill_id,
             event_count=r.event_count,
             events=[
-                {
-                    "event_id": e.event_id,
-                    "version_id": e.version_id,
-                    "step": e.step,
-                    "status": e.status,
-                    "detail": e.detail,
-                    "created_at": e.created_at,
-                }
+                ActivationRequestAuditEventSchema(
+                    event_id=e.event_id,
+                    version_id=e.version_id,
+                    step=e.step,
+                    status=e.status,
+                    detail=e.detail,
+                    created_at=e.created_at,
+                )
                 for e in r.events
             ],
             can_execute=r.can_execute,

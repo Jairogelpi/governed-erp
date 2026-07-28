@@ -13,12 +13,9 @@ from apps.api.schemas.skill_compilation import (
 )
 from erpguard.core.errors import ObjectNotFoundError
 from erpguard.db.repositories import (
-    get_automation_draft,
-    get_automation_draft_review,
     get_latest_skill_version,
     get_skill,
     list_draft_reviews,
-    mark_review_compiled,
 )
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.product.draft_review import DraftReviewService
@@ -96,6 +93,7 @@ def get_compiled_skill_for_draft(draft_id: str):
         compiled_review = next((r for r in reviews if r.status == "compiled" and r.skill_id), None)
         if compiled_review is None:
             return _not_found("compiled_skill_not_found", f"No compiled skill found for draft '{draft_id}'.")
+        assert compiled_review.skill_id is not None  # filtered by `r.skill_id` truthy above
 
         skill_row = get_skill(session, compiled_review.skill_id)
         if skill_row is None:

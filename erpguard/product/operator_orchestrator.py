@@ -50,6 +50,8 @@ class OperatorOrchestrator:
 
         for _ in range(20):
             row = get_operator_session(self.session, session_id)
+            if row is None:
+                break
             step = row.current_step
             if step == "completed" or row.status == "completed":
                 break

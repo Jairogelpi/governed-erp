@@ -21,6 +21,8 @@ class AgentBuilderDraftExporter:
 
         state = AgentBuilderSessionService(self.session).get(session_id)
         preview = AgentBuilderPreviewService(self.session).preview(session_id)
+        if not state.template_id:
+            raise ValueError("agent_builder_template_missing")
         template = SkillTemplateCatalogService().get_template(state.template_id)
         connection_id = state.inputs.get("connection_id") or "builder_connection_pending"
 

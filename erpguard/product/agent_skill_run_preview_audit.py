@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from datetime import datetime
 
 from erpguard.db.repositories import (
     get_ui_skill_version_record,
@@ -16,7 +17,7 @@ class PreviewAuditEvent:
     step: str
     status: str
     detail: dict
-    created_at: object
+    created_at: datetime
 
 
 @dataclass(frozen=True)

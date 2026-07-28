@@ -10,8 +10,6 @@ from erpguard.db.repositories import (
     get_automation_draft,
     get_automation_draft_review,
     get_opportunity,
-    get_opportunity_scan,
-    get_business_snapshot,
     mark_review_compiled,
 )
 from erpguard.product.models import (

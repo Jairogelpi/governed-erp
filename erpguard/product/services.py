@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from uuid import uuid4
 
 from erpguard.adapters.odoo.config import OdooConfig
 from erpguard.adapters.odoo.diagnosis import OdooDiagnosisService
@@ -17,7 +16,6 @@ from erpguard.db.repositories import (
     create_opportunity,
     create_opportunity_scan,
     get_business_snapshot,
-    get_connection,
     get_opportunity,
     get_opportunity_scan,
 )

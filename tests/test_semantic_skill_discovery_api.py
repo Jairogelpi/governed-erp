@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 import uuid
 
-import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import app
@@ -60,7 +59,7 @@ def test_search_returns_200(client=client):
 
 
 def test_search_finds_matching_skill():
-    vid = _make_active_version(name="formula-review-sprint40")
+    _make_active_version(name="formula-review-sprint40")
     r = client.post(f"{BASE}/search", json={"query": "formula review"})
     assert r.status_code == 200
     data = r.json()

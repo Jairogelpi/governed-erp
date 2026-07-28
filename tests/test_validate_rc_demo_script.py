@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import importlib.util
 import os
-import sys
 
 _SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "..", "scripts", "validate_rc_demo.py")
 

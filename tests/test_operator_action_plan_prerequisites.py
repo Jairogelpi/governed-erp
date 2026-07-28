@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
 from erpguard.db.base import Base
-from erpguard.db.models import UISkillVersionRecord
 from erpguard.product.operator_action_plan_prerequisites import inspect_prerequisites
 
 

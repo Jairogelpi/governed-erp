@@ -105,7 +105,7 @@ def test_blocks_missing_setup_session():
 def test_blocks_blocked_setup_session():
     # Create a blocked session
     session_resp = _create_setup_session()
-    session_id = session_resp.json()["session_id"]
+    session_resp.json()["session_id"]
     # Block it by submitting with an invalid URL
     client.post(
         "/v1/operator-console/connectors/setup-session",

@@ -63,10 +63,10 @@ class AgentBuilderSessionService:
         return self._model(row)
 
     def configure_steps(self, session_id: str, steps: list[str | dict]) -> AgentBuilderSessionModel:
-        normalized = []
+        normalized: list[dict] = []
         library = AgentBuilderStepLibrary()
         for item in steps:
-            step_type = item.get("type") if isinstance(item, dict) else str(item)
+            step_type = str(item.get("type", "")) if isinstance(item, dict) else str(item)
             normalized.append({"id": f"step_{len(normalized) + 1}", "type": step_type, "allowed": library.is_allowed(step_type)})
         row = update_agent_builder_session(self.session, session_id, steps_json=json.dumps(normalized, default=str), status="steps_configured")
         self._event(session_id, "steps_configured", {"steps": normalized}, {"status": "steps_configured"})

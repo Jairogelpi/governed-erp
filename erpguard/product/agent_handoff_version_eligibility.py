@@ -7,7 +7,6 @@ from erpguard.db.repositories import (
     get_agent_draft_handoff_packet_by_id,
     get_agent_handoff_version_link_by_packet,
 )
-from erpguard.db.session import SessionLocal, init_db
 
 
 @dataclass(frozen=True)

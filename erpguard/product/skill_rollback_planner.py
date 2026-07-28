@@ -4,7 +4,6 @@ import json
 from dataclasses import dataclass, field
 
 from erpguard.db.repositories import (
-    get_active_ui_skill_version,
     get_ui_skill_version_record,
 )
 from erpguard.db.session import SessionLocal, init_db

@@ -1,4 +1,5 @@
 """Sprint 8 — API integration tests for the first real write pilot."""
+
 from __future__ import annotations
 
 import pytest
@@ -8,40 +9,120 @@ from apps.api.main import app
 
 
 class FakeOdooClient:
-    def version(self): return {"server_version": "19.0-20260513"}
-    def authenticate(self): return 2
+    def version(self):
+        return {"server_version": "19.0-20260513"}
+
+    def authenticate(self):
+        return 2
+
     def search_read(self, model, domain, fields, limit=None):
-        if model == "ir.module.module": return [{"name": "sale"}, {"name": "account"}]
-        if model == "ir.model" and domain == [["model", "in", ["res.users", "ir.module.module", "ir.model", "ir.model.fields", "sale.order", "sale.order.line", "product.product", "product.template", "res.partner", "stock.quant", "stock.move", "stock.picking", "mrp.production", "mrp.bom", "account.move"]]]:
+        if model == "ir.module.module":
+            return [{"name": "sale"}, {"name": "account"}]
+        if model == "ir.model" and domain == [
+            [
+                "model",
+                "in",
+                [
+                    "res.users",
+                    "ir.module.module",
+                    "ir.model",
+                    "ir.model.fields",
+                    "sale.order",
+                    "sale.order.line",
+                    "product.product",
+                    "product.template",
+                    "res.partner",
+                    "stock.quant",
+                    "stock.move",
+                    "stock.picking",
+                    "mrp.production",
+                    "mrp.bom",
+                    "account.move",
+                ],
+            ]
+        ]:
             return [{"model": m} for m in ["res.users", "sale.order", "product.product"]]
-        if model == "ir.model" and domain == [["model", "like", "x_%"]]: return []
-        if model == "sale.order": return [{"id": 42, "name": "S00042", "state": "sale", "order_line": [90], "amount_total": 500.0}]
-        if model == "sale.order.line": return [{"id": 90, "product_id": [15, "P 100ML"], "product_uom_qty": 10, "price_unit": 12.3}]
-        if model == "product.product": return [{"id": 15, "display_name": "P 100ML", "default_code": "P100", "tracking": "none", "standard_price": 9.0}]
+        if model == "ir.model" and domain == [["model", "like", "x_%"]]:
+            return []
+        if model == "sale.order":
+            return [
+                {
+                    "id": 42,
+                    "name": "S00042",
+                    "state": "sale",
+                    "order_line": [90],
+                    "amount_total": 500.0,
+                }
+            ]
+        if model == "sale.order.line":
+            return [
+                {"id": 90, "product_id": [15, "P 100ML"], "product_uom_qty": 10, "price_unit": 12.3}
+            ]
+        if model == "product.product":
+            return [
+                {
+                    "id": 15,
+                    "display_name": "P 100ML",
+                    "default_code": "P100",
+                    "tracking": "none",
+                    "standard_price": 9.0,
+                }
+            ]
         return []
+
     def fields_get(self, model, attributes=None):
-        if model == "sale.order": return {"id": {}, "name": {}, "state": {}, "order_line": {}, "amount_total": {}}
-        if model == "sale.order.line": return {"id": {}, "order_id": {}, "product_id": {}, "product_uom_qty": {}, "price_unit": {}, "price_subtotal": {}}
-        if model == "product.product": return {"id": {}, "display_name": {}, "default_code": {}, "tracking": {}, "standard_price": {}}
-        if model == "product.template": return {"id": {}, "display_name": {}, "default_code": {}}
+        if model == "sale.order":
+            return {"id": {}, "name": {}, "state": {}, "order_line": {}, "amount_total": {}}
+        if model == "sale.order.line":
+            return {
+                "id": {},
+                "order_id": {},
+                "product_id": {},
+                "product_uom_qty": {},
+                "price_unit": {},
+                "price_subtotal": {},
+            }
+        if model == "product.product":
+            return {
+                "id": {},
+                "display_name": {},
+                "default_code": {},
+                "tracking": {},
+                "standard_price": {},
+            }
+        if model == "product.template":
+            return {"id": {}, "display_name": {}, "default_code": {}}
         return {}
+
     def search_count(self, model, domain):
-        if model == "sale.order": return 2
-        if model == "product.product": return 1
+        if model == "sale.order":
+            return 2
+        if model == "product.product":
+            return 1
         return 0
 
 
 class FakeOdooPilotClient:
     """Fake pilot write client for tests — only implements create for mail.message."""
+
     def create(self, model: str, vals: dict) -> int:
         assert model == "mail.message", f"Only mail.message allowed, got {model}"
         return 9999
 
-    def version(self): return {"server_version": "19.0"}
-    def authenticate(self): return 2
-    def search_read(self, model, domain, fields, limit=None): return []
-    def fields_get(self, model, attributes=None): return {}
-    def search_count(self, model, domain): return 0
+    def version(self):
+        return {"server_version": "19.0"}
+
+    def authenticate(self):
+        return 2
+
+    def search_read(self, model, domain, fields, limit=None):
+        return []
+
+    def fields_get(self, model, attributes=None):
+        return {}
+
+    def search_count(self, model, domain):
+        return 0
 
 
 _OPERATOR = {"type": "user", "id": "op1", "display_name": "Demo Operator"}
@@ -60,24 +141,40 @@ _PILOT_BODY = {
 
 def _make_approved_skill(client, monkeypatch):
     monkeypatch.setattr("apps.api.routes.odoo.build_readonly_client", lambda cfg: FakeOdooClient())
-    monkeypatch.setattr("erpguard.product.services.build_readonly_client", lambda cfg: FakeOdooClient())
+    monkeypatch.setattr(
+        "erpguard.product.services.build_readonly_client", lambda cfg: FakeOdooClient()
+    )
 
-    conn = client.post("/v1/odoo/connections", json={
-        "name": "Odoo Demo", "url": "https://empresa.odoo.com", "database": "empresa-prod",
-        "username": "usuario@empresa.com", "api_key": "super-secret",
-        "formula_model": "x_sale_formula_line", "capacity_field": "x_studio_capacidad_ml",
-        "field_mappings": {
-            "product_capacity_ml": "x_studio_capacidad_ml", "formula_sale_line_id": "x_studio_sale_line_id",
-            "formula_fragrance_id": "x_studio_fragancia_id", "formula_ml_per_unit": "x_studio_ml_por_unidad",
-            "formula_ml_total": "x_studio_ml_total_pedido",
+    conn = client.post(
+        "/v1/odoo/connections",
+        json={
+            "name": "Odoo Demo",
+            "url": "https://empresa.odoo.com",
+            "database": "empresa-prod",
+            "username": "usuario@empresa.com",
+            "api_key": "super-secret",
+            "formula_model": "x_sale_formula_line",
+            "capacity_field": "x_studio_capacidad_ml",
+            "field_mappings": {
+                "product_capacity_ml": "x_studio_capacidad_ml",
+                "formula_sale_line_id": "x_studio_sale_line_id",
+                "formula_fragrance_id": "x_studio_fragancia_id",
+                "formula_ml_per_unit": "x_studio_ml_por_unidad",
+                "formula_ml_total": "x_studio_ml_total_pedido",
+            },
         },
-    })
+    )
     assert conn.status_code == 200
     connection_id = conn.json()["connection_id"]
 
-    analysis = client.post(f"/v1/product/connections/{connection_id}/analyze", json={
-        "include_samples": True, "sample_limits": {"sales_orders": 5, "products": 5, "custom_fields": 50}, "max_opportunities": 5,
-    })
+    analysis = client.post(
+        f"/v1/product/connections/{connection_id}/analyze",
+        json={
+            "include_samples": True,
+            "sample_limits": {"sales_orders": 5, "products": 5, "custom_fields": 50},
+            "max_opportunities": 5,
+        },
+    )
     assert analysis.status_code == 200
     opportunity_id = analysis.json()["opportunities"][0]["opportunity_id"]
 
@@ -92,14 +189,24 @@ def _make_approved_skill(client, monkeypatch):
     proof = client.post(f"/v1/product/skills/{skill_id}/dry-run-proof")
     assert proof.status_code == 200
 
-    req = client.post(f"/v1/product/skills/{skill_id}/approval-request", json={
-        "requested_by": _OPERATOR, "reason": "Ready for governance approval.", "context": {},
-    })
+    req = client.post(
+        f"/v1/product/skills/{skill_id}/approval-request",
+        json={
+            "requested_by": _OPERATOR,
+            "reason": "Ready for governance approval.",
+            "context": {},
+        },
+    )
     assert req.status_code == 200
 
-    decision = client.post(f"/v1/product/skills/{skill_id}/approval-decision", json={
-        "decided_by": _APPROVER_1, "decision": "approve", "reason": "Guards verified.",
-    })
+    decision = client.post(
+        f"/v1/product/skills/{skill_id}/approval-decision",
+        json={
+            "decided_by": _APPROVER_1,
+            "decision": "approve",
+            "reason": "Guards verified.",
+        },
+    )
     assert decision.status_code == 200
 
     gate = client.post(f"/v1/product/skills/{skill_id}/activation-gate")
@@ -123,6 +230,7 @@ def _make_certified_skill(client, monkeypatch):
 # ---------------------------------------------------------------------------
 # Pilot request
 # ---------------------------------------------------------------------------
+
 
 def test_create_write_pilot_request(monkeypatch):
     client = TestClient(app)
@@ -162,6 +270,7 @@ def test_pilot_request_rejected_for_unknown_skill():
 # Policy check
 # ---------------------------------------------------------------------------
 
+
 def test_policy_check_blocked_by_default(monkeypatch):
     client = TestClient(app)
     skill_id = _make_approved_skill(client, monkeypatch)
@@ -191,6 +300,7 @@ def test_policy_check_unknown_request():
 # ---------------------------------------------------------------------------
 # Execution — blocked by default
 # ---------------------------------------------------------------------------
+
 
 def test_execute_blocked_by_feature_flag(monkeypatch):
     client = TestClient(app)
@@ -232,14 +342,19 @@ def test_execute_idempotent_returns_same_run(monkeypatch):
 # Execution — with feature flag enabled (monkeypatched)
 # ---------------------------------------------------------------------------
 
+
 def test_execute_succeeds_when_flag_enabled(monkeypatch):
     client = TestClient(app)
     skill_id = _make_certified_skill(client, monkeypatch)
     monkeypatch.setattr("erpguard.product.write_pilot_executor._ALLOW_R1_REAL_WRITE_PILOT", True)
     monkeypatch.setattr("erpguard.product.write_pilot_policy._ALLOW_R1_REAL_WRITE_PILOT", True)
-    monkeypatch.setattr("erpguard.product.write_pilot_executor.build_pilot_write_client", lambda cfg: FakeOdooPilotClient())
+    monkeypatch.setattr(
+        "erpguard.product.write_pilot_executor.build_pilot_write_client",
+        lambda cfg: FakeOdooPilotClient(),
+    )
 
     import uuid
+
     unique_body = dict(_PILOT_BODY)
     unique_body["payload"] = {"body": f"<p>Pilot test {uuid.uuid4().hex}</p>"}
 
@@ -259,7 +374,10 @@ def test_execute_succeeds_when_flag_enabled(monkeypatch):
 
 
 def test_execute_forbidden_model_raises(monkeypatch):
-    from erpguard.adapters.odoo.pilot_write_client import OdooPilotWriteClient, PilotWriteViolationError
+    from erpguard.adapters.odoo.pilot_write_client import (
+        OdooPilotWriteClient,
+        PilotWriteViolationError,
+    )
 
     class FakeInner:
         def _execute_kw(self, model, method, args, kwargs):
@@ -273,6 +391,7 @@ def test_execute_forbidden_model_raises(monkeypatch):
 # ---------------------------------------------------------------------------
 # Get run & evidence
 # ---------------------------------------------------------------------------
+
 
 def test_get_write_pilot_run(monkeypatch):
     client = TestClient(app)
@@ -332,6 +451,7 @@ def test_evidence_always_has_idempotency_key(monkeypatch):
 # History
 # ---------------------------------------------------------------------------
 
+
 def test_write_pilot_history(monkeypatch):
     client = TestClient(app)
     skill_id = _make_approved_skill(client, monkeypatch)
@@ -351,6 +471,7 @@ def test_write_pilot_history(monkeypatch):
 # ---------------------------------------------------------------------------
 # Security invariants — feature flags always false in all responses
 # ---------------------------------------------------------------------------
+
 
 def test_run_always_has_generic_writes_disabled(monkeypatch):
     client = TestClient(app)

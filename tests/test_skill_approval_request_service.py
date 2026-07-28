@@ -1,12 +1,8 @@
-import json
-
 from erpguard.canonical.enums import ERPType
 from erpguard.adapters.odoo.config import OdooConfig
 from erpguard.db.repositories import (
     create_connection,
     get_approval_request,
-    get_latest_approval_request_for_skill,
-    list_approval_requests_for_skill,
 )
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.product.approval_request import ApprovalRequestService
@@ -17,25 +13,41 @@ from erpguard.product.skill_package_builder import SkillPackageBuilder
 
 
 class FakeOdooClient:
-    def version(self): return {"server_version": "19.0-test"}
-    def authenticate(self): return 1
+    def version(self):
+        return {"server_version": "19.0-test"}
+
+    def authenticate(self):
+        return 1
+
     def search_read(self, model, domain, fields, limit=None):
-        if model == "ir.module.module": return [{"name": "sale"}]
-        if model == "ir.model": return [{"model": "sale.order"}]
-        if model == "sale.order": return [{"id": 1, "name": "S001", "state": "sale", "order_line": []}]
-        if model == "product.product": return [{"id": 1, "display_name": "Prod", "default_code": "P1"}]
+        if model == "ir.module.module":
+            return [{"name": "sale"}]
+        if model == "ir.model":
+            return [{"model": "sale.order"}]
+        if model == "sale.order":
+            return [{"id": 1, "name": "S001", "state": "sale", "order_line": []}]
+        if model == "product.product":
+            return [{"id": 1, "display_name": "Prod", "default_code": "P1"}]
         return []
-    def fields_get(self, model, attributes=None): return {"id": {}, "name": {}}
+
+    def fields_get(self, model, attributes=None):
+        return {"id": {}, "name": {}}
+
     def search_count(self, model, domain):
-        if model == "sale.order": return 1
-        if model == "product.product": return 1
+        if model == "sale.order":
+            return 1
+        if model == "product.product":
+            return 1
         return 0
 
 
 _CONFIG = {
-    "url": "https://example.odoo.com", "database": "demo",
-    "username": "user@example.com", "api_key": "secret",
-    "formula_model": "x_sale_formula_line", "capacity_field": "x_studio_capacidad_ml",
+    "url": "https://example.odoo.com",
+    "database": "demo",
+    "username": "user@example.com",
+    "api_key": "secret",
+    "formula_model": "x_sale_formula_line",
+    "capacity_field": "x_studio_capacidad_ml",
     "field_mappings": {},
 }
 
@@ -43,11 +55,15 @@ _CONFIG = {
 def _make_compiled_skill(monkeypatch):
     init_db()
     session = SessionLocal()
-    monkeypatch.setattr("erpguard.product.services.build_readonly_client", lambda cfg: FakeOdooClient())
+    monkeypatch.setattr(
+        "erpguard.product.services.build_readonly_client", lambda cfg: FakeOdooClient()
+    )
     connection = create_connection(session, "Odoo", erp_type=ERPType.ODOO, config=_CONFIG)
     config = OdooConfig.model_validate(_CONFIG)
     result = BusinessAnalysisService(session, connection, config).analyze(BusinessAnalysisRequest())
-    draft = BusinessAnalysisService(session, connection, config).draft(result.opportunities[0].opportunity_id)
+    draft = BusinessAnalysisService(session, connection, config).draft(
+        result.opportunities[0].opportunity_id
+    )
     review = DraftReviewService(session).create(draft.draft_id)
     compiled = SkillPackageBuilder(session).build(review.review_id)
     return session, compiled.skill_id

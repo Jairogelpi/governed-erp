@@ -43,7 +43,6 @@ class TestOdooR2WriteClient:
         assert "website" in R2_ALLOWED_WRITE_FIELDS
 
     def test_disallowed_model_raises(self, monkeypatch):
-        from erpguard.adapters.odoo.client import OdooClient
         from erpguard.adapters.odoo.readonly_client import OdooReadOnlyClient
         mock_client = object.__new__(OdooReadOnlyClient)
         client = object.__new__(OdooR2WriteClient)

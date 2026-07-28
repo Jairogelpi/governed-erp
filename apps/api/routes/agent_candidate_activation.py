@@ -3,6 +3,8 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 
 from apps.api.schemas.agent_candidate_activation import (
+    ActivationAuditEntrySchema,
+    ActivationCheckSchema,
     ActivationRequestBody,
     CandidateActivationAuditResponse,
     CandidateActivationEligibilityResponse,
@@ -49,7 +51,7 @@ def get_activation_eligibility(version_id: str):
             skill_id=r.skill_id,
             eligible=r.eligible,
             checks=[
-                {"check": c.check, "passed": c.passed, "detail": c.detail}
+                ActivationCheckSchema(check=c.check, passed=c.passed, detail=c.detail)
                 for c in r.checks
             ],
             blocking_reasons=r.blocking_reasons,
@@ -137,15 +139,15 @@ def get_activation_audit(version_id: str):
             event_count=r.event_count,
             lifecycle_event_count=r.lifecycle_event_count,
             entries=[
-                {
-                    "event_id": e.event_id,
-                    "version_id": e.version_id,
-                    "step": e.step,
-                    "status": e.status,
-                    "detail": e.detail,
-                    "created_at": e.created_at,
-                    "source": e.source,
-                }
+                ActivationAuditEntrySchema(
+                    event_id=e.event_id,
+                    version_id=e.version_id,
+                    step=e.step,
+                    status=e.status,
+                    detail=e.detail,
+                    created_at=e.created_at,
+                    source=e.source,
+                )
                 for e in r.entries
             ],
             can_execute=r.can_execute,

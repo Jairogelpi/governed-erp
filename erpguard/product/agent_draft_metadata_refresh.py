@@ -2,18 +2,15 @@ from __future__ import annotations
 
 import json
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from erpguard.db.repositories import (
     create_clarification_audit_event,
-    get_advisory_proposal,
     get_agent_proposal_draft_link_by_draft,
-    get_agent_proposal_draft_link_by_proposal,
     get_automation_draft,
     list_clarification_answers_for_proposal,
     list_mapping_confirmations_for_proposal,
-    update_advisory_proposal,
 )
 
 

@@ -133,7 +133,6 @@ class TestOperatorOrchestrator:
         # Need a real review to compile — create one via the draft review service
         # First create a compiled skill set-up via the product chain
         # We'll inject skill_id directly to test steps after compile
-        from erpguard.db.repositories import create_operator_session
         # Just test that the orchestrator handles missing skill_id gracefully
         update_operator_session(
             db_session,
@@ -180,7 +179,6 @@ class TestOperatorOrchestrator:
         assert "blocked" in result["message"].lower()
 
     def test_completed_session_returns_immediately(self, db_session):
-        import json
         from erpguard.db.repositories import update_operator_session
         svc = OperatorSessionService(db_session)
         session = svc.create()

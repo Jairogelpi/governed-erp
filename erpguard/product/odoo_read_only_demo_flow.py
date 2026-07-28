@@ -234,7 +234,7 @@ class OdooReadOnlyDemoFlowService:
                         object_type,
                         mapping.status,
                         read_mapping_id=mapping.read_mapping_id,
-                        blocking_reasons=["read_mapping_failed", *mapping.blocking_reasons],
+                        blocking_reasons=["read_mapping_failed", *(mapping.blocking_reasons or [])],
                     )
                 )
                 continue

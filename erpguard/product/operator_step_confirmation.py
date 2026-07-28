@@ -98,6 +98,7 @@ def confirm_token(token_id: str, session) -> ConfirmTokenResult:
 
     now = datetime.now(timezone.utc)
     updated = confirm_action_plan_step_token(session, token_id, confirmed_at=now)
+    assert updated is not None  # token was just verified to exist above
     return ConfirmTokenResult(
         token_id=token_id,
         plan_id=updated.plan_id,

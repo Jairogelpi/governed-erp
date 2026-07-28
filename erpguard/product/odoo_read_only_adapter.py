@@ -141,6 +141,7 @@ class OdooReadOnlyAdapterService:
             )
             return result
 
+        assert activation is not None  # reason is None only reachable past the activation-None branch above
         adapter_session_id = f"odoo_ro_{uuid.uuid4().hex[:12]}"
         row = create_odoo_read_only_adapter_session(
             self.session,

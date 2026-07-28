@@ -54,9 +54,8 @@ def evaluate_manual_dry_run_gate(req: ManualDryRunGateRequest, session) -> Manua
         blocking.append("actor_required")
 
     version = get_ui_skill_version_record(session, req.version_id)
-    version_ok = version is not None
-    checks.append({"check": "version_exists", "ok": version_ok})
-    if not version_ok:
+    checks.append({"check": "version_exists", "ok": version is not None})
+    if version is None:
         blocking.append("version_not_found")
         return ManualDryRunGateResult(
             version_id=req.version_id,

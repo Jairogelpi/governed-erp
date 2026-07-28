@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from erpguard.db.repositories import (
     create_agent_candidate_approval_event,

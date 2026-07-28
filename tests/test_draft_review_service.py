@@ -1,4 +1,3 @@
-import json
 
 from erpguard.canonical.enums import ERPType
 from erpguard.adapters.odoo.config import OdooConfig

@@ -8,7 +8,6 @@ from erpguard.db.models import ActionPlanStepToken, UISkillVersionRecord
 from erpguard.db.repositories import (
     create_action_plan_step_token,
     create_active_skill_run,
-    get_active_skill_run,
     update_active_skill_run,
 )
 from erpguard.db.session import SessionLocal, init_db

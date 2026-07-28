@@ -16,7 +16,6 @@ from erpguard.db.repositories import (
 )
 from erpguard.product.agent_draft_preview import DraftPreview, preview_draft
 from erpguard.product.agent_draft_safety_policy import enforce_draft_safety
-from erpguard.product.agent_mapping_completeness import check_mapping_completeness
 from erpguard.product.agent_proposal_eligibility import check_eligibility
 from erpguard.product.agent_proposal_to_draft import transform_proposal_to_draft
 

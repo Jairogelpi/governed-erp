@@ -9,14 +9,11 @@ from apps.api.schemas.product import (
     ProductAnalysisRequest,
     ProductAnalysisResponse,
     ProductAutomationDraftResponse,
-    ProductAnalysisOpportunityResponse,
     ProductAnalysisSnapshotResponse,
     ProductOpportunityScanResponse,
 )
 from erpguard.adapters.odoo.config import OdooConfig
-from erpguard.adapters.odoo.readonly_client import build_readonly_client
 from erpguard.canonical.enums import ERPType
-from erpguard.core.errors import AdapterConfigurationError
 from erpguard.db.repositories import get_connection, get_automation_draft, get_business_snapshot, get_opportunity, get_opportunity_scan
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.product.services import BusinessAnalysisService

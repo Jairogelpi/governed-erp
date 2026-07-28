@@ -7,6 +7,7 @@ from typing import Any
 from erpguard.product.operator_action_dispatch_eligibility import check_eligibility
 from erpguard.product.operator_action_dispatch_execution_audit import persist_dispatch_execution_event
 from erpguard.product.operator_action_dispatch_handlers import (
+    InternalReadOnlyHandlerResult,
     list_dispatchable_actions,
     run_internal_read_only_handler,
 )
@@ -15,6 +16,7 @@ from erpguard.product.operator_action_dispatch_result import (
     persist_dispatch_result,
 )
 from erpguard.product.operator_action_governance_mutation_handlers import (
+    InternalGovernanceMutationHandlerResult,
     list_governance_mutation_actions,
     run_internal_governance_mutation_handler,
 )
@@ -178,6 +180,7 @@ def dispatch_confirmed_action(
         "version_id": request.version_id or request.parameters.get("version_id"),
     }
 
+    handler_result: InternalReadOnlyHandlerResult | InternalGovernanceMutationHandlerResult
     try:
         if handler_type == "internal_read_only":
             handler_result = run_internal_read_only_handler(
@@ -277,6 +280,7 @@ def dispatch_confirmed_action(
             underlying_artifact_id = str(
                 handler_result.result_payload.get("version_id") or handler_result.result_payload.get("skill_id") or ""
             ).strip() or None
+        assert isinstance(handler_result, InternalGovernanceMutationHandlerResult)
         completed_detail.update(
             {
                 "previous_state": handler_result.previous_state,

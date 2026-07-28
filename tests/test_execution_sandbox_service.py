@@ -1,7 +1,6 @@
 """Sprint 5 — unit tests for execution sandbox services."""
 from __future__ import annotations
 
-import json
 from uuid import uuid4
 
 import pytest

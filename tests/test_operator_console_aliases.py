@@ -1,7 +1,6 @@
 """Sprint 41B — Operator Console spec-compatible alias endpoint tests."""
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import app

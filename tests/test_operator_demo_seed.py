@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pytest
 from erpguard.product.operator_demo_seed import OperatorDemoSeedService
 
 

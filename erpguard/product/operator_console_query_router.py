@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
-from erpguard.product.agent_recommendation_engine import get_recommendations
 from erpguard.product.governance_gap_explainer import explain_governance_gaps
 from erpguard.product.operator_next_step_recommender import recommend_next_steps
 from erpguard.product.semantic_skill_discovery import search_skills
@@ -27,6 +26,7 @@ def route_intent(
     version_id: str | None = None,
 ) -> RoutedResult:
     """Route a classified intent to the correct Sprint 40 service — reads only."""
+    r: Any
     if intent == "list_active_skills":
         r = search_skills("", session, active_only=True, limit=20)
         return RoutedResult(result_type="skill_list", data=r)

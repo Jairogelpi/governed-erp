@@ -53,7 +53,6 @@ class IntentClassification:
 def classify_intent(query: str) -> IntentClassification:
     """Rule-based intent classifier — no LLM, purely deterministic."""
     lower = query.lower()
-    tokens = set(lower.replace("?", "").replace("¿", "").split())
     best_intent = "search_skills"
     best_score = 0.0
     best_keywords: list[str] = []

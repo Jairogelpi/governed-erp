@@ -10,7 +10,6 @@ from erpguard.db.repositories import (
     get_ui_skill_version_record,
     update_ui_skill_version_status,
 )
-from erpguard.db.session import SessionLocal, init_db
 
 
 @dataclass(frozen=True)

@@ -13,8 +13,8 @@ from erpguard.db.repositories import (
     get_ui_compiled_skill,
 )
 from erpguard.db.session import SessionLocal, init_db
-from erpguard.product.ui_replay_runtime import UIReplayRuntime, UIReplayStepResult, UIReplayResult, _FAKE_ERP_MARKER, _KNOWN_ORDERS
-from erpguard.product.ui_replay_verifier import UIReplayVerifier, StepVerification
+from erpguard.product.ui_replay_runtime import UIReplayRuntime, _FAKE_ERP_MARKER
+from erpguard.product.ui_replay_verifier import UIReplayVerifier
 
 _base_runtime = UIReplayRuntime()
 _verifier = UIReplayVerifier()

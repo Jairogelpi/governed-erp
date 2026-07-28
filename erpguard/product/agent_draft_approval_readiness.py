@@ -104,8 +104,8 @@ def check_approval_readiness(draft_id: str, session: Session) -> ApprovalReadine
 
     handoff_events = list_agent_draft_handoff_events_for_draft(session, draft_id)
     handoff_status: dict[str, str] = {}
-    for ev in handoff_events:
-        handoff_status[ev.step] = ev.status
+    for hev in handoff_events:
+        handoff_status[hev.step] = hev.status
 
     proof_ok = handoff_status.get("proof_plan") == "passed"
     checklist.append(ReadinessCheckItem(

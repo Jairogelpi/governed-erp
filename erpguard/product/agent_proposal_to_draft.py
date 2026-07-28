@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 _DRAFT_RUNTIME_MODE = "dry_run_only"

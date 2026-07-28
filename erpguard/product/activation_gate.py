@@ -7,7 +7,6 @@ from erpguard.db.repositories import (
     create_activation_gate_evaluation,
     get_latest_approval_request_for_skill,
     get_latest_dry_run_proof_for_skill,
-    get_latest_gate_evaluation,
     get_latest_skill_version,
     get_skill,
     list_approval_decisions_for_skill,

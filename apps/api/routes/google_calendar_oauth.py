@@ -12,13 +12,15 @@ from apps.api.schemas.google_calendar_oauth import (
     RevokeResponse,
     ScopeVerificationResponse,
 )
+from sqlalchemy.orm import Session
+
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.product.google_calendar_oauth import GoogleCalendarOAuthService
 
 router = APIRouter(prefix="/v1/oauth/google-calendar", tags=["google-calendar-oauth"])
 
 
-def _svc() -> tuple[GoogleCalendarOAuthService, object]:
+def _svc() -> tuple[GoogleCalendarOAuthService, Session]:
     init_db()
     session = SessionLocal()
     return GoogleCalendarOAuthService(session), session

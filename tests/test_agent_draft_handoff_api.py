@@ -1,7 +1,6 @@
 """Sprint 32 — API integration tests for the agent draft handoff endpoints."""
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import app

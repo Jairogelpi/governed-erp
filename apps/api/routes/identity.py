@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import cast
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -10,6 +11,7 @@ from apps.api.schemas.identity import (
     CurrentUserResponse,
     MembershipCreateRequest,
     MembershipResponse,
+    RoleName,
 )
 from erpguard.db.model_packages.identity import IdentityMembership, IdentityUser
 from erpguard.domain.identity.auth import Principal
@@ -25,7 +27,7 @@ def get_current_user_endpoint(
     return CurrentUserResponse(
         user_id=principal.user_id,
         tenant_id=principal.tenant_id,
-        role_name=principal.role_name,
+        role_name=cast(RoleName, principal.role_name),
     )
 
 
@@ -69,7 +71,7 @@ def add_membership_endpoint(
         membership_id=membership.id,
         user_id=membership.user_id,
         tenant_id=membership.tenant_id,
-        role_name=membership.role_name,
+        role_name=cast(RoleName, membership.role_name),
         actor_id=principal.user_id,
     )
 

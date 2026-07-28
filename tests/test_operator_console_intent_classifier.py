@@ -1,7 +1,6 @@
 """Sprint 41 — Operator Console Intent Classifier unit tests."""
 from __future__ import annotations
 
-import pytest
 
 from erpguard.product.operator_console_intent_classifier import classify_intent, list_supported_intents
 

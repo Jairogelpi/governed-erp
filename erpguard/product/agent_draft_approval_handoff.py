@@ -97,7 +97,7 @@ def create_approval_handoff_packet(
     proposal = get_advisory_proposal(session, proposal_id) if proposal_id else None
 
     bridge_events = list_agent_draft_bridge_events_for_draft(session, draft_id)
-    handoff_events = list_agent_draft_handoff_events_for_draft(session, draft_id)
+    list_agent_draft_handoff_events_for_draft(session, draft_id)
 
     def _bridge_step(step: str) -> dict:
         latest = next((e for e in reversed(bridge_events) if e.step == step), None)

@@ -1,13 +1,9 @@
 import json
-import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from erpguard.db.base import Base
 from erpguard.db.repositories import (
-    create_advisory_proposal,
-    create_advisory_session,
-    create_agent_proposal_draft_link,
     create_agent_draft_bridge_event,
     create_automation_draft,
 )

@@ -5,10 +5,8 @@ import json
 from erpguard.core.errors import ObjectNotFoundError
 from erpguard.db.repositories import (
     create_skill_dry_run_proof,
-    get_automation_draft_review,
     get_latest_skill_version,
     get_skill,
-    get_latest_dry_run_proof_for_skill,
 )
 from erpguard.product.models import DryRunProofModel, DryRunCaseResultModel
 

@@ -1,7 +1,6 @@
 """Sprint 35 — Agent Candidate Approval API integration tests."""
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import app
@@ -43,11 +42,8 @@ def test_approval_audit_404():
 
 def test_promotion_readiness_schema():
     """If a version exists, response has required safety fields."""
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-    from sqlalchemy.pool import StaticPool
-    import json, uuid
-    from erpguard.db.base import Base
+    import json
+    import uuid
     from erpguard.db.models import UISkillVersionRecord
     from erpguard.db.session import SessionLocal, init_db
 
@@ -87,7 +83,8 @@ def test_promotion_readiness_schema():
 
 def test_full_approval_pipeline():
     """End-to-end: readiness → completeness → risk → packet → request → audit."""
-    import json, uuid
+    import json
+    import uuid
     from erpguard.db.models import UISkillVersionRecord
     from erpguard.db.session import SessionLocal, init_db
     from erpguard.product.agent_candidate_evidence_completeness import _REQUIRED_EVIDENCE_SOURCES

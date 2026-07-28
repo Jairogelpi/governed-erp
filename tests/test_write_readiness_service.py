@@ -5,7 +5,6 @@ import pytest
 
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.product.write_risk_matrix import WriteRiskMatrix
-from erpguard.product.write_candidate_detector import WriteCandidateDetector
 from erpguard.product.models import WriteDetectedCandidateModel
 
 

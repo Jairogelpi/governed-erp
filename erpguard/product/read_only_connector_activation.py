@@ -199,6 +199,7 @@ class ReadOnlyConnectorActivationService:
             )
             return result
 
+        assert capability_set is not None  # reason is None only reachable past the capability_set-None branch above
         activation_request_id = f"roactreq_{uuid.uuid4().hex[:12]}"
         row = create_read_only_activation_request(
             self.session,

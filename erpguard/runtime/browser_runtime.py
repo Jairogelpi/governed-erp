@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Any
 from urllib.parse import urljoin
 
-from erpguard.canonical.enums import CanonicalAction, PreflightDecision, RiskLevel, SalesOrderState, ProductTracking, ProductType
+from erpguard.canonical.enums import CanonicalAction, PreflightDecision, SalesOrderState, ProductTracking, ProductType
 from erpguard.canonical.objects import Company, Customer, FormulaLine, Product, SalesOrder, SalesOrderLine
 from erpguard.core.errors import ObjectNotFoundError
 from erpguard.policies.engine import PolicyEngine
@@ -43,7 +43,7 @@ class BrowserRuntimeUnavailableError(RuntimeError):
 
 def is_playwright_browser_available() -> bool:
     try:
-        from playwright.sync_api import sync_playwright
+        from playwright.sync_api import sync_playwright  # type: ignore[import-not-found]
     except Exception:
         return False
 
@@ -65,7 +65,7 @@ def run_fake_erp_formula_skill_ui(base_url: str, order_reference: str) -> Browse
 
     base_url = base_url.rstrip("/")
     orders_url = urljoin(base_url + "/", "fake-erp/sales/orders")
-    detail_url = urljoin(base_url + "/", f"fake-erp/sales/orders/{order_reference}")
+    urljoin(base_url + "/", f"fake-erp/sales/orders/{order_reference}")
     formula_url = urljoin(base_url + "/", f"fake-erp/sales/orders/{order_reference}/formula")
     selectors_used: list[str] = []
     visited_urls: list[str] = []

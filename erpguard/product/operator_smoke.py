@@ -41,6 +41,8 @@ class OperatorSmokeService:
 
         # 4 — Advance operator flow (awaiting_tenant step)
         try:
+            if session_id is None:
+                raise ValueError("No operator session was created")
             orch = OperatorOrchestrator(self.session)
             result = orch.run_next(session_id)
             checks.append(_ok("operator_flow_advance", f"Step advanced: {result.get('message', 'ok')} → now at {result.get('current_step')}"))
@@ -69,7 +71,7 @@ class OperatorSmokeService:
 
         # 7 — R2 policy service importable
         try:
-            from erpguard.product.r2_write_policy import R2WritePilotPolicyService, _ALLOW_R2_REAL_WRITE_PILOT
+            from erpguard.product.r2_write_policy import _ALLOW_R2_REAL_WRITE_PILOT
             assert not _ALLOW_R2_REAL_WRITE_PILOT
             checks.append(_ok("r2_pilot_flag_default_off", "ALLOW_R2_REAL_WRITE_PILOT=false confirmed."))
         except Exception as exc:

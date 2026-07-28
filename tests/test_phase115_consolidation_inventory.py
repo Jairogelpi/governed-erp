@@ -3,11 +3,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from apps.api.main import app
+from apps.api.app_factory import create_public_app
 
 
 ROOT = Path(__file__).resolve().parents[1]
 INVENTORY = ROOT / "artifacts" / "consolidation"
+app = create_public_app(include_internal=False)
 
 
 def _route_signature_from_app() -> list[dict[str, object]]:

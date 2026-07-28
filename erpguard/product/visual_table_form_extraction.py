@@ -64,7 +64,7 @@ class VisualTableFormExtractionService:
         redacted: list[str] = []
         extraction_goal = _sanitize_text(input.extraction_goal, "extraction_goal", redacted)
 
-        structures = {
+        structures: dict[str, list] = {
             "tables": [],
             "forms": [],
             "buttons": [],
@@ -137,9 +137,12 @@ class VisualTableFormExtractionService:
 
     def _credential_value_reason(self, observation: Any) -> str | None:
         for form in _json_list(observation.detected_forms_json):
-            for field in _form_fields(form):
-                value_keys = VALUE_KEYS.intersection(field.keys())
-                if value_keys and (_is_credential_field(field) or any(field.get(key) == "<redacted>" for key in value_keys)):
+            for form_field in _form_fields(form):
+                value_keys = VALUE_KEYS.intersection(form_field.keys())
+                if value_keys and (
+                    _is_credential_field(form_field)
+                    or any(form_field.get(key) == "<redacted>" for key in value_keys)
+                ):
                     return "credential_value_detected"
         return None
 
@@ -201,8 +204,8 @@ def _derive_structures(observation: Any, redacted: list[str]) -> dict[str, list[
             hints[likely] = {"object_type": likely, "source": "table_columns", "confidence": confidence}
     for index, form in enumerate(_json_list(observation.detected_forms_json)):
         form_fields = []
-        for field_index, field in enumerate(_form_fields(form)):
-            candidate = _field_metadata(field, f"forms[{index}].fields[{field_index}]", redacted)
+        for field_index, form_field in enumerate(_form_fields(form)):
+            candidate = _field_metadata(form_field, f"forms[{index}].fields[{field_index}]", redacted)
             form_fields.append(candidate)
             fields.append(candidate)
         labels = [field.get("field_label", "") for field in form_fields]

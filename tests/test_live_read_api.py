@@ -1,33 +1,103 @@
 """Sprint 6 — API integration tests for controlled real read execution."""
+
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import app
 
 
 class FakeOdooClient:
-    def version(self): return {"server_version": "19.0-20260513"}
-    def authenticate(self): return 2
+    def version(self):
+        return {"server_version": "19.0-20260513"}
+
+    def authenticate(self):
+        return 2
+
     def search_read(self, model, domain, fields, limit=None):
-        if model == "ir.module.module": return [{"name": "sale"}, {"name": "account"}]
-        if model == "ir.model" and domain == [["model", "in", ["res.users", "ir.module.module", "ir.model", "ir.model.fields", "sale.order", "sale.order.line", "product.product", "product.template", "res.partner", "stock.quant", "stock.move", "stock.picking", "mrp.production", "mrp.bom", "account.move"]]]:
+        if model == "ir.module.module":
+            return [{"name": "sale"}, {"name": "account"}]
+        if model == "ir.model" and domain == [
+            [
+                "model",
+                "in",
+                [
+                    "res.users",
+                    "ir.module.module",
+                    "ir.model",
+                    "ir.model.fields",
+                    "sale.order",
+                    "sale.order.line",
+                    "product.product",
+                    "product.template",
+                    "res.partner",
+                    "stock.quant",
+                    "stock.move",
+                    "stock.picking",
+                    "mrp.production",
+                    "mrp.bom",
+                    "account.move",
+                ],
+            ]
+        ]:
             return [{"model": m} for m in ["res.users", "sale.order", "product.product"]]
-        if model == "ir.model" and domain == [["model", "like", "x_%"]]: return []
-        if model == "sale.order": return [{"id": 42, "name": "S00042", "state": "sale", "order_line": [90], "amount_total": 500.0}]
-        if model == "sale.order.line": return [{"id": 90, "product_id": [15, "P 100ML"], "product_uom_qty": 10, "price_unit": 12.3}]
-        if model == "product.product": return [{"id": 15, "display_name": "P 100ML", "default_code": "P100", "tracking": "none", "standard_price": 9.0}]
+        if model == "ir.model" and domain == [["model", "like", "x_%"]]:
+            return []
+        if model == "sale.order":
+            return [
+                {
+                    "id": 42,
+                    "name": "S00042",
+                    "state": "sale",
+                    "order_line": [90],
+                    "amount_total": 500.0,
+                }
+            ]
+        if model == "sale.order.line":
+            return [
+                {"id": 90, "product_id": [15, "P 100ML"], "product_uom_qty": 10, "price_unit": 12.3}
+            ]
+        if model == "product.product":
+            return [
+                {
+                    "id": 15,
+                    "display_name": "P 100ML",
+                    "default_code": "P100",
+                    "tracking": "none",
+                    "standard_price": 9.0,
+                }
+            ]
         return []
+
     def fields_get(self, model, attributes=None):
-        if model == "sale.order": return {"id": {}, "name": {}, "state": {}, "order_line": {}, "amount_total": {}}
-        if model == "sale.order.line": return {"id": {}, "order_id": {}, "product_id": {}, "product_uom_qty": {}, "price_unit": {}, "price_subtotal": {}}
-        if model == "product.product": return {"id": {}, "display_name": {}, "default_code": {}, "tracking": {}, "standard_price": {}}
-        if model == "product.template": return {"id": {}, "display_name": {}, "default_code": {}}
+        if model == "sale.order":
+            return {"id": {}, "name": {}, "state": {}, "order_line": {}, "amount_total": {}}
+        if model == "sale.order.line":
+            return {
+                "id": {},
+                "order_id": {},
+                "product_id": {},
+                "product_uom_qty": {},
+                "price_unit": {},
+                "price_subtotal": {},
+            }
+        if model == "product.product":
+            return {
+                "id": {},
+                "display_name": {},
+                "default_code": {},
+                "tracking": {},
+                "standard_price": {},
+            }
+        if model == "product.template":
+            return {"id": {}, "display_name": {}, "default_code": {}}
         return {}
+
     def search_count(self, model, domain):
-        if model == "sale.order": return 2
-        if model == "product.product": return 1
+        if model == "sale.order":
+            return 2
+        if model == "product.product":
+            return 1
         return 0
 
 
@@ -37,24 +107,40 @@ _APPROVER = {"type": "user", "id": "approver1", "display_name": "Demo Approver"}
 
 def _make_approved_skill(client, monkeypatch):
     monkeypatch.setattr("apps.api.routes.odoo.build_readonly_client", lambda cfg: FakeOdooClient())
-    monkeypatch.setattr("erpguard.product.services.build_readonly_client", lambda cfg: FakeOdooClient())
+    monkeypatch.setattr(
+        "erpguard.product.services.build_readonly_client", lambda cfg: FakeOdooClient()
+    )
 
-    conn = client.post("/v1/odoo/connections", json={
-        "name": "Odoo Demo", "url": "https://empresa.odoo.com", "database": "empresa-prod",
-        "username": "usuario@empresa.com", "api_key": "super-secret",
-        "formula_model": "x_sale_formula_line", "capacity_field": "x_studio_capacidad_ml",
-        "field_mappings": {
-            "product_capacity_ml": "x_studio_capacidad_ml", "formula_sale_line_id": "x_studio_sale_line_id",
-            "formula_fragrance_id": "x_studio_fragancia_id", "formula_ml_per_unit": "x_studio_ml_por_unidad",
-            "formula_ml_total": "x_studio_ml_total_pedido",
+    conn = client.post(
+        "/v1/odoo/connections",
+        json={
+            "name": "Odoo Demo",
+            "url": "https://empresa.odoo.com",
+            "database": "empresa-prod",
+            "username": "usuario@empresa.com",
+            "api_key": "super-secret",
+            "formula_model": "x_sale_formula_line",
+            "capacity_field": "x_studio_capacidad_ml",
+            "field_mappings": {
+                "product_capacity_ml": "x_studio_capacidad_ml",
+                "formula_sale_line_id": "x_studio_sale_line_id",
+                "formula_fragrance_id": "x_studio_fragancia_id",
+                "formula_ml_per_unit": "x_studio_ml_por_unidad",
+                "formula_ml_total": "x_studio_ml_total_pedido",
+            },
         },
-    })
+    )
     assert conn.status_code == 200
     connection_id = conn.json()["connection_id"]
 
-    analysis = client.post(f"/v1/product/connections/{connection_id}/analyze", json={
-        "include_samples": True, "sample_limits": {"sales_orders": 5, "products": 5, "custom_fields": 50}, "max_opportunities": 5,
-    })
+    analysis = client.post(
+        f"/v1/product/connections/{connection_id}/analyze",
+        json={
+            "include_samples": True,
+            "sample_limits": {"sales_orders": 5, "products": 5, "custom_fields": 50},
+            "max_opportunities": 5,
+        },
+    )
     assert analysis.status_code == 200
     opportunity_id = analysis.json()["opportunities"][0]["opportunity_id"]
 
@@ -69,14 +155,24 @@ def _make_approved_skill(client, monkeypatch):
     proof = client.post(f"/v1/product/skills/{skill_id}/dry-run-proof")
     assert proof.status_code == 200
 
-    req = client.post(f"/v1/product/skills/{skill_id}/approval-request", json={
-        "requested_by": _OPERATOR, "reason": "Ready for governance approval.", "context": {},
-    })
+    req = client.post(
+        f"/v1/product/skills/{skill_id}/approval-request",
+        json={
+            "requested_by": _OPERATOR,
+            "reason": "Ready for governance approval.",
+            "context": {},
+        },
+    )
     assert req.status_code == 200
 
-    decision = client.post(f"/v1/product/skills/{skill_id}/approval-decision", json={
-        "decided_by": _APPROVER, "decision": "approve", "reason": "Guards verified.",
-    })
+    decision = client.post(
+        f"/v1/product/skills/{skill_id}/approval-decision",
+        json={
+            "decided_by": _APPROVER,
+            "decision": "approve",
+            "reason": "Guards verified.",
+        },
+    )
     assert decision.status_code == 200
 
     gate = client.post(f"/v1/product/skills/{skill_id}/activation-gate")
@@ -89,6 +185,7 @@ def _make_approved_skill(client, monkeypatch):
 # ---------------------------------------------------------------------------
 # Connection context
 # ---------------------------------------------------------------------------
+
 
 def test_connection_context_resolves_for_approved_skill(monkeypatch):
     client = TestClient(app)
@@ -112,6 +209,7 @@ def test_connection_context_missing_for_unknown_skill():
 # ---------------------------------------------------------------------------
 # Live read policy
 # ---------------------------------------------------------------------------
+
 
 def test_live_read_policy_blocked_for_unknown_skill():
     client = TestClient(app)
@@ -141,13 +239,18 @@ def test_live_read_policy_passes_for_approved_skill(monkeypatch):
 # Live read execution request lifecycle
 # ---------------------------------------------------------------------------
 
+
 def test_create_live_read_request_for_approved_skill(monkeypatch):
     client = TestClient(app)
     skill_id = _make_approved_skill(client, monkeypatch)
 
-    response = client.post(f"/v1/product/skills/{skill_id}/live-read-execution-request", json={
-        "requested_by": _OPERATOR, "inputs": {"live_read": True},
-    })
+    response = client.post(
+        f"/v1/product/skills/{skill_id}/live-read-execution-request",
+        json={
+            "requested_by": _OPERATOR,
+            "inputs": {"live_read": True},
+        },
+    )
     assert response.status_code == 201
     body = response.json()
     assert body["request_id"].startswith("lr_exec_req_")
@@ -160,9 +263,13 @@ def test_create_live_read_request_for_approved_skill(monkeypatch):
 
 def test_live_read_request_rejected_for_unknown_skill():
     client = TestClient(app)
-    response = client.post("/v1/product/skills/ghost_skill/live-read-execution-request", json={
-        "requested_by": _OPERATOR, "inputs": {},
-    })
+    response = client.post(
+        "/v1/product/skills/ghost_skill/live-read-execution-request",
+        json={
+            "requested_by": _OPERATOR,
+            "inputs": {},
+        },
+    )
     assert response.status_code == 404
 
 
@@ -170,9 +277,13 @@ def test_list_live_read_requests_for_skill(monkeypatch):
     client = TestClient(app)
     skill_id = _make_approved_skill(client, monkeypatch)
 
-    client.post(f"/v1/product/skills/{skill_id}/live-read-execution-request", json={
-        "requested_by": _OPERATOR, "inputs": {"ref": "unique_list_test"},
-    })
+    client.post(
+        f"/v1/product/skills/{skill_id}/live-read-execution-request",
+        json={
+            "requested_by": _OPERATOR,
+            "inputs": {"ref": "unique_list_test"},
+        },
+    )
 
     response = client.get(f"/v1/product/skills/{skill_id}/live-read-execution-requests")
     assert response.status_code == 200
@@ -184,14 +295,21 @@ def test_list_live_read_requests_for_skill(monkeypatch):
 # Live read execution — real Odoo reads with FakeOdooClient
 # ---------------------------------------------------------------------------
 
+
 def test_run_live_read_executes_real_reads(monkeypatch):
     client = TestClient(app)
     skill_id = _make_approved_skill(client, monkeypatch)
-    monkeypatch.setattr("erpguard.product.live_read_runtime.build_readonly_client", lambda cfg: FakeOdooClient())
+    monkeypatch.setattr(
+        "erpguard.product.live_read_runtime.build_readonly_client", lambda cfg: FakeOdooClient()
+    )
 
-    req = client.post(f"/v1/product/skills/{skill_id}/live-read-execution-request", json={
-        "requested_by": _OPERATOR, "inputs": {"live_read": True},
-    })
+    req = client.post(
+        f"/v1/product/skills/{skill_id}/live-read-execution-request",
+        json={
+            "requested_by": _OPERATOR,
+            "inputs": {"live_read": True},
+        },
+    )
     request_id = req.json()["request_id"]
 
     run_response = client.post(f"/v1/product/execution-requests/{request_id}/run-live-read")
@@ -208,11 +326,17 @@ def test_run_live_read_executes_real_reads(monkeypatch):
 def test_run_live_read_plan_has_steps(monkeypatch):
     client = TestClient(app)
     skill_id = _make_approved_skill(client, monkeypatch)
-    monkeypatch.setattr("erpguard.product.live_read_runtime.build_readonly_client", lambda cfg: FakeOdooClient())
+    monkeypatch.setattr(
+        "erpguard.product.live_read_runtime.build_readonly_client", lambda cfg: FakeOdooClient()
+    )
 
-    req = client.post(f"/v1/product/skills/{skill_id}/live-read-execution-request", json={
-        "requested_by": _OPERATOR, "inputs": {"live_read": True},
-    })
+    req = client.post(
+        f"/v1/product/skills/{skill_id}/live-read-execution-request",
+        json={
+            "requested_by": _OPERATOR,
+            "inputs": {"live_read": True},
+        },
+    )
     request_id = req.json()["request_id"]
     run_response = client.post(f"/v1/product/execution-requests/{request_id}/run-live-read")
     body = run_response.json()
@@ -224,11 +348,17 @@ def test_run_live_read_plan_has_steps(monkeypatch):
 def test_live_read_produces_evidence_records(monkeypatch):
     client = TestClient(app)
     skill_id = _make_approved_skill(client, monkeypatch)
-    monkeypatch.setattr("erpguard.product.live_read_runtime.build_readonly_client", lambda cfg: FakeOdooClient())
+    monkeypatch.setattr(
+        "erpguard.product.live_read_runtime.build_readonly_client", lambda cfg: FakeOdooClient()
+    )
 
-    req = client.post(f"/v1/product/skills/{skill_id}/live-read-execution-request", json={
-        "requested_by": _OPERATOR, "inputs": {"live_read": True},
-    })
+    req = client.post(
+        f"/v1/product/skills/{skill_id}/live-read-execution-request",
+        json={
+            "requested_by": _OPERATOR,
+            "inputs": {"live_read": True},
+        },
+    )
     request_id = req.json()["request_id"]
     run_response = client.post(f"/v1/product/execution-requests/{request_id}/run-live-read")
     run_id = run_response.json()["run_id"]
@@ -246,11 +376,17 @@ def test_live_read_produces_evidence_records(monkeypatch):
 def test_get_live_read_run_by_id(monkeypatch):
     client = TestClient(app)
     skill_id = _make_approved_skill(client, monkeypatch)
-    monkeypatch.setattr("erpguard.product.live_read_runtime.build_readonly_client", lambda cfg: FakeOdooClient())
+    monkeypatch.setattr(
+        "erpguard.product.live_read_runtime.build_readonly_client", lambda cfg: FakeOdooClient()
+    )
 
-    req = client.post(f"/v1/product/skills/{skill_id}/live-read-execution-request", json={
-        "requested_by": _OPERATOR, "inputs": {"live_read": True},
-    })
+    req = client.post(
+        f"/v1/product/skills/{skill_id}/live-read-execution-request",
+        json={
+            "requested_by": _OPERATOR,
+            "inputs": {"live_read": True},
+        },
+    )
     request_id = req.json()["request_id"]
     run = client.post(f"/v1/product/execution-requests/{request_id}/run-live-read")
     run_id = run.json()["run_id"]
@@ -264,14 +400,21 @@ def test_get_live_read_run_by_id(monkeypatch):
 # Security invariants
 # ---------------------------------------------------------------------------
 
+
 def test_live_read_run_never_allows_real_writes(monkeypatch):
     client = TestClient(app)
     skill_id = _make_approved_skill(client, monkeypatch)
-    monkeypatch.setattr("erpguard.product.live_read_runtime.build_readonly_client", lambda cfg: FakeOdooClient())
+    monkeypatch.setattr(
+        "erpguard.product.live_read_runtime.build_readonly_client", lambda cfg: FakeOdooClient()
+    )
 
-    req = client.post(f"/v1/product/skills/{skill_id}/live-read-execution-request", json={
-        "requested_by": _OPERATOR, "inputs": {},
-    })
+    req = client.post(
+        f"/v1/product/skills/{skill_id}/live-read-execution-request",
+        json={
+            "requested_by": _OPERATOR,
+            "inputs": {},
+        },
+    )
     request_id = req.json()["request_id"]
     run = client.post(f"/v1/product/execution-requests/{request_id}/run-live-read")
     body = run.json()
@@ -286,9 +429,13 @@ def test_live_read_request_never_allows_real_writes(monkeypatch):
     client = TestClient(app)
     skill_id = _make_approved_skill(client, monkeypatch)
 
-    response = client.post(f"/v1/product/skills/{skill_id}/live-read-execution-request", json={
-        "requested_by": _OPERATOR, "inputs": {},
-    })
+    response = client.post(
+        f"/v1/product/skills/{skill_id}/live-read-execution-request",
+        json={
+            "requested_by": _OPERATOR,
+            "inputs": {},
+        },
+    )
     body = response.json()
     assert body.get("can_execute_real_writes") is False
     assert body.get("real_erp_writes_enabled") is False

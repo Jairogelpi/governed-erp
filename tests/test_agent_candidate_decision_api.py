@@ -1,10 +1,8 @@
 """Sprint 36 — Agent Candidate Decision API integration tests."""
 from __future__ import annotations
 
-import json
 import uuid
 
-import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import app

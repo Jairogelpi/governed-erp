@@ -1,12 +1,8 @@
 import json
 
-from erpguard.canonical.enums import ERPType
-from erpguard.adapters.odoo.config import OdooConfig
-from erpguard.db.repositories import create_connection, create_automation_draft
+from erpguard.db.repositories import create_automation_draft
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.product.draft_validator import DraftValidatorService
-from erpguard.product.models import BusinessAnalysisRequest
-from erpguard.product.services import BusinessAnalysisService
 
 
 class FakeReadOnlyOdooClient:

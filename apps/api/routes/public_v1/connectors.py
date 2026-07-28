@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 
 from apps.api.dependencies.identity import get_db, require_role
 from apps.api.schemas.connectors import (
+    ConnectorAuthSchemaResponse,
+    ConnectorCapabilityResponse,
     ConnectorDefinitionResponse,
     ConnectorTestRequest,
     ConnectorTestResponse,
@@ -79,6 +81,12 @@ async def test_connector(
 def _definition_response(plugin: ConnectorPlugin) -> ConnectorDefinitionResponse:
     return ConnectorDefinitionResponse(
         **plugin.metadata.model_dump(mode="json"),
-        auth_schemas=[item.model_dump(mode="json") for item in plugin.auth_schemas()],
-        capabilities=[item.model_dump(mode="json") for item in plugin.capability_definitions()],
+        auth_schemas=[
+            ConnectorAuthSchemaResponse(**item.model_dump(mode="json"))
+            for item in plugin.auth_schemas()
+        ],
+        capabilities=[
+            ConnectorCapabilityResponse(**item.model_dump(mode="json"))
+            for item in plugin.capability_definitions()
+        ],
     )

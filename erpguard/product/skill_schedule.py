@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 
 from erpguard.db.repositories import (
     create_skill_schedule,
@@ -68,6 +67,8 @@ class SkillScheduleService:
         db = SessionLocal()
         try:
             version = get_ui_skill_version_record(db, version_id)
+            if version is None:
+                raise ValueError(f"Unknown skill version: {version_id}")
             row = create_skill_schedule(
                 db,
                 version_id=version_id,

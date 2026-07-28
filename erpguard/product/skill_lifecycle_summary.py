@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 
 from erpguard.db.repositories import (
     get_agent_candidate_activation_request_by_version,
@@ -17,7 +18,7 @@ class LifecycleEvent:
     from_status: str
     to_status: str
     actor: str
-    created_at: object
+    created_at: datetime
 
 
 @dataclass(frozen=True)

@@ -8,7 +8,6 @@ from erpguard.db.repositories import (
     get_latest_gate_evaluation,
     get_skill,
     list_approval_decisions_for_skill,
-    list_approval_requests_for_skill,
 )
 from erpguard.product.models import (
     ActivationGateModel,

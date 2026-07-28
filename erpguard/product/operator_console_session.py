@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 
 from erpguard.db.repositories import (
     create_operator_console_session,
-    get_operator_console_session,
     list_operator_console_queries,
 )
 
@@ -14,7 +14,7 @@ class ConsoleSessionResult:
     session_id: str
     actor: str
     query_count: int
-    created_at: object
+    created_at: datetime
     will_execute: bool = False
     can_execute: bool = False
     is_advisory_only: bool = True
@@ -28,7 +28,7 @@ class ConsoleHistoryEntry:
     intent_confidence: float
     response_summary: str
     result_type: str
-    created_at: object
+    created_at: datetime
 
 
 @dataclass(frozen=True)

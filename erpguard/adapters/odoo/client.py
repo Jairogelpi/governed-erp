@@ -1,5 +1,5 @@
 import xmlrpc.client
-from typing import Any
+from typing import Any, cast
 
 from erpguard.adapters.odoo.config import OdooConfig
 from erpguard.core.errors import AdapterAuthenticationError
@@ -13,7 +13,7 @@ class OdooClient:
         self._uid: int | None = None
 
     def version(self) -> dict[str, Any]:
-        return self._common.version()
+        return cast(dict[str, Any], self._common.version())
 
     def authenticate(self) -> int:
         uid = self._common.authenticate(
@@ -24,7 +24,7 @@ class OdooClient:
         )
         if not uid:
             raise AdapterAuthenticationError("Odoo authentication failed.")
-        self._uid = int(uid)
+        self._uid = int(cast(int, uid))
         return self._uid
 
     def search_read(self, model: str, domain: list, fields: list[str], limit: int | None = None) -> list[dict]:

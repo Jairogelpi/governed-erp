@@ -47,6 +47,19 @@ class TickReport:
     failed: list[TickFailure] = field(default_factory=list)
 
 
+@dataclass(frozen=True)
+class _ScheduleSnapshot:
+    id: str
+    version_id: str
+    skill_id: str
+    interval_seconds: int
+    min_interval_seconds: int
+    dedup_window_seconds: int
+    target_base_url: str
+    inputs_json: str
+    last_run_at: datetime | None
+
+
 class SkillScheduleTickService:
     _dedup = SkillRunDedupService()
     _lock = SkillRunLockService()
@@ -63,17 +76,17 @@ class SkillScheduleTickService:
         try:
             due_schedules = list_due_active_skill_schedules(db, now)
             schedule_snapshots = [
-                {
-                    "id": s.id,
-                    "version_id": s.version_id,
-                    "skill_id": s.skill_id,
-                    "interval_seconds": s.interval_seconds,
-                    "min_interval_seconds": s.min_interval_seconds,
-                    "dedup_window_seconds": s.dedup_window_seconds,
-                    "target_base_url": s.target_base_url,
-                    "inputs_json": s.inputs_json,
-                    "last_run_at": s.last_run_at,
-                }
+                _ScheduleSnapshot(
+                    id=s.id,
+                    version_id=s.version_id,
+                    skill_id=s.skill_id,
+                    interval_seconds=s.interval_seconds,
+                    min_interval_seconds=s.min_interval_seconds,
+                    dedup_window_seconds=s.dedup_window_seconds,
+                    target_base_url=s.target_base_url,
+                    inputs_json=s.inputs_json,
+                    last_run_at=s.last_run_at,
+                )
                 for s in due_schedules
             ]
         finally:
@@ -84,8 +97,8 @@ class SkillScheduleTickService:
         failed: list[TickFailure] = []
 
         for snap in schedule_snapshots:
-            sid = snap["id"]
-            inputs = json.loads(snap["inputs_json"] or "{}")
+            sid = snap.id
+            inputs = json.loads(snap.inputs_json or "{}")
 
             # 1. Acquire lock
             lock = self._lock.acquire(sid, now=now)
@@ -94,41 +107,43 @@ class SkillScheduleTickService:
                                    detail=lock.reason, payload={"locked_until": lock.locked_until.isoformat() if lock.locked_until else None})
                 skipped.append(TickSkip(schedule_id=sid, reason="locked", detail=lock.reason))
                 continue
+            assert lock.token is not None  # lock.acquired True implies a token was issued
+            token = lock.token
 
             try:
                 # 2. Min interval check
-                if snap["last_run_at"] is not None:
-                    last_run = snap["last_run_at"]
+                if snap.last_run_at is not None:
+                    last_run = snap.last_run_at
                     if last_run.tzinfo is None:
                         last_run = last_run.replace(tzinfo=timezone.utc)
                     elapsed = (now - last_run).total_seconds()
-                    if elapsed < snap["min_interval_seconds"]:
+                    if elapsed < snap.min_interval_seconds:
                         self._audit.record(sid, "tick_skipped_min_interval", status="warning",
-                                           detail=f"elapsed={elapsed:.1f}s < min_interval={snap['min_interval_seconds']}s",
+                                           detail=f"elapsed={elapsed:.1f}s < min_interval={snap.min_interval_seconds}s",
                                            payload={"elapsed_seconds": elapsed})
                         skipped.append(TickSkip(schedule_id=sid, reason="min_interval",
                                                 detail=f"elapsed={elapsed:.1f}s"))
-                        self._lock.release(sid, lock.token)
+                        self._lock.release(sid, token)
                         continue
 
                 # 3. Dedup check
-                dedup = self._dedup.check(sid, inputs, snap["dedup_window_seconds"], now=now)
+                dedup = self._dedup.check(sid, inputs, snap.dedup_window_seconds, now=now)
                 if dedup.is_duplicate:
                     entry = self._queue.enqueue(
-                        sid, snap["version_id"], snap["skill_id"], inputs,
-                        snap["target_base_url"], status="skipped_dedup",
+                        sid, snap.version_id, snap.skill_id, inputs,
+                        snap.target_base_url, status="skipped_dedup",
                         detail=dedup.reason,
                     )
                     self._audit.record(sid, "tick_skipped_dedup", status="warning",
                                        detail=dedup.reason, payload={"matched_entry_id": dedup.matched_entry_id, "queue_entry_id": entry.entry_id})
                     skipped.append(TickSkip(schedule_id=sid, reason="dedup", detail=dedup.reason))
-                    self._lock.release(sid, lock.token)
+                    self._lock.release(sid, token)
                     continue
 
                 # 4. Enqueue
                 entry = self._queue.enqueue(
-                    sid, snap["version_id"], snap["skill_id"], inputs,
-                    snap["target_base_url"], status="queued",
+                    sid, snap.version_id, snap.skill_id, inputs,
+                    snap.target_base_url, status="queued",
                 )
                 self._audit.record(sid, "tick_enqueued", status="ok",
                                    detail=f"Queue entry {entry.entry_id} created",
@@ -141,8 +156,8 @@ class SkillScheduleTickService:
                                    payload={"queue_entry_id": entry.entry_id})
 
                 run = self._runner.run(
-                    version_id=snap["version_id"],
-                    target_base_url=snap["target_base_url"],
+                    version_id=snap.version_id,
+                    target_base_url=snap.target_base_url,
                     actor=f"scheduler:{sid}",
                     inputs=inputs,
                 )
@@ -151,7 +166,7 @@ class SkillScheduleTickService:
                                             detail=run.summary)
 
                 # 6. Update schedule next_run_at / last_run_at
-                plan = self._planner.compute_next_run(sid, snap["interval_seconds"], now, now=now)
+                plan = self._planner.compute_next_run(sid, snap.interval_seconds, now, now=now)
                 init_db()
                 db2 = SessionLocal()
                 try:
@@ -179,7 +194,7 @@ class SkillScheduleTickService:
                                    detail=str(exc), payload={"error": str(exc)})
                 failed.append(TickFailure(schedule_id=sid, error=str(exc)))
             finally:
-                self._lock.release(sid, lock.token)
+                self._lock.release(sid, token)
 
         return TickReport(
             now=now.isoformat(),

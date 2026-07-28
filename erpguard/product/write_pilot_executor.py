@@ -14,7 +14,7 @@ from erpguard.db.repositories import (
     get_write_pilot_run_for_request,
 )
 from erpguard.product.connection_context import ConnectionContextService
-from erpguard.product.models import WritePilotEvidenceModel, WritePilotRunModel
+from erpguard.product.models import WritePilotRunModel
 from erpguard.product.write_pilot_policy import WritePilotPolicyService
 
 _ALLOW_R1_REAL_WRITE_PILOT = False

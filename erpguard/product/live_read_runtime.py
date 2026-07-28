@@ -83,7 +83,7 @@ class LiveReadRuntimeService:
             raise ObjectNotFoundError(f"Live read execution request '{execution_request_id}' not found.")
 
         skill_id = req_row.skill_id
-        inputs = json.loads(req_row.inputs_json)
+        json.loads(req_row.inputs_json)
 
         # Policy check
         policy = LiveReadPolicyService(self.session)

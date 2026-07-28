@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import json
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from sqlalchemy.orm import Session
@@ -137,6 +140,20 @@ from erpguard.db.models import (
     VisualTableFormExtractionAuditEvent,
 )
 from erpguard.policies.results import PolicyIssue
+
+if TYPE_CHECKING:
+    from erpguard.db.models import (
+        AgentCandidateActivationEvent,
+        AgentCandidateActivationRequest,
+        AgentCandidateActivationRequestEvent,
+        AgentCandidateApprovalEvent,
+        AgentCandidateApprovalPacket,
+        AgentCandidateDecision,
+        AgentCandidateDecisionEvent,
+        AgentHandoffVersionEvent,
+        AgentHandoffVersionLink,
+        AgentSkillRunPreviewEvent,
+    )
 
 
 def create_connection(

@@ -9,7 +9,6 @@ from erpguard.db.repositories import (
     create_advisory_proposal,
     get_advisory_proposal,
     get_advisory_session,
-    list_advisory_proposals_for_session,
     update_advisory_proposal,
     update_advisory_session,
 )

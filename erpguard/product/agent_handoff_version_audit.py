@@ -8,7 +8,6 @@ from erpguard.db.repositories import (
     get_agent_handoff_version_link_by_packet,
     list_agent_handoff_version_events_for_packet,
 )
-from erpguard.db.session import SessionLocal, init_db
 
 
 @dataclass(frozen=True)

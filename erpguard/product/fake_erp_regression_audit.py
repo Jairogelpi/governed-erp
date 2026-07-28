@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from datetime import datetime
 from uuid import uuid4
 
 from erpguard.db.repositories import (
@@ -22,7 +23,7 @@ class FakeERPRegressionAuditEntry:
     event_type: str
     status: str
     detail: dict
-    created_at: object
+    created_at: datetime
 
 
 @dataclass(frozen=True)

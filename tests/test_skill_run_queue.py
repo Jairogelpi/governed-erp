@@ -67,7 +67,7 @@ def test_mark_skipped_dedup():
 def test_list_for_schedule_orders_desc():
     q = SkillRunQueueService()
     schedule_id = f"sch_q_list_{uuid4().hex[:8]}"
-    e1 = q.enqueue(schedule_id=schedule_id, version_id="v", skill_id="s",
+    q.enqueue(schedule_id=schedule_id, version_id="v", skill_id="s",
                    inputs={"i": 1}, target_base_url="http://localhost:8000/fake-erp")
     e2 = q.enqueue(schedule_id=schedule_id, version_id="v", skill_id="s",
                    inputs={"i": 2}, target_base_url="http://localhost:8000/fake-erp")

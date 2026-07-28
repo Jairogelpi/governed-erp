@@ -1,7 +1,6 @@
 """Sprint 44 — Dispatch policy tests."""
 from __future__ import annotations
 
-import pytest
 
 from erpguard.product.operator_action_dispatch_policy import check_dispatch_policy
 from erpguard.product.operator_action_registry import get_action_entry

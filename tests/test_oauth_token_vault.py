@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from erpguard.db.base import Base
-from erpguard.product.oauth_token_vault import OAuthTokenVault, _check_scope_compliance, _TOKEN_STORE
+from erpguard.product.oauth_token_vault import OAuthTokenVault, _check_scope_compliance
 
 
 @pytest.fixture

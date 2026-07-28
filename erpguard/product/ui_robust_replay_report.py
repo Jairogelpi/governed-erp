@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 
 from erpguard.db.repositories import (
     get_ui_replay_run,
-    list_ui_replay_step_audits,
     list_ui_replay_verifications,
     list_ui_replay_failures,
 )

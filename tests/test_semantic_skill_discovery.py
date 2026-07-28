@@ -90,7 +90,7 @@ def test_search_status_filter(db):
 
 
 def test_search_hit_fields(db):
-    rec = _make_version(db, name="order-review")
+    _make_version(db, name="order-review")
     r = search_skills("order", db)
     assert r.total_found >= 1
     hit = r.results[0]

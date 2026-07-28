@@ -31,7 +31,7 @@ def inspect_prerequisites(version_id: str | None, session) -> PrerequisiteState:
     if getattr(summary, "blocking_reason", None) == "version_not_found":
         return PrerequisiteState()
 
-    gap_types = [g.gap_type for g in gaps_result.gaps if not g.resolved]
+    gap_types = [g.gap_type for g in gaps_result.gaps]
 
     return PrerequisiteState(
         version_exists=True,

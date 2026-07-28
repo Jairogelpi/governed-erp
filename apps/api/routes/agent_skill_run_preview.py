@@ -3,9 +3,13 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 
 from apps.api.schemas.agent_skill_run_preview import (
+    ExecutionGateCheckSchema,
     ExecutionGateResponse,
+    PreviewAuditEventSchema,
     RunPlanResponse,
+    RunPlanStepSchema,
     RunPreviewAuditResponse,
+    RunPreviewCheckSchema,
     RunPreviewEligibilityResponse,
     RunPreviewResponse,
 )
@@ -48,7 +52,7 @@ def get_run_preview_eligibility(version_id: str):
             skill_id=r.skill_id,
             eligible=r.eligible,
             checks=[
-                {"check": c.check, "passed": c.passed, "detail": c.detail}
+                RunPreviewCheckSchema(check=c.check, passed=c.passed, detail=c.detail)
                 for c in r.checks
             ],
             blocking_reasons=r.blocking_reasons,
@@ -76,15 +80,15 @@ def post_run_plan(version_id: str):
             plan_ready=r.plan_ready,
             step_count=r.step_count,
             steps=[
-                {
-                    "step_index": s.step_index,
-                    "step_id": s.step_id,
-                    "step_type": s.step_type,
-                    "description": s.description,
-                    "guard_check": s.guard_check,
-                    "will_execute": s.will_execute,
-                    "estimated_impact": s.estimated_impact,
-                }
+                RunPlanStepSchema(
+                    step_index=s.step_index,
+                    step_id=s.step_id,
+                    step_type=s.step_type,
+                    description=s.description,
+                    guard_check=s.guard_check,
+                    will_execute=s.will_execute,
+                    estimated_impact=s.estimated_impact,
+                )
                 for s in r.steps
             ],
             guard_names=r.guard_names,
@@ -115,7 +119,7 @@ def get_execution_gate(version_id: str):
             gate_passed=r.gate_passed,
             execution_ready=r.execution_ready,
             checks=[
-                {"check": c.check, "passed": c.passed, "detail": c.detail}
+                ExecutionGateCheckSchema(check=c.check, passed=c.passed, detail=c.detail)
                 for c in r.checks
             ],
             blocking_reasons=r.blocking_reasons,
@@ -173,14 +177,14 @@ def get_preview_audit(version_id: str):
             skill_id=r.skill_id,
             event_count=r.event_count,
             events=[
-                {
-                    "event_id": e.event_id,
-                    "version_id": e.version_id,
-                    "step": e.step,
-                    "status": e.status,
-                    "detail": e.detail,
-                    "created_at": e.created_at,
-                }
+                PreviewAuditEventSchema(
+                    event_id=e.event_id,
+                    version_id=e.version_id,
+                    step=e.step,
+                    status=e.status,
+                    detail=e.detail,
+                    created_at=e.created_at,
+                )
                 for e in r.events
             ],
             will_execute=r.will_execute,

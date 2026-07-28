@@ -12,6 +12,7 @@ from apps.api.schemas.semantic_skill_discovery import (
     RecommendationSchema,
     RecommendationsResponse,
     ReuseSuggestionsRequest,
+    ReuseSuggestionSchema,
     ReuseSuggestionsResponse,
     SimilarSkillHitSchema,
     SimilarSkillsRequest,
@@ -21,7 +22,6 @@ from apps.api.schemas.semantic_skill_discovery import (
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.product.agent_recommendation_engine import get_recommendations
 from erpguard.product.governance_gap_explainer import explain_governance_gaps
-from erpguard.product.operator_next_step_recommender import recommend_next_steps
 from erpguard.product.semantic_skill_discovery import search_skills
 from erpguard.product.skill_lifecycle_summary import get_lifecycle_summary
 from erpguard.product.skill_reuse_suggester import get_reuse_suggestions
@@ -200,16 +200,16 @@ def reuse_suggestions(body: ReuseSuggestionsRequest):
         return ReuseSuggestionsResponse(
             query=r.query,
             suggestions=[
-                {
-                    "version_id": s.version_id,
-                    "skill_id": s.skill_id,
-                    "name": s.name,
-                    "reuse_rationale": s.reuse_rationale,
-                    "similarity_score": s.similarity_score,
-                    "is_active": s.is_active,
-                    "governance_complete": s.governance_complete,
-                    "next_step": s.next_step,
-                }
+                ReuseSuggestionSchema(
+                    version_id=s.version_id,
+                    skill_id=s.skill_id,
+                    name=s.name,
+                    reuse_rationale=s.reuse_rationale,
+                    similarity_score=s.similarity_score,
+                    is_active=s.is_active,
+                    governance_complete=s.governance_complete,
+                    next_step=s.next_step,
+                )
                 for s in r.suggestions
             ],
             total_found=r.total_found,

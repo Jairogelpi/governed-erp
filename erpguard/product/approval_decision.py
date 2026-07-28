@@ -5,7 +5,6 @@ import json
 from erpguard.core.errors import ObjectNotFoundError
 from erpguard.db.repositories import (
     create_skill_approval_decision,
-    get_approval_request,
     get_latest_approval_request_for_skill,
     list_approval_decisions_for_skill,
     update_approval_request_status,

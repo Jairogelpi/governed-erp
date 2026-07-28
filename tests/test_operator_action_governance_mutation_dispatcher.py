@@ -28,7 +28,6 @@ from erpguard.product.operator_action_dispatch_result import get_dispatch_result
 from erpguard.product.operator_action_dispatcher import (
     DispatchRequest,
     dispatch_confirmed_action,
-    dispatch_confirmed_read_only_action,
 )
 from erpguard.product.operator_action_governance_mutation_handlers import list_governance_mutation_actions
 from erpguard.product.operator_step_confirmation import confirm_token

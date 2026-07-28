@@ -40,8 +40,8 @@ class GoogleCalendarReadOnlyClient:
         # Real path: requires google-api-python-client installed and a valid token.
         # Guarded behind USE_REAL_GOOGLE_CALENDAR=true.
         try:
-            from googleapiclient.discovery import build  # type: ignore
-            from google.oauth2.credentials import Credentials  # type: ignore
+            from googleapiclient.discovery import build  # type: ignore[import-not-found]
+            from google.oauth2.credentials import Credentials  # type: ignore[import-not-found]
         except ImportError:
             return self._fixture.read_calendars()
 
@@ -61,8 +61,8 @@ class GoogleCalendarReadOnlyClient:
     def _real_read_upcoming_events(self, max_results: int = 10) -> FixtureReadResult:
         try:
             from datetime import datetime, timezone
-            from googleapiclient.discovery import build  # type: ignore
-            from google.oauth2.credentials import Credentials  # type: ignore
+            from googleapiclient.discovery import build
+            from google.oauth2.credentials import Credentials
         except ImportError:
             return self._fixture.read_upcoming_events(max_results=max_results)
 

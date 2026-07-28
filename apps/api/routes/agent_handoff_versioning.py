@@ -3,17 +3,19 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 
 from apps.api.schemas.agent_handoff_versioning import (
+    CandidatePreviewStepSchema,
+    EligibilityIssueSchema,
     HandoffCandidatePreviewResponse,
     HandoffCandidateReadinessResponse,
     HandoffCandidateResponse,
     HandoffEvidenceAttachmentResponse,
+    HandoffVersionAuditEntrySchema,
     HandoffVersionAuditResponse,
     HandoffVersionEligibilityResponse,
     SourceHandoffResponse,
 )
 from erpguard.db.repositories import (
     get_agent_draft_handoff_packet_by_id,
-    get_agent_handoff_version_link_by_packet,
 )
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.product.agent_handoff_candidate_builder import create_candidate_version
@@ -50,7 +52,7 @@ def get_version_eligibility(packet_id: str):
             candidate_exists=result.candidate_exists,
             packet_status=result.packet_status,
             readiness_score=result.readiness_score,
-            issues=[{"code": i.code, "message": i.message} for i in result.issues],
+            issues=[EligibilityIssueSchema(code=i.code, message=i.message) for i in result.issues],
             can_execute=result.can_execute,
             can_approve=result.can_approve,
             is_advisory_only=result.is_advisory_only,
@@ -73,8 +75,8 @@ def post_candidate_preview(packet_id: str):
             proposal_id=result.proposal_id,
             preview_skill_id=result.preview_skill_id,
             preview_version_name=result.preview_version_name,
-            steps=[{"step_index": s.step_index, "step_id": s.step_id,
-                    "step_type": s.step_type, "description": s.description}
+            steps=[CandidatePreviewStepSchema(step_index=s.step_index, step_id=s.step_id,
+                                               step_type=s.step_type, description=s.description)
                    for s in result.steps],
             guard_names=result.guard_names,
             guard_display=result.guard_display,
@@ -181,8 +183,8 @@ def get_packet_version_audit(packet_id: str):
             packet_id=result.packet_id,
             version_id=result.version_id,
             event_count=result.event_count,
-            events=[{"event_id": e.event_id, "packet_id": e.packet_id, "step": e.step,
-                     "status": e.status, "detail": e.detail, "created_at": e.created_at}
+            events=[HandoffVersionAuditEntrySchema(event_id=e.event_id, packet_id=e.packet_id, step=e.step,
+                                                    status=e.status, detail=e.detail, created_at=e.created_at)
                     for e in result.events],
             can_execute=result.can_execute,
             is_advisory_only=result.is_advisory_only,

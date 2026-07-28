@@ -8,8 +8,6 @@ from uuid import uuid4
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from erpguard.core.errors import ObjectNotFoundError
-from erpguard.db.models import CredentialVaultEntry, CredentialVaultAuditEvent
 from erpguard.db.repositories import (
     create_credential_vault_entry,
     get_credential_vault_entry_by_ref,
@@ -199,7 +197,7 @@ class CredentialVaultContractService:
         secret_length = len(secret) if secret else None
         secret_last4 = _extract_secret_last4(secret, auth_type)
 
-        entry = create_credential_vault_entry(
+        create_credential_vault_entry(
             self.session,
             credential_ref=credential_ref,
             setup_session_id=credential_input.setup_session_id,

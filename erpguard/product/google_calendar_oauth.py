@@ -209,6 +209,7 @@ class GoogleCalendarOAuthService:
 
         profile_id = state.profile_id
 
+        token_data: dict[str, Any]
         if _PLACEHOLDER_MODE:
             token_data = {
                 "access_token": "placeholder_access_token_redacted",

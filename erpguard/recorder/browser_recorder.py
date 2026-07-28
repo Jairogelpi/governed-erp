@@ -5,7 +5,7 @@ import json
 from typing import Any
 from urllib.parse import urljoin
 
-from erpguard.db.repositories import add_recording_event, create_recording_session, finish_recording_session, get_recording_session, list_recording_events
+from erpguard.db.repositories import add_recording_event, create_recording_session, finish_recording_session, list_recording_events
 from erpguard.runtime.browser_runtime import BrowserRuntimeUnavailableError, is_playwright_browser_available
 
 
@@ -40,7 +40,7 @@ def record_fake_erp_formula_review_flow(base_url: str, order_reference: str, act
         raise BrowserRuntimeUnavailableError("Playwright browser binaries are unavailable.")
 
     try:
-        from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+        from playwright.sync_api import TimeoutError as PlaywrightTimeoutError  # type: ignore[import-not-found]
         from playwright.sync_api import sync_playwright
     except Exception as exc:  # pragma: no cover - import guard
         raise BrowserRuntimeUnavailableError("Playwright is not installed.") from exc

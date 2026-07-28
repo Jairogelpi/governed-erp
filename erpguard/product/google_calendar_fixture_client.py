@@ -27,7 +27,7 @@ def _fixture_calendars() -> list[dict]:
 
 def _fixture_events(max_results: int = 10) -> list[dict]:
     now = datetime.now(timezone.utc)
-    events = [
+    events: list[dict] = [
         {
             "id": "fixture_event_001",
             "summary": "Weekly Team Standup",

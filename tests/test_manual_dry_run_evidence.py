@@ -11,7 +11,7 @@ def test_evidence_contains_would_execute_but_executed_false():
     init_db()
     db = SessionLocal()
     try:
-        result = persist_manual_dry_run_evidence(
+        persist_manual_dry_run_evidence(
             run_id="as_run_manual_evidence_1",
             version_id="ver_manual_evidence_1",
             skill_id="skill_manual_evidence_1",

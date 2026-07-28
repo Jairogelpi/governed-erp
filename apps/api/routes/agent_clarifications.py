@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from apps.api.schemas.agent_clarifications import (
     ClarificationAuditResponse,
     ClarificationCompletenessResponse,
+    ClarificationQuestionSummarySchema,
     ClarificationStateResponse,
     DraftMetadataRefreshResponse,
     MappingActionRequest,
@@ -58,7 +59,10 @@ def get_clarifications(proposal_id: str):
             answered_count=state.answered_count,
             pending_count=state.pending_count,
             all_answered=state.all_answered,
-            questions=[q.model_dump() for q in state.questions],
+            questions=[
+                ClarificationQuestionSummarySchema(**q.model_dump())
+                for q in state.questions
+            ],
         )
     finally:
         session.close()

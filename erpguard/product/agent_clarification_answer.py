@@ -9,7 +9,6 @@ from erpguard.db.repositories import (
     create_clarification_answer,
     create_clarification_audit_event,
     get_advisory_proposal,
-    get_latest_clarification_answer_for_question,
 )
 
 

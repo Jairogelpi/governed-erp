@@ -96,6 +96,7 @@ class OdooReadEvidencePackService:
             self._audit(row, event_type="odoo_read_evidence_pack_blocked", actor=input.created_by)
             return self._row_to_result(row)
 
+        assert mapping is not None  # reason is None only reachable past the mapping-None branch above
         canonical = json.loads(mapping.canonical_object_json)
         source = json.loads(mapping.source_snapshot_redacted_json)
         fields = json.loads(mapping.field_allowlist_used_json)

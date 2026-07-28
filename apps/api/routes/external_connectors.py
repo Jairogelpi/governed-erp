@@ -17,7 +17,6 @@ from apps.api.schemas.external_connectors import (
     TestReadinessRequest,
     TestReadinessResponse,
 )
-from erpguard.core.errors import ObjectNotFoundError
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.product.connector_read_evidence import ConnectorReadEvidenceService
 from erpguard.product.connector_signal_generator import ConnectorSignalGenerator

@@ -1,9 +1,7 @@
 """Sprint 41 — Operator Console API integration tests."""
 from __future__ import annotations
 
-import uuid
 
-import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import app

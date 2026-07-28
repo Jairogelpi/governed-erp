@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 
-from erpguard.adapters.odoo.r2_write_client import R2_ALLOWED_WRITE_FIELDS, R2_ALLOWED_WRITE_MODELS
+from erpguard.adapters.odoo.r2_write_client import R2_ALLOWED_WRITE_FIELDS
 from erpguard.core.errors import ObjectNotFoundError
 from erpguard.db.repositories import (
     create_r2_write_pilot_request,

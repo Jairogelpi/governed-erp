@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
 from erpguard.db.repositories import create_skill, create_skill_version, create_operator_session
 from erpguard.product.platform_tenant import TenantService
 
 
-_DEMO_SKILL_PACKAGE = {
+_DEMO_SKILL_PACKAGE: dict[str, Any] = {
     "name": "ERPGuard Demo — Formula Review",
     "description": "Controlled demo skill for the operator release candidate walkthrough.",
     "runtime_type": "deterministic_browser",

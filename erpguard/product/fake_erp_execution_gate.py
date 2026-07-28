@@ -96,9 +96,8 @@ def evaluate_fake_erp_execution_gate(req: FakeERPExecutionGateRequest, session) 
         blocking.append("actor_required")
 
     version = get_ui_skill_version_record(session, req.version_id)
-    version_ok = version is not None
-    checks.append({"check": "version_exists", "ok": version_ok})
-    if not version_ok:
+    checks.append({"check": "version_exists", "ok": version is not None})
+    if version is None:
         blocking.append("version_not_found")
         return FakeERPExecutionGateResult(
             version_id=req.version_id,
@@ -115,9 +114,8 @@ def evaluate_fake_erp_execution_gate(req: FakeERPExecutionGateRequest, session) 
         blocking.append("version_not_active_governed")
 
     dry_run = get_active_skill_run(session, req.dry_run_id)
-    dry_run_exists = dry_run is not None
-    checks.append({"check": "dry_run_exists", "ok": dry_run_exists})
-    if not dry_run_exists:
+    checks.append({"check": "dry_run_exists", "ok": dry_run is not None})
+    if dry_run is None:
         blocking.append("dry_run_not_found")
         return FakeERPExecutionGateResult(
             version_id=req.version_id,

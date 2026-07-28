@@ -4,8 +4,11 @@ from fastapi import APIRouter, HTTPException
 
 from apps.api.schemas.agent_candidate_decision import (
     ActivationGateResponse,
+    DecisionAuditEntrySchema,
     DecisionAuditResponse,
+    DecisionEntrySchema,
     DecisionHistoryResponse,
+    GateCheckSchema,
     GovernanceSummaryResponse,
     HumanDecisionRequest,
     HumanDecisionResponse,
@@ -85,15 +88,15 @@ def get_candidate_decision_history(version_id: str):
             latest_decision=r.latest_decision,
             latest_governance_status=r.latest_governance_status,
             entries=[
-                {
-                    "decision_id": e.decision_id,
-                    "version_id": e.version_id,
-                    "decision": e.decision,
-                    "actor": e.actor,
-                    "rationale": e.rationale,
-                    "governance_status": e.governance_status,
-                    "created_at": e.created_at,
-                }
+                DecisionEntrySchema(
+                    decision_id=e.decision_id,
+                    version_id=e.version_id,
+                    decision=e.decision,
+                    actor=e.actor,
+                    rationale=e.rationale,
+                    governance_status=e.governance_status,
+                    created_at=e.created_at,
+                )
                 for e in r.entries
             ],
             can_execute=r.can_execute,
@@ -119,7 +122,7 @@ def get_activation_gate(version_id: str):
             gate_passed=r.gate_passed,
             activation_allowed=r.activation_allowed,
             checks=[
-                {"check": c.check, "passed": c.passed, "detail": c.detail}
+                GateCheckSchema(check=c.check, passed=c.passed, detail=c.detail)
                 for c in r.checks
             ],
             blocking_reasons=r.blocking_reasons,
@@ -179,14 +182,14 @@ def get_candidate_decision_audit(version_id: str):
             decision_count=r.decision_count,
             event_count=r.event_count,
             events=[
-                {
-                    "event_id": e.event_id,
-                    "version_id": e.version_id,
-                    "step": e.step,
-                    "status": e.status,
-                    "detail": e.detail,
-                    "created_at": e.created_at,
-                }
+                DecisionAuditEntrySchema(
+                    event_id=e.event_id,
+                    version_id=e.version_id,
+                    step=e.step,
+                    status=e.status,
+                    detail=e.detail,
+                    created_at=e.created_at,
+                )
                 for e in r.events
             ],
             can_execute=r.can_execute,

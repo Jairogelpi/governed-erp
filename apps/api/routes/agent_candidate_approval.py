@@ -9,6 +9,9 @@ from apps.api.schemas.agent_candidate_approval import (
     AgentCandidateEvidenceCompletenessResponse,
     AgentCandidatePromotionReadinessResponse,
     AgentCandidateRiskSummaryResponse,
+    ApprovalAuditEntrySchema,
+    BridgeStepSchema,
+    EvidenceItemSchema,
 )
 from erpguard.db.repositories import get_ui_skill_version_record
 from erpguard.db.session import SessionLocal, init_db
@@ -82,8 +85,8 @@ def get_evidence_completeness(version_id: str):
             items_found=r.items_found,
             items_required=r.items_required,
             items=[
-                {"source": i.source, "status": i.status,
-                 "label": i.label, "complete": i.complete}
+                EvidenceItemSchema(source=i.source, status=i.status,
+                                    label=i.label, complete=i.complete)
                 for i in r.items
             ],
             missing_sources=r.missing_sources,
@@ -170,7 +173,7 @@ def post_approval_request(version_id: str):
             bridge_complete=r.bridge_complete,
             approval_packet_id=r.approval_packet_id,
             steps=[
-                {"step": s.step, "status": s.status, "detail": s.detail}
+                BridgeStepSchema(step=s.step, status=s.status, detail=s.detail)
                 for s in r.steps
             ],
             steps_passed=r.steps_passed,
@@ -200,14 +203,14 @@ def get_candidate_approval_audit(version_id: str):
             approval_packet_id=r.approval_packet_id,
             event_count=r.event_count,
             events=[
-                {
-                    "event_id": e.event_id,
-                    "version_id": e.version_id,
-                    "step": e.step,
-                    "status": e.status,
-                    "detail": e.detail,
-                    "created_at": e.created_at,
-                }
+                ApprovalAuditEntrySchema(
+                    event_id=e.event_id,
+                    version_id=e.version_id,
+                    step=e.step,
+                    status=e.status,
+                    detail=e.detail,
+                    created_at=e.created_at,
+                )
                 for e in r.events
             ],
             can_execute=r.can_execute,

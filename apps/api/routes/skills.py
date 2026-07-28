@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import TypedDict
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -25,12 +26,9 @@ from apps.api.schemas.skills import (
     SkillRunListResponse,
     SkillRunDetailResponse,
     SkillRunRequest,
-    SkillRunSummaryResponse,
     SkillRunResponse,
-    SkillRunStepResponse,
     SkillRunTimelineProofResponse,
     SkillRunTimelineResponse,
-    SkillRunTimelineStepResponse,
     SkillUIRunRequest,
     SkillUIRunResponse,
     SkillSummaryResponse,
@@ -526,6 +524,7 @@ def run_skill_endpoint(skill_id: str, request: SkillRunRequest):
 
         run_result = run_deterministic_skill_for_order_reference(session=session, skill_id=skill.id, order_reference=order_reference)
         run = get_skill_run(session, run_result.skill_run_id)
+        assert run is not None  # just created by run_deterministic_skill_for_order_reference above
         output = run.output_json and json.loads(run.output_json) or {}
         return _run_response(run, skill.id, output)
     finally:
@@ -712,7 +711,12 @@ def _skill_inspection_has_write_actions(workflow_steps: list[dict]) -> bool:
     return any(step.get("type") in write_step_types for step in workflow_steps if isinstance(step, dict))
 
 
-def _preview_formula_guard(order_reference: str) -> dict[str, int | str]:
+class _FormulaGuardPreview(TypedDict):
+    decision: str
+    issues_count: int
+
+
+def _preview_formula_guard(order_reference: str) -> _FormulaGuardPreview:
     adapter = FakeERPAdapter()
     try:
         order = adapter.get_sales_order_by_reference(order_reference)

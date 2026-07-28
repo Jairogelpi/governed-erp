@@ -1,7 +1,6 @@
 """Sprint 36 — Agent Candidate Human Decision unit tests."""
 from __future__ import annotations
 
-import json
 import uuid
 
 import pytest

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 
-from erpguard.db.repositories import get_automation_draft, get_automation_draft_review
+from erpguard.db.repositories import get_automation_draft
 
 
 _FORBIDDEN_ODOO_STEP_PATTERNS = {"action_confirm", "action_done", "button_confirm", "button_validate", ".write(", ".create(", ".unlink(", ".copy("}

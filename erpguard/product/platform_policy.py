@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from erpguard.db.repositories import get_tenant
 from erpguard.product.models import PolicyEvaluationRequestModel, PolicyEvaluationResultModel
 from erpguard.product.platform_kill_switch import KillSwitchService
 

@@ -126,7 +126,7 @@ def generate_compile_plan(draft_id: str, session: Session) -> DraftCompileBridge
     ]
 
     estimated_inputs = [
-        m.get("erp_field", m.get("proposed_field", "unknown_field"))
+        str(m.get("erp_field") or m.get("proposed_field") or "unknown_field")
         for m in entity_mappings
         if isinstance(m, dict)
     ] or ["connection_id", "context"]

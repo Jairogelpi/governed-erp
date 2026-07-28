@@ -4,7 +4,6 @@ from erpguard.product.models import (
     AutomationDraftModel,
     BusinessAnalysisRequest,
     BusinessAnalysisResult,
-    BusinessAnalysisSampleLimits,
     BusinessOpportunityModel,
     BusinessSignalModel,
     BusinessSnapshotModel,

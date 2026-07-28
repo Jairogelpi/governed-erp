@@ -8,7 +8,6 @@ from erpguard.db.repositories import (
     get_tenant,
     list_tenants,
     suspend_tenant,
-    update_tenant_kill_switches,
 )
 from erpguard.product.models import (
     TenantKillSwitchConfig,

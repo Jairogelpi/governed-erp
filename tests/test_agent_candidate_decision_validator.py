@@ -1,7 +1,6 @@
 """Sprint 36 — Agent Candidate Decision Validator unit tests."""
 from __future__ import annotations
 
-import pytest
 from erpguard.product.agent_candidate_decision_validator import validate_human_decision
 
 

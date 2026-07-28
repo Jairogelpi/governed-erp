@@ -96,7 +96,7 @@ def test_refresh_unknown_draft(session):
 
 
 def test_refresh_draft_no_link(session):
-    adv_session = create_advisory_session(session, created_by_actor_json="{}")
+    create_advisory_session(session, created_by_actor_json="{}")
     draft = create_automation_draft(
         session,
         opportunity_id="other",

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import json
 
 from pydantic import BaseModel, Field
 
 from erpguard.product.agent_draft_safety_policy import SafetyPolicyResult, enforce_draft_safety
 from erpguard.product.agent_mapping_completeness import MappingCompletenessResult, check_mapping_completeness
 from erpguard.product.agent_proposal_eligibility import EligibilityResult, check_eligibility
-from erpguard.product.agent_proposal_to_draft import DraftTransformResult, transform_proposal_to_draft
+from erpguard.product.agent_proposal_to_draft import transform_proposal_to_draft
 
 
 class DraftPreview(BaseModel):

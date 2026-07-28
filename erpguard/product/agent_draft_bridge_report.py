@@ -86,7 +86,7 @@ def get_bridge_report(draft_id: str, session: Session) -> DraftBridgeReport:
 
     failed = [s for s in steps if s.status in ("failed", "blocked")]
     not_started = [s for s in steps if s.status == "not_started"]
-    all_passed = all(s.status == "passed" for s in steps)
+    all(s.status == "passed" for s in steps)
 
     if failed:
         overall_status = "blocked"

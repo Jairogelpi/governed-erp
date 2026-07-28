@@ -10,7 +10,6 @@ from erpguard.db.repositories import (
     get_automation_draft_review,
     get_skill,
     get_skill_version,
-    get_latest_skill_version,
     mark_review_compiled,
 )
 from erpguard.product.models import CompiledSkillModel

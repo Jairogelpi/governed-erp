@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from apps.api.main import app
 from erpguard.adapters.fake import FakeERPAdapter
 from erpguard.canonical.enums import SalesOrderState
-from erpguard.db.repositories import create_skill, list_skill_runs
+from erpguard.db.repositories import list_skill_runs
 from erpguard.db.session import SessionLocal, init_db
 
 

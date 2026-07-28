@@ -109,7 +109,7 @@ def test_audit_does_not_contain_raw_secret(db):
 def test_audit_events_include_status(db):
     cred_ref = _make_session_and_seal(db)
     service = ERPFingerprintingPlanService(db)
-    result = service.create_plan(
+    service.create_plan(
         FingerprintingPlanInput(
             setup_session_id="csess_audit1",
             credential_ref=cred_ref,

@@ -125,10 +125,10 @@ class VisualObservationSnapshotService:
             return "visual_session_blocked"
         if not any([input.screen_summary, input.dom_summary, input.visible_text, input.tables, input.forms, input.buttons]):
             return "observation_payload_required"
-        for field in input.credential_fields_detected:
-            if field.get("value_present") is True:
+        for credential_field in input.credential_fields_detected:
+            if credential_field.get("value_present") is True:
                 return "credential_visibility_forbidden"
-            if "value" in field:
+            if "value" in credential_field:
                 return "raw_secret_marker_detected"
         if _contains_raw_secret_value(input):
             return "raw_secret_marker_detected"
