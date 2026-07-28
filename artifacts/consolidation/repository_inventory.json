@@ -1,0 +1,3323 @@
+[
+  {
+    "function": "_to_json",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "add_active_skill_run_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "add_recording_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "add_skill_schedule_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "add_ui_recording_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "add_ui_replay_failure",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "add_ui_replay_step_audit",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "add_ui_replay_verification",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "confirm_action_plan_step_token",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "consume_oauth_state",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "count_action_dispatch_eligibility_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "count_operator_action_plan_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "count_write_pilot_runs_recent",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_action_dispatch_eligibility_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_action_dispatch_execution_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_action_dispatch_result_record",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_action_plan_step_token",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_activation_gate_evaluation",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_active_skill_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_advisory_proposal",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_advisory_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_builder_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_builder_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_candidate_activation_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_candidate_activation_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_candidate_activation_request_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_candidate_approval_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_candidate_approval_packet",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_candidate_decision",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_candidate_decision_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_draft_bridge_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_draft_handoff_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_draft_handoff_packet",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_handoff_version_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_handoff_version_link",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_proposal_draft_link",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_agent_skill_run_preview_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_audit_export",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_automation_draft",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_automation_draft_review",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_blocked_write_evidence",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_business_signal",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_business_snapshot",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_clarification_answer",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_clarification_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_connection",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_connector_auth_profile",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_connector_credential_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_connector_read_evidence",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_connector_setup_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_connector_setup_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_credential_vault_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_credential_vault_entry",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_erp_fingerprinting_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_erp_fingerprinting_plan",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_execution_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_execution_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_execution_run_step",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_external_connector_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_fake_erp_execution_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_fake_erp_execution_evidence",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_fake_erp_execution_evidence_pack",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_fake_erp_execution_record",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_fake_erp_regression_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_fake_erp_regression_case",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_fake_erp_regression_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_generated_capability_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_generated_capability_set",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_invariant_results_from_policy_issues",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_kill_switch_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_live_read_evidence",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_live_read_execution_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_live_read_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_manual_dry_run_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_manual_dry_run_evidence",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_mapping_confirmation",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_oauth_state",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_oauth_token_record",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_odoo_connection_test",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_odoo_connection_test_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_odoo_read_evidence_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_odoo_read_evidence_pack",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_odoo_read_mapping",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_odoo_read_mapping_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_odoo_read_only_adapter_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_odoo_read_only_adapter_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_odoo_read_only_demo_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_odoo_read_only_demo_flow",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_operator_action_plan_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_operator_console_query",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_operator_console_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_operator_evidence_pack",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_operator_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_operator_session_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_opportunity",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_opportunity_scan",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_platform_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_preflight_case",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_r2_evidence_review",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_r2_execution_report",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_r2_promotion_gate",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_r2_rollback_rehearsal",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_r2_write_pilot_evidence",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_r2_write_pilot_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_r2_write_pilot_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_read_only_activation_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_read_only_activation_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_read_only_connector_activation",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_recording_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_safe_discovery_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_safe_discovery_plan",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_skill_approval_decision",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_skill_approval_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_skill_dry_run_proof",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_skill_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_skill_run_queue_entry",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_skill_run_step",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_skill_schedule",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_skill_version",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_tenant",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_ui_compiled_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_ui_recording_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_ui_replay_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_ui_skill_draft",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_ui_skill_version_lifecycle_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_ui_skill_version_record",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_visual_browser_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_visual_browser_session_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_visual_observation_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_visual_observation_snapshot",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_visual_table_form_extraction",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_visual_table_form_extraction_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_visual_workflow_trace",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_visual_workflow_trace_audit_event",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_write_impact_preview",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_write_pilot_evidence",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_write_pilot_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_write_pilot_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_write_readiness_assessment",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_write_readiness_certification",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "create_write_rollback_plan",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "expire_action_plan_step_tokens",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "finish_recording_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "finish_skill_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "finish_ui_recording_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "finish_ui_replay_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_action_dispatch_result_record",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_action_plan_step_token",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_active_skill_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_active_ui_skill_version",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_advisory_proposal",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_advisory_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_agent_builder_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_agent_candidate_activation_request_by_version",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_agent_candidate_approval_packet_by_version",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_agent_draft_handoff_packet_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_agent_handoff_version_link_by_packet",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_agent_proposal_draft_link_by_draft",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_agent_proposal_draft_link_by_proposal",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_approval_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_audit_export",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_automation_draft",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_automation_draft_review",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_business_snapshot",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_connection",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_connector_auth_profile",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_connector_read_evidence",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_connector_setup_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_credential_vault_entry_by_ref",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_erp_fingerprinting_plan_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_execution_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_execution_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_fake_erp_execution_evidence",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_fake_erp_execution_evidence_pack",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_fake_erp_execution_record",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_fake_erp_regression_case",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_fake_erp_regression_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_generated_capability_set_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_latest_agent_candidate_decision",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_latest_agent_draft_handoff_packet",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_latest_approval_request_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_latest_clarification_answer_for_question",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_latest_dry_run_proof_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_latest_fake_erp_execution_evidence_pack_for_execution",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_latest_gate_evaluation",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_latest_mapping_confirmation_for_key",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_latest_skill_version",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_latest_write_impact_preview_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_latest_write_readiness_assessment_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_latest_write_readiness_certification_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_latest_write_rollback_plan_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_live_read_execution_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_live_read_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_manual_dry_run_evidence_for_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_oauth_state_by_token",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_oauth_token_record_for_profile",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_odoo_connection_test_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_odoo_read_evidence_pack_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_odoo_read_mapping_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_odoo_read_only_adapter_session_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_odoo_read_only_demo_flow_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_operator_console_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_operator_evidence_pack",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_operator_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_opportunity",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_opportunity_scan",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_or_create_idempotency_key",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_preflight_case",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_r2_evidence_review_for_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_r2_execution_report_for_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_r2_promotion_gate_for_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_r2_rollback_rehearsal_for_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_r2_write_pilot_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_r2_write_pilot_request_by_idempotency_key",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_r2_write_pilot_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_r2_write_pilot_run_for_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_read_only_activation_request_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_read_only_connector_activation_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_recording_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_safe_discovery_plan_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_skill_dry_run_proof",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_skill_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_skill_run_queue_entry",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_skill_schedule",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_skill_version",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_tenant",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_ui_compiled_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_ui_recording_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_ui_replay_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_ui_skill_draft",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_ui_skill_version_record",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_visual_browser_session_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_visual_observation_snapshot_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_visual_table_form_extraction_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_visual_workflow_trace_by_id",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_write_pilot_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_write_pilot_request_by_idempotency_key",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_write_pilot_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_write_pilot_run_for_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_write_readiness_assessment",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "get_write_readiness_certification",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_active_skill_run_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_active_skill_runs_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_advisory_proposals_for_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_agent_builder_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_agent_candidate_activation_events_for_version",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_agent_candidate_activation_request_events_for_version",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_agent_candidate_approval_events_for_version",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_agent_candidate_decision_events_for_version",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_agent_candidate_decisions_for_version",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_agent_draft_bridge_events_for_draft",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_agent_draft_handoff_events_for_draft",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_agent_handoff_version_events_for_packet",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_agent_skill_run_preview_events_for_version",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_all_ui_skill_version_records",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_approval_decisions_for_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_approval_decisions_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_approval_requests_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_automation_drafts",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_blocked_write_evidence_for_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_business_signals",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_clarification_answers_for_proposal",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_clarification_audit_events_for_proposal",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_connections",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_connector_auth_profiles",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_connector_credential_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_connector_read_evidence_for_profile",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_connector_setup_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_connector_setup_sessions",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_credential_vault_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_draft_reviews",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_due_active_skill_schedules",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_erp_fingerprinting_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_erp_fingerprinting_plans",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_execution_requests_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_execution_run_steps",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_execution_runs_for_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_execution_runs_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_external_connector_audit_events_for_profile",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_gate_evaluations_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_generated_capability_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_generated_capability_sets",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_invariant_results",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_kill_switch_events_for_tenant",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_live_read_evidence_for_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_live_read_execution_requests_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_live_read_runs_for_request",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_manual_dry_run_audit_events_for_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_mapping_confirmations_for_proposal",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_odoo_connection_test_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_odoo_connection_tests",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_odoo_read_evidence_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_odoo_read_evidence_packs",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_odoo_read_mapping_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_odoo_read_mappings",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_odoo_read_only_adapter_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_odoo_read_only_adapter_sessions",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_odoo_read_only_demo_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_odoo_read_only_demo_flows",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_operator_console_queries",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_operator_evidence_packs",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_operator_session_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_opportunities",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_platform_audit_events_for_tenant",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_r2_write_pilot_evidence_for_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_r2_write_pilot_requests_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_read_only_activation_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_read_only_connector_activations",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_recent_action_dispatch_execution_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_recent_dispatch_eligibility_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_recent_fake_erp_execution_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_recent_fake_erp_regression_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_recent_manual_dry_run_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_recent_operator_action_plan_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_recent_operator_console_queries",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_recent_queue_entries_for_schedule",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_recording_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_recording_sessions",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_safe_discovery_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_safe_discovery_plans",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_skill_run_queue_entries_for_schedule",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_skill_run_steps",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_skill_runs",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_skill_schedule_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_skill_schedules_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_skills",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_tenants",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_ui_recording_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_ui_replay_failures",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_ui_replay_step_audits",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_ui_replay_verifications",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_ui_skill_version_lifecycle_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_ui_skill_version_records",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_visual_browser_session_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_visual_browser_sessions",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_visual_observation_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_visual_observation_snapshots",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_visual_table_form_extraction_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_visual_table_form_extractions",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_visual_workflow_trace_audit_events",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_visual_workflow_traces",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_write_pilot_evidence_for_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "list_write_pilot_requests_for_skill",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "mark_review_compiled",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "revoke_credential_vault_entry",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "revoke_oauth_token_record",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "suspend_tenant",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_active_skill_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_advisory_proposal",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_advisory_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_agent_builder_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_approval_request_status",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_connector_auth_profile",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_connector_setup_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_execution_request_status",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_fake_erp_execution_record",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_fake_erp_regression_run",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_live_read_execution_request_status",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_operator_session",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_read_only_activation_request_status",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_skill_run_queue_entry",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_skill_schedule",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_tenant_kill_switches",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_ui_skill_version_status",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  },
+  {
+    "function": "update_visual_browser_session_status",
+    "module": "erpguard.db.repositories",
+    "path": "erpguard/db/repositories.py",
+    "classification": "migrate",
+    "final_destination": "erpguard/infrastructure/persistence/repositories",
+    "deletion_wave": "C5",
+    "reason": "legacy repository monolith"
+  }
+]

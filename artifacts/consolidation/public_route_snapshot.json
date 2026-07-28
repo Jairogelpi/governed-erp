@@ -1,0 +1,599 @@
+{
+  "source": "apps.api.main:app",
+  "public_route_whitelist": [
+    "/v1/health",
+    "/v1/identity",
+    "/v1/connections",
+    "/v1/connectors",
+    "/v1/events",
+    "/v1/processes",
+    "/v1/variants",
+    "/v1/process-candidates",
+    "/v1/replays",
+    "/v1/proofs",
+    "/v1/skills",
+    "/v1/approvals",
+    "/v1/executions",
+    "/v1/evidence"
+  ],
+  "routes": [
+    {
+      "path": "/v1/connections",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "list_unified_connections",
+      "endpoint_module": "apps.api.routes.unified_connections"
+    },
+    {
+      "path": "/v1/connections",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "create_unified_connection",
+      "endpoint_module": "apps.api.routes.unified_connections"
+    },
+    {
+      "path": "/v1/connections/{connection_id}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_unified_connection",
+      "endpoint_module": "apps.api.routes.unified_connections"
+    },
+    {
+      "path": "/v1/connectors",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "list_connectors",
+      "endpoint_module": "apps.api.routes.public_v1.connectors"
+    },
+    {
+      "path": "/v1/connectors/{connector_id}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_connector",
+      "endpoint_module": "apps.api.routes.public_v1.connectors"
+    },
+    {
+      "path": "/v1/connectors/{connector_id}/test",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "test_connector",
+      "endpoint_module": "apps.api.routes.public_v1.connectors"
+    },
+    {
+      "path": "/v1/events/cursors",
+      "methods": [
+        "PUT"
+      ],
+      "endpoint": "save_cursor",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/events/cursors/{connector_id}/{stream_key}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_cursor",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/events/fake-generate",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "generate_fake_events",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/events/ocel/export",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "export_ocel",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/events/ocel/import",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "import_ocel",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/events/odoo/poll",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "ingest_odoo_poll",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/events/odoo/webhook",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "ingest_odoo_webhook",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/health",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "health",
+      "endpoint_module": "apps.api.routes.public_v1.health"
+    },
+    {
+      "path": "/v1/identity/me",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_current_user_endpoint",
+      "endpoint_module": "apps.api.routes.identity"
+    },
+    {
+      "path": "/v1/identity/tenants/{tenant_id}/members",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "add_membership_endpoint",
+      "endpoint_module": "apps.api.routes.identity"
+    },
+    {
+      "path": "/v1/process-candidates",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "create_candidate",
+      "endpoint_module": "apps.api.routes.candidates"
+    },
+    {
+      "path": "/v1/process-candidates/{candidate_id}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_candidate",
+      "endpoint_module": "apps.api.routes.candidates"
+    },
+    {
+      "path": "/v1/process-candidates/{candidate_id}/submit",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "submit_candidate",
+      "endpoint_module": "apps.api.routes.candidates"
+    },
+    {
+      "path": "/v1/processes",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "register_process",
+      "endpoint_module": "apps.api.routes.processes"
+    },
+    {
+      "path": "/v1/processes/{process_key}/diff",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "diff_process",
+      "endpoint_module": "apps.api.routes.processes"
+    },
+    {
+      "path": "/v1/processes/{process_key}/versions/{version}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_process",
+      "endpoint_module": "apps.api.routes.processes"
+    },
+    {
+      "path": "/v1/skills",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "list_skills_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "create_skill_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_skill_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/inspect",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "inspect_skill_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/plan-action",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "plan_skill_action_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/run",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "run_skill_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/run-ui",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "run_skill_ui_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/runs",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "list_skill_runs_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/runs/{skill_run_id}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_skill_run_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/runs/{skill_run_id}/timeline",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_skill_run_timeline_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/simulate-approval-decision",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "simulate_skill_approval_decision_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/variants",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "list_variants",
+      "endpoint_module": "apps.api.routes.variants"
+    },
+    {
+      "path": "/v1/variants/cases/{case_id}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_case_trace",
+      "endpoint_module": "apps.api.routes.variants"
+    },
+    {
+      "path": "/v1/variants/dashboard",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "variants_dashboard",
+      "endpoint_module": "apps.api.routes.variants"
+    }
+  ],
+  "observed_v1_routes": [
+    {
+      "path": "/v1/connections",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "list_unified_connections",
+      "endpoint_module": "apps.api.routes.unified_connections"
+    },
+    {
+      "path": "/v1/connections",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "create_unified_connection",
+      "endpoint_module": "apps.api.routes.unified_connections"
+    },
+    {
+      "path": "/v1/connections/{connection_id}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_unified_connection",
+      "endpoint_module": "apps.api.routes.unified_connections"
+    },
+    {
+      "path": "/v1/connectors",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "list_connectors",
+      "endpoint_module": "apps.api.routes.public_v1.connectors"
+    },
+    {
+      "path": "/v1/connectors/{connector_id}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_connector",
+      "endpoint_module": "apps.api.routes.public_v1.connectors"
+    },
+    {
+      "path": "/v1/connectors/{connector_id}/test",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "test_connector",
+      "endpoint_module": "apps.api.routes.public_v1.connectors"
+    },
+    {
+      "path": "/v1/events/cursors",
+      "methods": [
+        "PUT"
+      ],
+      "endpoint": "save_cursor",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/events/cursors/{connector_id}/{stream_key}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_cursor",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/events/fake-generate",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "generate_fake_events",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/events/ocel/export",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "export_ocel",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/events/ocel/import",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "import_ocel",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/events/odoo/poll",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "ingest_odoo_poll",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/events/odoo/webhook",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "ingest_odoo_webhook",
+      "endpoint_module": "apps.api.routes.events"
+    },
+    {
+      "path": "/v1/health",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "health",
+      "endpoint_module": "apps.api.routes.public_v1.health"
+    },
+    {
+      "path": "/v1/identity/me",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_current_user_endpoint",
+      "endpoint_module": "apps.api.routes.identity"
+    },
+    {
+      "path": "/v1/identity/tenants/{tenant_id}/members",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "add_membership_endpoint",
+      "endpoint_module": "apps.api.routes.identity"
+    },
+    {
+      "path": "/v1/process-candidates",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "create_candidate",
+      "endpoint_module": "apps.api.routes.candidates"
+    },
+    {
+      "path": "/v1/process-candidates/{candidate_id}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_candidate",
+      "endpoint_module": "apps.api.routes.candidates"
+    },
+    {
+      "path": "/v1/process-candidates/{candidate_id}/submit",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "submit_candidate",
+      "endpoint_module": "apps.api.routes.candidates"
+    },
+    {
+      "path": "/v1/processes",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "register_process",
+      "endpoint_module": "apps.api.routes.processes"
+    },
+    {
+      "path": "/v1/processes/{process_key}/diff",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "diff_process",
+      "endpoint_module": "apps.api.routes.processes"
+    },
+    {
+      "path": "/v1/processes/{process_key}/versions/{version}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_process",
+      "endpoint_module": "apps.api.routes.processes"
+    },
+    {
+      "path": "/v1/skills",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "list_skills_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "create_skill_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_skill_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/inspect",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "inspect_skill_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/plan-action",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "plan_skill_action_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/run",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "run_skill_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/run-ui",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "run_skill_ui_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/runs",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "list_skill_runs_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/runs/{skill_run_id}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_skill_run_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/runs/{skill_run_id}/timeline",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_skill_run_timeline_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/skills/{skill_id}/simulate-approval-decision",
+      "methods": [
+        "POST"
+      ],
+      "endpoint": "simulate_skill_approval_decision_endpoint",
+      "endpoint_module": "apps.api.routes.skills"
+    },
+    {
+      "path": "/v1/variants",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "list_variants",
+      "endpoint_module": "apps.api.routes.variants"
+    },
+    {
+      "path": "/v1/variants/cases/{case_id}",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "get_case_trace",
+      "endpoint_module": "apps.api.routes.variants"
+    },
+    {
+      "path": "/v1/variants/dashboard",
+      "methods": [
+        "GET"
+      ],
+      "endpoint": "variants_dashboard",
+      "endpoint_module": "apps.api.routes.variants"
+    }
+  ]
+}

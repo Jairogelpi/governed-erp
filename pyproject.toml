@@ -44,7 +44,14 @@ per-file-ignores = {"erpguard/product/release_readiness.py" = ["F401"]}
 
 [tool.mypy]
 python_version = "3.11"
-files = ["erpguard/version.py"]
+files = [
+    "erpguard/version.py",
+    "erpguard/db/model_packages",
+    "erpguard/domain/processes",
+    "erpguard/domain/variants",
+    "apps/api/routes/candidates.py",
+    "apps/api/schemas/candidates.py",
+]
 check_untyped_defs = true
 disallow_untyped_defs = false
 warn_unused_ignores = true

@@ -6,14 +6,22 @@ from uuid import uuid4
 from sqlalchemy.orm import Session
 
 from erpguard.config import settings
+from erpguard.connectors.sdk.registry import ConnectorRegistry, discover_connectors
 from erpguard.db.model_packages.connections import EncryptedSecret, UnifiedConnection
 from erpguard.infrastructure.secrets import EncryptedLocalSecretProvider
 
 
 class UnifiedConnectionService:
-    def __init__(self, session: Session, *, secret_provider: EncryptedLocalSecretProvider | None = None):
+    def __init__(
+        self,
+        session: Session,
+        *,
+        secret_provider: EncryptedLocalSecretProvider | None = None,
+        connector_registry: ConnectorRegistry | None = None,
+    ):
         self.session = session
         self.secret_provider = secret_provider or EncryptedLocalSecretProvider(settings.local_secret_key)
+        self.connector_registry = connector_registry or discover_connectors()
 
     def create(
         self,
@@ -27,6 +35,10 @@ class UnifiedConnectionService:
         secret: str,
         metadata: dict,
     ) -> UnifiedConnection:
+        try:
+            self.connector_registry.get(connector_type)
+        except KeyError as exc:
+            raise ValueError("connector_not_found") from exc
         sealed = self.secret_provider.seal(secret)
         secret_row = EncryptedSecret(
             id=f"secret_{uuid4().hex}",

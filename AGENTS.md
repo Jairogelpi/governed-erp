@@ -759,3 +759,38 @@
 - Verification: focused integration/release slice passed (`26 passed`); changed-surface Ruff and mypy passed; `uv lock --check` and `git diff --check` passed. Full regression was not run at the user's direction.
 - Reality labels: relational links, canonical vocabulary, runtime injection seam and README are `real`; Odoo live runtime remains `staging_only`; large-scale benchmark remains pending.
 - Safety boundary: no Phase 12 replay, candidate activation, ERP write or raw ERP execution was added.
+
+### 2026-07-28 — Phase 11.1 Candidate Integrity Gate
+
+- What changed: added tenant scope to `ProcessCandidate`; replaced the global `(process_key, candidate_version)` uniqueness rule with `(tenant_id, process_key, candidate_version)`; filtered candidate create/get/submit operations by the authenticated tenant; and preserved 404 behavior for cross-tenant candidate access.
+- What changed: added migration `0008_candidate_integrity` with legacy backfill (`tenant_id=legacy`, `validation_status=legacy_unvalidated`), `patch_json`, structured proposal storage, deterministic base/patch/candidate artifacts and digests.
+- What changed: added bounded candidate patch materialization and validation. Supported operations are `add_event`, `remove_event`, `add_decision`, `modify_decision`, `add_policy`, `modify_policy`, `add_metric` and `modify_metric`; arbitrary code, raw adapter/Odoo calls, unregistered capabilities and mandatory-policy removal are blocked.
+- What changed: evidence references now resolve tenant-scoped canonical events, case traces and reproducible variant summaries and must relate to the base process definition. Missing or cross-tenant evidence returns `candidate_evidence_not_found`/HTTP 404 without existence disclosure.
+- Why: close the Phase 11 integrity gap before Historical Replay, so a submitted candidate is an isolated, immutable and deterministic artifact rather than an arbitrary client dictionary.
+- Verification: Phase 9–11 focused regression passed (`15 passed`); migration from `0007` and clean Alembic upgrade passed; Phase 11.1 Ruff scope passed; mypy covers 18 process/model/API files and passed. The full repository suite was not run per user instruction. Literal `ruff check erpguard apps tests` remains a pre-existing repository-wide debt with 299 findings outside this block.
+- Safety boundary: no activation, replay, hidden execution, ERP write or automatic chaining was added.
+
+### 2026-07-28 — Phase 11.5 Wave C0 Consolidation Inventory
+
+- What changed: added the inspection-only `scripts/generate_consolidation_inventory.py`, machine-readable inventories under `artifacts/consolidation/`, the current route snapshot test, and `docs/architecture/phase_11_5_c0_inventory.md`.
+- Why: begin Phase 11.5 with an AST/import-backed baseline before moving or deleting runtime code. The inventory covers production modules, routes, imports, SQLAlchemy models/tables, repository functions, tests and documentation, and records explicit unresolved reviews instead of guessing bulk classifications.
+- Measured baseline: 514 production modules, 74 route modules (excluding the package `__init__.py`), 150 models/tables, 369 repository functions, 406 test files, 97 documentation entries and 396 effective routes in `apps.api.main:app`.
+- Verification: focused C0 plus Phase 11.1 slice passed (`12 passed`); Ruff passed for changed C0 files; `git diff --check` passed; a temporary SQLite database upgraded cleanly through `0008_candidate_integrity`. The full repository suite was not run by user request and remains pending.
+- Safety boundary: C0 made no runtime relocation, deletion, replay, activation, ERP execution or ERP write change. The exact next block is C1 composition-root/public-internal route separation; do not implement Phase 12 in this C0 block.
+
+### 2026-07-28 — Phase 11.5 Wave C1 Composition Root and Route Boundaries
+
+- What changed: added `apps/api/app_factory.py`, `apps/api/legacy_app.py`, the `apps/api/routes/public_v1/` public package, opt-in `apps/api/routes/internal/`, and reduced `apps/api/main.py` to the default composition root. Added `tests/test_phase115_composition_root.py` and `docs/architecture/phase_11_5_c1_composition.md`.
+- Why: make the default app expose only the declared `/v1` route roots, keep controlled demo tooling behind `ERPGUARD_INTERNAL_SURFACES`, and preserve the pre-C1 route graph only behind `ERPGUARD_LEGACY_API_ENABLED` or `create_app(legacy=True)`.
+- Behavior: the default app has no `/health`, `/demo`, `/fake-erp`, `/v1/release`, `/v1/agent-builder`, automatic docs or OpenAPI routes. Reserved public roots exist as empty bounded routers until their later lifecycle waves; no capability was added to fill them.
+- Verification: C1 composition tests passed (`3 passed`); C0 inventory tests were kept compatible with the recursive FastAPI router composition and remain the next focused check. Full repository regression was not run by user request.
+- Safety boundary: no production module was deleted, no replay/activation/ERP execution/ERP write was added, and the legacy graph is not mounted by default. The next allowed block is C2 connector convergence; do not implement Phase 12 in C1.
+
+### 2026-07-28 - Phase 11.5 Wave C2 Connector Convergence
+
+- What changed: added the tenant-scoped `ConnectorApplicationService`, public SDK v2 connector definition/test routes, explicit `ConnectorRuntime` typing, and registry validation for unified connection creation. Added the C2 convergence architecture note and focused connector tests.
+- Why: converge connector behavior on the SDK v2 entry-point registry and runtime so the public API has one connector contract, one connection lookup boundary and no raw-secret handoff to plugins.
+- Behavior: `/v1/connectors` exposes discovered Fake/Odoo SDK v2 definitions; `/v1/connectors/{connector_id}/test` resolves a tenant-owned `UnifiedConnection`, checks connector identity, builds a `ConnectorContext` with `credential_ref`, and invokes the plugin through `ConnectorRuntime`. Unknown connector types are rejected during connection creation.
+- Verification: C2 connector convergence tests passed (`6 passed`); changed C2 Ruff and `git diff --check` passed. Full repository regression was not run at the user's direction.
+- Reality labels: registry discovery, route boundary, tenant filtering, credential-reference context and Fake connection test are `real`; Odoo live testing still requires its injected read-only transport and staging credentials.
+- Safety boundary: legacy connector setup/auth/credential routes remain outside the default public app; no replay, activation, autonomous ERP execution or ERP write capability was added. The next allowed block is the later regression/proof gate; do not implement Phase 12 in C2.

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 from erpguard.domain.processes.models import ProcessDefinitionDocument
 
