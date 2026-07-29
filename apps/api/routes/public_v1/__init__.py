@@ -6,7 +6,7 @@ replacement wave in its module docstring.
 """
 
 from . import approvals, candidates, connections, connectors, executions, evidence
-from . import events, health, identity, processes, proofs, replays, skills, variants
+from . import events, health, identity, processes, proofs, replays, skill_packages, skills, variants
 
 
 PUBLIC_ROUTERS = (
@@ -22,6 +22,8 @@ PUBLIC_ROUTERS = (
     replays.processes_router,
     proofs.router,
     skills.router,
+    skill_packages.router,
+    skill_packages.candidates_router,
     approvals.router,
     executions.router,
     evidence.router,
