@@ -5,7 +5,7 @@ understanding and improving ERP business processes. It keeps ERP effects behind
 explicit safety boundaries: the current implementation is read-only or
 simulated, and raw ERP writes are disabled.
 
-> Current project state: **Phase 11.5 C8 - Product consolidation complete**.
+> Current project state: **Phase 12 - Historical replay**.
 
 ## What exists now
 
@@ -99,9 +99,9 @@ dependent tests may be skipped when Chromium is unavailable.
 
 ## Roadmap
 
-Completed: Phases 0–11.1 plus Phase 11.5 C0–C8, from baseline freeze through
-the candidate integrity gate, controlled API composition, connector
-convergence, and the full product consolidation:
+Completed: Phases 0–12, from baseline freeze through the candidate
+integrity gate, controlled API composition, connector convergence, the
+full product consolidation (Phase 11.5 C0–C8), and historical replay:
 
 - C0 inventory
 - C1 composition root
@@ -135,7 +135,24 @@ path (tables recreated, zero rows) — all against SQLite. Not verified
 locally against PostgreSQL or via `docker build` (no local Postgres/Docker
 in this environment); both run in CI on every push.
 
-Next: Phase 12 — Historical Replay.
+Phase 12 — Historical replay (master spec section 15): `erpguard/domain/replays/`
+executes a registered process version over already-ingested canonical events
+for a given object_type and evaluates the process's declared decisions
+against them (`formula_guard` is the only decision with a real evaluator
+today; others declared in a process definition are skipped, not faked). No
+LLM is invoked anywhere in the replay path and no connector plugin is ever
+called, so "no source ERP write" holds by construction rather than needing a
+dedicated simulator. `deterministic_trace_hash` is verified deterministic
+by a repeatability test (same dataset/version/policy twice → identical hash
+per case). API: `POST /v1/processes/{key}/versions/{version}/replays`,
+`GET /v1/replays/{id}`, `GET /v1/replays/{id}/cases`,
+`GET /v1/replays/{id}/comparison?baseline_replay_id=...`,
+`POST /v1/replays/{id}/freeze` (immutable once frozen, same pattern as
+process candidates). The comparison endpoint is a minimal hash/status diff
+between two replay runs, not the regression taxonomy from master spec
+section 16 — that's Phase 13's job. No UI in this pass.
+
+Next: Phase 13 — Regression engine and Proof of Improvement.
 
 The exact phase gates and no-goals are defined in the [master implementation
 specification](docs/specs/84_erpguard_evolution_master_spec.md).
