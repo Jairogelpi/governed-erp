@@ -116,15 +116,26 @@ convergence, and the full product consolidation:
 - C7 migration-scaffolding retirement
 - C8 final consolidation gate (ruff, mypy, pytest, alembic all green)
 - C8.1 read-only ORM/schema audit of `erpguard/db/models.py` (see
-  [docs/architecture/c8_1_orm_schema_audit.md](docs/architecture/c8_1_orm_schema_audit.md));
-  `erpguard/product` now contains only `models.py`, everything else was
-  classified and relocated into `erpguard/release_ops`
+  [docs/architecture/c8_1_orm_schema_audit.md](docs/architecture/c8_1_orm_schema_audit.md))
+- C8.2 retired-schema migration: manually skimmed the 40 live tables'
+  `*_id`/`*_ref`/`*_key` columns for by-convention references the audit's
+  FK-only check couldn't see (found 4: `write_impact_previews`,
+  `write_rollback_plans`, `write_pilot_requests`,
+  `r2_write_pilot_requests` are still referenced and were kept); dropped
+  the remaining 95 tables and their ORM classes in
+  `migrations/versions/0009_drop_retired_tables.py`
+  (`erpguard/db/models.py` 2831 → 900 lines); `erpguard/product` deleted
+  entirely, everything now lives in `erpguard/release_ops`
 
-Next: Phase 12 — Historical Replay. Before that: write the Alembic migration
-that drops the 99 orphaned tables the C8.1 audit identified, informed by its
-caveat that the schema declares no `ForeignKey()` constraints anywhere, so
-cross-table drop safety needs a manual column skim, not just the audit's
-name-based reachability check.
+The 0009 migration is destructive for data: `downgrade()` recreates the
+95 tables empty (schema only) but cannot restore dropped rows. Verified
+locally: fresh-empty-db upgrade path, existing-db-with-data upgrade path
+(rows in two sample tables confirmed gone after upgrade), and downgrade
+path (tables recreated, zero rows) — all against SQLite. Not verified
+locally against PostgreSQL or via `docker build` (no local Postgres/Docker
+in this environment); both run in CI on every push.
+
+Next: Phase 12 — Historical Replay.
 
 The exact phase gates and no-goals are defined in the [master implementation
 specification](docs/specs/84_erpguard_evolution_master_spec.md).
