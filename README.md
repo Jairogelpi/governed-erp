@@ -5,7 +5,7 @@ understanding and improving ERP business processes. It keeps ERP effects behind
 explicit safety boundaries: the current implementation is read-only or
 simulated, and raw ERP writes are disabled.
 
-> Current project state: **Phase 13 - Regression engine and Proof of Improvement**.
+> Current project state: **Phase 13.1 - Replay and Proof integrity**.
 
 ## What exists now
 
@@ -173,6 +173,23 @@ recommends `eligible_for_canary`/`eligible_for_promotion`. Any critical
 regression → `reject`. API: `POST /v1/replays/{id}/proofs`,
 `GET /v1/proofs/{id}` (spec 23.5). Proofs are permanently immutable from
 creation (17.4) — no freeze verb, updates are always rejected.
+
+Phase 13.1 — Replay and Proof integrity (review-driven hardening, not in
+the master spec's phase list): two gaps found after Phase 12/13 landed.
+(1) Declared process decisions with no evaluator were silently skipped, so
+a case could read "passed" having only evaluated part of the process. The
+replay engine now tracks `declared_decision_count`/
+`evaluated_decision_count`/`unsupported_decisions`/`decision_coverage_rate`
+per case and forces `needs_clarification` whenever coverage is incomplete;
+`ProofService` requires full coverage across every matched case before it
+will ever recommend `eligible_for_shadow`. (2) The immutable-after-freeze
+listener covered `ProcessReplay` but not `ProcessReplayCase` — freezing a
+replay's header didn't stop its case rows from changing underneath it.
+Added `before_update`/`before_delete` listeners on the case table that
+check the parent replay's frozen status via the connection (no ORM
+relationship exists between the two tables). `ProofService` also now
+requires both replays to be `status="frozen"`, not merely `"completed"`,
+before generating a proof. Migration `0012` adds the coverage columns.
 
 Next: Phase 14 — Process-to-Skill compiler v2.
 
