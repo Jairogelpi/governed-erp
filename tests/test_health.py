@@ -4,9 +4,7 @@ from apps.api.main import app
 from erpguard.db.models import (
     AuditEvent,
     Connection,
-    InvariantResult,
     Policy,
-    PreflightCase,
 )
 from erpguard.db.session import init_db
 
@@ -22,8 +20,6 @@ def test_health_endpoint_returns_ok():
 
 def test_database_models_import_cleanly():
     assert Connection.__tablename__ == "connections"
-    assert PreflightCase.__tablename__ == "preflight_cases"
-    assert InvariantResult.__tablename__ == "invariant_results"
     assert AuditEvent.__tablename__ == "audit_events"
     assert Policy.__tablename__ == "policies"
 
