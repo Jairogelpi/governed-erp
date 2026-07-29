@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from erpguard.product.ui_record_identity_verifier import UIRecordIdentityVerifier
+from erpguard.recording_pipeline.ui_record_identity_verifier import UIRecordIdentityVerifier
 
 
 def test_navigate_step_does_not_require_record():

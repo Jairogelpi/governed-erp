@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from erpguard.product.ui_recording_normalizer import UIRecordingNormalizerService
+from erpguard.recording_pipeline.ui_recording_normalizer import UIRecordingNormalizerService
 
 
 def _make_raw_events(specs: list[dict]) -> list[dict]:

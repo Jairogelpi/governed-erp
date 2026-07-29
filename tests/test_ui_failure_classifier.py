@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from erpguard.product.ui_failure_classifier import UIFailureClassifier
+from erpguard.recording_pipeline.ui_failure_classifier import UIFailureClassifier
 
 
 def test_all_checks_pass_returns_no_failure():

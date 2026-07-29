@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from erpguard.product.ui_page_state_verifier import UIPageStateVerifier
+from erpguard.recording_pipeline.ui_page_state_verifier import UIPageStateVerifier
 
 _BASE = "http://localhost:8000/fake-erp"
 

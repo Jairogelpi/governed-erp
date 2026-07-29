@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from erpguard.product.ui_recovery_suggestion import UIRecoverySuggestionService
+from erpguard.recording_pipeline.ui_recovery_suggestion import UIRecoverySuggestionService
 
 
 def test_suggest_wrong_target():

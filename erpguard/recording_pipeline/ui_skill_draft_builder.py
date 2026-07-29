@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 
-from erpguard.product.ui_recording_normalizer import NormalizedRecording
-from erpguard.product.ui_selector_extractor import UISelectorExtractorService
+from erpguard.recording_pipeline.ui_recording_normalizer import NormalizedRecording
+from erpguard.recording_pipeline.ui_selector_extractor import UISelectorExtractorService
 from erpguard.db.repositories import create_ui_skill_draft
 from erpguard.db.session import SessionLocal, init_db
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from erpguard.product.ui_modal_error_detector import UIModalErrorDetector
+from erpguard.recording_pipeline.ui_modal_error_detector import UIModalErrorDetector
 
 _BASE = "http://localhost:8000/fake-erp"
 

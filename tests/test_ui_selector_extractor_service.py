@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from erpguard.product.ui_recording_normalizer import NormalizedEvent
-from erpguard.product.ui_selector_extractor import UISelectorExtractorService
+from erpguard.recording_pipeline.ui_recording_normalizer import NormalizedEvent
+from erpguard.recording_pipeline.ui_selector_extractor import UISelectorExtractorService
 
 
 def _ev(idx: int, event_type: str, selector: str | None = None, label: str | None = None, value: str | None = None, url: str | None = None) -> NormalizedEvent:

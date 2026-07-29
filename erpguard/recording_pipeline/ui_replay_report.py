@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from erpguard.product.ui_replay_audit import UIReplayAuditService
+from erpguard.recording_pipeline.ui_replay_audit import UIReplayAuditService
 
 
 @dataclass(frozen=True)

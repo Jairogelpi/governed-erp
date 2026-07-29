@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from erpguard.product.ui_selector_ambiguity import UISelectorAmbiguityDetector
+from erpguard.recording_pipeline.ui_selector_ambiguity import UISelectorAmbiguityDetector
 
 
 def test_navigate_step_skips_selector_check():

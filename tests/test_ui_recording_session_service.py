@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from erpguard.product.ui_recording_session import UIRecordingSessionService
+from erpguard.recording_pipeline.ui_recording_session import UIRecordingSessionService
 
 
 def test_create_and_get_session():

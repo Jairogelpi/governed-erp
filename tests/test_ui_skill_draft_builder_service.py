@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from erpguard.product.ui_recording_normalizer import UIRecordingNormalizerService
-from erpguard.product.ui_skill_draft_builder import UISkillDraftBuilder
-from erpguard.product.ui_recording_session import UIRecordingSessionService
-from erpguard.product.ui_event_capture import UIEventCaptureService
+from erpguard.recording_pipeline.ui_recording_normalizer import UIRecordingNormalizerService
+from erpguard.recording_pipeline.ui_skill_draft_builder import UISkillDraftBuilder
+from erpguard.recording_pipeline.ui_recording_session import UIRecordingSessionService
+from erpguard.recording_pipeline.ui_event_capture import UIEventCaptureService
 
 
 def _make_recording_with_events():

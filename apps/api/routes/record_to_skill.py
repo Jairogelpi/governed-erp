@@ -26,16 +26,16 @@ from apps.api.schemas.record_to_skill import (
     VerifiedReplayResponse,
     VerifiedStepResponse,
 )
-from erpguard.product.ui_recording_session import UIRecordingSessionService
-from erpguard.product.ui_event_capture import UIEventCaptureService
-from erpguard.product.ui_recording_normalizer import UIRecordingNormalizerService
-from erpguard.product.ui_skill_draft_builder import UISkillDraftBuilder
-from erpguard.product.ui_skill_compiler import UISkillCompilerService
-from erpguard.product.ui_replay_runtime import UIReplayRuntime
-from erpguard.product.ui_replay_audit import UIReplayAuditService
-from erpguard.product.ui_replay_report import UIReplayReportService
-from erpguard.product.ui_verified_replay_runtime import UIVerifiedReplayRuntime
-from erpguard.product.ui_robust_replay_report import UIRobustReplayReportService
+from erpguard.recording_pipeline.ui_recording_session import UIRecordingSessionService
+from erpguard.recording_pipeline.ui_event_capture import UIEventCaptureService
+from erpguard.recording_pipeline.ui_recording_normalizer import UIRecordingNormalizerService
+from erpguard.recording_pipeline.ui_skill_draft_builder import UISkillDraftBuilder
+from erpguard.recording_pipeline.ui_skill_compiler import UISkillCompilerService
+from erpguard.recording_pipeline.ui_replay_runtime import UIReplayRuntime
+from erpguard.recording_pipeline.ui_replay_audit import UIReplayAuditService
+from erpguard.recording_pipeline.ui_replay_report import UIReplayReportService
+from erpguard.recording_pipeline.ui_verified_replay_runtime import UIVerifiedReplayRuntime
+from erpguard.recording_pipeline.ui_robust_replay_report import UIRobustReplayReportService
 
 
 router = APIRouter(prefix="/v1/record-to-skill", tags=["record-to-skill"])

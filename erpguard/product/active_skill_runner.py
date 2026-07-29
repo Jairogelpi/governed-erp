@@ -13,7 +13,7 @@ from erpguard.db.repositories import (
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.product.active_skill_input_validator import ActiveSkillInputValidatorService
 from erpguard.product.active_skill_run_gate import ActiveSkillRunGateService
-from erpguard.product.ui_verified_replay_runtime import UIVerifiedReplayRuntime
+from erpguard.recording_pipeline.ui_verified_replay_runtime import UIVerifiedReplayRuntime
 
 
 @dataclass(frozen=True)

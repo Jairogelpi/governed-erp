@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from erpguard.product.ui_recording_normalizer import NormalizedEvent
+from erpguard.recording_pipeline.ui_recording_normalizer import NormalizedEvent
 
 
 @dataclass(frozen=True)

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from erpguard.product.active_skill_run_history import ActiveSkillRunHistoryService
-from erpguard.product.ui_robust_replay_report import UIRobustReplayReportService
+from erpguard.recording_pipeline.ui_robust_replay_report import UIRobustReplayReportService
 
 
 @dataclass(frozen=True)

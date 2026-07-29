@@ -3,12 +3,12 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 
-from erpguard.product.ui_page_state_verifier import UIPageStateVerifier
-from erpguard.product.ui_record_identity_verifier import UIRecordIdentityVerifier
-from erpguard.product.ui_selector_ambiguity import UISelectorAmbiguityDetector
-from erpguard.product.ui_modal_error_detector import UIModalErrorDetector
-from erpguard.product.ui_failure_classifier import UIFailureClassifier, FailureClassification
-from erpguard.product.ui_recovery_suggestion import UIRecoverySuggestionService
+from erpguard.recording_pipeline.ui_page_state_verifier import UIPageStateVerifier
+from erpguard.recording_pipeline.ui_record_identity_verifier import UIRecordIdentityVerifier
+from erpguard.recording_pipeline.ui_selector_ambiguity import UISelectorAmbiguityDetector
+from erpguard.recording_pipeline.ui_modal_error_detector import UIModalErrorDetector
+from erpguard.recording_pipeline.ui_failure_classifier import UIFailureClassifier, FailureClassification
+from erpguard.recording_pipeline.ui_recovery_suggestion import UIRecoverySuggestionService
 
 
 @dataclass(frozen=True)
