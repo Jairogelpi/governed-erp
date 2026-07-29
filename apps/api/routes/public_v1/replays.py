@@ -140,4 +140,8 @@ def _case_response(row) -> ReplayCaseResponse:
         regressions=json.loads(row.regressions_json),
         metrics=json.loads(row.metrics_json),
         deterministic_trace_hash=row.deterministic_trace_hash,
+        declared_decision_count=row.declared_decision_count,
+        evaluated_decision_count=row.evaluated_decision_count,
+        unsupported_decisions=json.loads(row.unsupported_decisions_json),
+        decision_coverage_rate=row.decision_coverage_rate,
     )

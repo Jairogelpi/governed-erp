@@ -43,30 +43,47 @@ def _fake_sales_order(*, object_key: str, formula_valid: bool) -> SalesOrder:
     )
 
 
-def build_fake_quote_to_order_ocel(*, tenant_id: str, object_key: str, formula_valid: bool) -> dict:
+def build_fake_quote_to_order_ocel(
+    *, tenant_id: str, object_key: str, formula_valid: bool, include_confirmation: bool = False
+) -> dict:
     """Fixture for historical replay (Phase 12): a `quotation`/`sales_order`
     object with a real `SalesOrder` state attached to it (as `ocel:ovmap`),
     plus `sales.quote.created`/`sales.quote.reviewed` events -- enough to
     exercise `evaluate_formula_guard_policy` via the replay engine, either
     passing (`formula_valid=True`) or blocked (`formula_valid=False`).
+
+    `include_confirmation=True` also emits `sales.order.confirmed`, the
+    event `quote_to_order`'s `approval_gate` decision applies to. ERPGuard
+    has no evaluator for `approval_gate` (Phase 13.1), so a case built with
+    `include_confirmation=True` is expected to come back
+    `needs_clarification` with `approval_gate` in `unsupported_decisions`
+    -- that's intentional, used to exercise the decision-coverage gate, not
+    the default shape (which only exercises `formula_guard` and can reach
+    `passed`/`failed`).
     """
 
     sales_order = _fake_sales_order(object_key=object_key, formula_valid=formula_valid)
+    events = {
+        f"{object_key}-created": {
+            "ocel:activity": "sales.quote.created", "ocel:timestamp": "2026-01-01T00:00:00Z",
+            "ocel:omap": [object_key], "ocel:vmap": {},
+        },
+        f"{object_key}-reviewed": {
+            "ocel:activity": "sales.quote.reviewed", "ocel:timestamp": "2026-01-01T00:01:00Z",
+            "ocel:omap": [object_key], "ocel:vmap": {},
+        },
+    }
+    if include_confirmation:
+        events[f"{object_key}-confirmed"] = {
+            "ocel:activity": "sales.order.confirmed", "ocel:timestamp": "2026-01-01T00:02:00Z",
+            "ocel:omap": [object_key], "ocel:vmap": {},
+        }
     return {
         "ocel:global-event": {"ocel:activity": "erpguard.fake.quote_to_order", "ocel:version": "2.0"},
         "ocel:objects": {
             object_key: {"ocel:type": "sale_order", "ocel:ovmap": sales_order.model_dump(mode="json")},
         },
-        "ocel:events": {
-            f"{object_key}-created": {
-                "ocel:activity": "sales.quote.created", "ocel:timestamp": "2026-01-01T00:00:00Z",
-                "ocel:omap": [object_key], "ocel:vmap": {},
-            },
-            f"{object_key}-reviewed": {
-                "ocel:activity": "sales.quote.reviewed", "ocel:timestamp": "2026-01-01T00:01:00Z",
-                "ocel:omap": [object_key], "ocel:vmap": {},
-            },
-        },
+        "ocel:events": events,
     }
 
 

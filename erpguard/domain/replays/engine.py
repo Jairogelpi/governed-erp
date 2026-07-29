@@ -32,17 +32,19 @@ from erpguard.policies.engine import evaluate_formula_guard_policy
 
 CONNECTOR_SIMULATOR_VERSION = "fake-blocked-by-construction/1"
 
-# Only decisions with a real evaluator are replayed; other declared decisions
-# are skipped (not crashed on) -- see module docstring.
+# Only decisions with a real evaluator are actually replayed. Decisions the
+# process definition declares but that have no evaluator are recorded as
+# "unsupported" rather than silently dropped -- a case with any unsupported
+# declared decision cannot be fully evaluated and its status is forced to
+# "needs_clarification" (see run_case), never a silent "passed".
 _DECISION_EVALUATORS = {"formula_guard"}
 
 
-def _applicable_decisions(definition: ProcessDefinitionDocument, event_types: set[str]):
-    return [
-        decision
-        for decision in definition.decisions
-        if decision.applies_to in event_types and decision.name in _DECISION_EVALUATORS
-    ]
+def _declared_decisions(definition: ProcessDefinitionDocument, event_types: set[str]):
+    """Every decision the process declares that applies to an event type
+    present in this case's trace, regardless of whether an evaluator exists
+    for it."""
+    return [decision for decision in definition.decisions if decision.applies_to in event_types]
 
 
 class ReplayEngine:
@@ -81,9 +83,17 @@ class ReplayEngine:
         decision_trace: list[DecisionTrace] = []
         predicted_effects: list[PredictedEffect] = []
         safety_violations: list[Violation] = []
+        unsupported_decisions: list[str] = []
         status = "passed"
 
-        for decision in _applicable_decisions(definition, event_types):
+        declared = _declared_decisions(definition, event_types)
+        evaluated_count = 0
+        for decision in declared:
+            if decision.name not in _DECISION_EVALUATORS:
+                unsupported_decisions.append(decision.name)
+                continue
+            evaluated_count += 1
+
             result = evaluate_formula_guard_policy(sales_order, CanonicalAction.VALIDATE_FORMULA)
             outcome = "block" if result.issues else "allow"
             decision_trace.append(
@@ -115,6 +125,15 @@ class ReplayEngine:
                         )
                     )
 
+        coverage_rate = 1.0 if not declared else evaluated_count / len(declared)
+        if unsupported_decisions:
+            # At least one declared decision for this case has no evaluator --
+            # the case cannot be fully evaluated, so it's inconclusive rather
+            # than a silent pass. Partial results (decision_trace/
+            # safety_violations for the decisions that DID run) are still
+            # recorded for visibility.
+            status = "needs_clarification"
+
         trace_hash = stable_digest(
             {
                 "case_id": case_trace.case_id,
@@ -123,6 +142,7 @@ class ReplayEngine:
                 "object_type": object_type,
                 "status": status,
                 "decision_trace": [item.model_dump(mode="json") for item in decision_trace],
+                "unsupported_decisions": sorted(unsupported_decisions),
             }
         )
         return ReplayCaseResult(
@@ -134,4 +154,8 @@ class ReplayEngine:
             regressions=[],
             metrics={},
             deterministic_trace_hash=trace_hash,
+            declared_decision_count=len(declared),
+            evaluated_decision_count=evaluated_count,
+            unsupported_decisions=sorted(unsupported_decisions),
+            decision_coverage_rate=coverage_rate,
         )

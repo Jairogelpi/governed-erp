@@ -63,3 +63,7 @@ class ReplayCaseResult(ReplayModel):
     regressions: list[Regression] = Field(default_factory=list)
     metrics: dict[str, float | int | None] = Field(default_factory=dict)
     deterministic_trace_hash: str
+    declared_decision_count: int = 0
+    evaluated_decision_count: int = 0
+    unsupported_decisions: list[str] = Field(default_factory=list)
+    decision_coverage_rate: float = 1.0

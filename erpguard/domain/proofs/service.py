@@ -69,10 +69,10 @@ class ProofService:
         baseline = _load_replay(self.session, tenant_id=tenant_id, replay_id=baseline_replay_id)
         candidate = _load_replay(self.session, tenant_id=tenant_id, replay_id=candidate_replay_id)
 
-        if baseline.status not in ("completed", "frozen"):
-            raise ProofValidationError("baseline_replay_not_completed")
-        if candidate.status not in ("completed", "frozen"):
-            raise ProofValidationError("candidate_replay_not_completed")
+        if baseline.status != "frozen":
+            raise ProofValidationError("baseline_replay_not_frozen")
+        if candidate.status != "frozen":
+            raise ProofValidationError("candidate_replay_not_frozen")
 
         baseline_cases = _load_cases(self.session, tenant_id=tenant_id, replay_id=baseline.id)
         candidate_cases = _load_cases(self.session, tenant_id=tenant_id, replay_id=candidate.id)
@@ -112,6 +112,12 @@ class ProofService:
             candidate_statuses
         )
 
+        full_decision_coverage = all(
+            baseline_cases[cid].decision_coverage_rate >= 1.0
+            and candidate_cases[cid].decision_coverage_rate >= 1.0
+            for cid in matched_case_ids
+        )
+
         # "Deterministic": both replays are past `running` (completed/frozen,
         # already enforced above) and every matched case actually has a
         # persisted `deterministic_trace_hash` (i.e. the replay engine ran to
@@ -132,6 +138,7 @@ class ProofService:
             critical_regression_count=critical_count,
             evidence_completeness=evidence_completeness,
             reproducible=reproducible,
+            full_decision_coverage=full_decision_coverage,
         )
 
         safety_summary = SafetySummary(

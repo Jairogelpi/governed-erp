@@ -36,8 +36,18 @@ def determine_recommendation(
     critical_regression_count: int,
     evidence_completeness: float,
     reproducible: bool,
+    full_decision_coverage: bool,
 ) -> tuple[Recommendation, list[str], list[str]]:
-    """Returns (recommendation, recommendation_basis, limitations)."""
+    """Returns (recommendation, recommendation_basis, limitations).
+
+    `full_decision_coverage` must be True for every matched case in both
+    replays (every decision the process declared for that case actually had
+    an evaluator run for it -- see `erpguard/domain/replays/engine.py`). A
+    replay with unsupported/skipped decisions is not a clean baseline to
+    reason about: it can look "passed" while parts of the process were never
+    evaluated, so it blocks eligibility the same way a critical regression
+    does, before evidence-completeness/reproducibility are even considered.
+    """
 
     limitations = list(STRUCTURAL_LIMITATIONS)
 
@@ -45,6 +55,13 @@ def determine_recommendation(
         return (
             "reject",
             [f"unresolved_critical_regression_count={critical_regression_count}"],
+            limitations,
+        )
+
+    if not full_decision_coverage:
+        return (
+            "needs_changes",
+            ["incomplete_decision_coverage: one or more declared decisions had no evaluator"],
             limitations,
         )
 
@@ -65,6 +82,7 @@ def determine_recommendation(
         "eligible_for_shadow",
         [
             "no_unresolved_critical_regression",
+            "full_decision_coverage",
             f"evidence_completeness={evidence_completeness:.2f} "
             f"meets threshold={EVIDENCE_COMPLETENESS_THRESHOLD:.2f}",
             "deterministic_replay_repeatability_passed",

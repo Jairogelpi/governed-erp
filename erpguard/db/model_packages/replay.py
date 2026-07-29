@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Integer, String, Text, event, inspect
+from sqlalchemy import DateTime, Float, Integer, String, Text, event, inspect
 from sqlalchemy.orm import Mapped, mapped_column
 
 from erpguard.db.base import Base
@@ -45,6 +45,10 @@ class ProcessReplayCase(Base):
     regressions_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     metrics_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     deterministic_trace_hash: Mapped[str] = mapped_column(String(128), nullable=False)
+    declared_decision_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    evaluated_decision_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    unsupported_decisions_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    decision_coverage_rate: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
 
 
@@ -58,3 +62,27 @@ def _reject_if_frozen(mapper, connection, target) -> None:
 @event.listens_for(ProcessReplay, "before_update")
 def reject_frozen_replay_update(mapper, connection, target) -> None:
     _reject_if_frozen(mapper, connection, target)
+
+
+def _parent_replay_is_frozen(connection, tenant_id: str, replay_id: str) -> bool:
+    row = connection.execute(
+        ProcessReplay.__table__.select()
+        .with_only_columns(ProcessReplay.__table__.c.status)
+        .where(
+            ProcessReplay.__table__.c.id == replay_id,
+            ProcessReplay.__table__.c.tenant_id == tenant_id,
+        )
+    ).first()
+    return row is not None and row[0] == "frozen"
+
+
+@event.listens_for(ProcessReplayCase, "before_update")
+def reject_case_update_when_replay_frozen(mapper, connection, target) -> None:
+    if _parent_replay_is_frozen(connection, target.tenant_id, target.replay_id):
+        raise ValueError("frozen_replay_case_immutable")
+
+
+@event.listens_for(ProcessReplayCase, "before_delete")
+def reject_case_delete_when_replay_frozen(mapper, connection, target) -> None:
+    if _parent_replay_is_frozen(connection, target.tenant_id, target.replay_id):
+        raise ValueError("frozen_replay_case_immutable")

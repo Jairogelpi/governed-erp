@@ -33,6 +33,10 @@ class ReplayCaseResponse(BaseModel):
     regressions: list[dict[str, Any]]
     metrics: dict[str, Any]
     deterministic_trace_hash: str
+    declared_decision_count: int
+    evaluated_decision_count: int
+    unsupported_decisions: list[str]
+    decision_coverage_rate: float
 
 
 class ReplayCaseComparisonResponse(BaseModel):

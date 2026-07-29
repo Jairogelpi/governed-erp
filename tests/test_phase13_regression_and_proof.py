@@ -74,17 +74,19 @@ def _make_replay(*, tenant_id: str, process_key: str, cases: dict[str, dict]) ->
 
     db = SessionLocal()
     try:
+        now = datetime.now(timezone.utc)
         replay = ProcessReplay(
             id=f"replay_{uuid4().hex}",
             tenant_id=tenant_id,
             process_key=process_key,
             version="1.0.0",
             object_type="sales_order",
-            status="completed",
+            status="frozen",
             policy_version="1.0.0",
             connector_simulator_version="fake-blocked-by-construction/1",
             case_count=len(cases),
-            completed_at=datetime.now(timezone.utc),
+            completed_at=now,
+            frozen_at=now,
         )
         db.add(replay)
         db.flush()

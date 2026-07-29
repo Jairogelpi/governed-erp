@@ -114,6 +114,10 @@ class ReplayService:
                     regressions_json=_dump([item.model_dump(mode="json") for item in result.regressions]),
                     metrics_json=_dump(result.metrics),
                     deterministic_trace_hash=result.deterministic_trace_hash,
+                    declared_decision_count=result.declared_decision_count,
+                    evaluated_decision_count=result.evaluated_decision_count,
+                    unsupported_decisions_json=_dump(result.unsupported_decisions),
+                    decision_coverage_rate=result.decision_coverage_rate,
                 )
             )
         self.session.commit()
