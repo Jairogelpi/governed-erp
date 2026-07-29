@@ -229,7 +229,7 @@ def test_approval_decision_simulation_rejects_unsupported_decision_action_and_mi
 
 
 def test_health_endpoint_still_works_after_approval_decision_simulation_route():
-    response = client.get("/health")
+    response = client.get("/v1/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}

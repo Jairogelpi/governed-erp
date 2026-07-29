@@ -353,7 +353,7 @@ def test_human_recording_compile_without_review_formula_reports_diagnostic():
 
 
 def test_health_endpoint_still_works_after_human_recording_routes():
-    response = client.get("/health")
+    response = client.get("/v1/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}

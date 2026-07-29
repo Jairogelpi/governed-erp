@@ -148,6 +148,6 @@ def test_compile_rejects_unfinished_recording_and_empty_recording():
 
 
 def test_health_endpoint_still_works_after_compile_route():
-    response = client.get("/health")
+    response = client.get("/v1/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}

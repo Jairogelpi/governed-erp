@@ -68,11 +68,8 @@ def test_internal_surfaces_are_opt_in() -> None:
     assert "/v1/recordings" in internal_paths
 
 
-def test_legacy_composition_is_explicit_only() -> None:
-    public_paths = _paths(create_app(legacy=False, include_internal=False))
-    legacy_paths = _paths(create_app(legacy=True))
+def test_default_create_app_is_public_only() -> None:
+    public_paths = _paths(create_app(include_internal=False))
 
     assert "/v1/release/health" not in public_paths
     assert "/v1/agent-builder/sessions" not in public_paths
-    assert "/health" in legacy_paths
-    assert "/v1/release/health" in legacy_paths

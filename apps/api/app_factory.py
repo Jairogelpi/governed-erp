@@ -1,4 +1,4 @@
-"""Application composition roots for public, internal and legacy surfaces."""
+"""Application composition roots for the public and internal surfaces."""
 
 from __future__ import annotations
 
@@ -6,7 +6,6 @@ import os
 
 from fastapi import FastAPI
 
-from apps.api.legacy_app import create_legacy_app
 from apps.api.routes.public_v1 import PUBLIC_ROUTERS
 from erpguard.version import __version__
 
@@ -35,9 +34,7 @@ def create_public_app(*, include_internal: bool | None = None) -> FastAPI:
     return app
 
 
-def create_app(*, include_internal: bool | None = None, legacy: bool | None = None) -> FastAPI:
-    """Build the configured app; legacy mode is opt-in and never default."""
+def create_app(*, include_internal: bool | None = None) -> FastAPI:
+    """Build the configured app."""
 
-    if legacy if legacy is not None else _flag("ERPGUARD_LEGACY_API_ENABLED"):
-        return create_legacy_app()
     return create_public_app(include_internal=include_internal)

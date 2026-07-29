@@ -14,7 +14,7 @@ from erpguard.db.session import init_db
 def test_health_endpoint_returns_ok():
     client = TestClient(app)
 
-    response = client.get("/health")
+    response = client.get("/v1/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}

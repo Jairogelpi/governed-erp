@@ -28,7 +28,7 @@ def run_test_server():
     timeout = time.time() + 10
     while time.time() < timeout:
         try:
-            response = httpx.get(f"{base_url}/health", timeout=0.5)
+            response = httpx.get(f"{base_url}/v1/health", timeout=0.5)
             if response.status_code == 200:
                 break
         except Exception:

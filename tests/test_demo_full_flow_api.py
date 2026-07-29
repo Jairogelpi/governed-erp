@@ -29,7 +29,7 @@ def run_test_server():
     timeout = time.time() + 10
     while time.time() < timeout:
         try:
-            response = httpx.get(f"{base_url}/health", timeout=0.5)
+            response = httpx.get(f"{base_url}/v1/health", timeout=0.5)
             if response.status_code == 200:
                 break
         except Exception:
@@ -103,7 +103,7 @@ def test_demo_full_flow_returns_success_when_browser_runtime_is_available():
 def test_health_endpoint_still_works():
     client = TestClient(app)
 
-    response = client.get("/health")
+    response = client.get("/v1/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}

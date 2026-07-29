@@ -85,7 +85,7 @@ def test_skill_run_rejects_unknown_skill():
 
 
 def test_health_endpoint_still_works_after_skill_run_route():
-    response = client.get("/health")
+    response = client.get("/v1/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}

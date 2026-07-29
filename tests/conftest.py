@@ -1,12 +1,10 @@
-"""Test-only compatibility harness for pre-C1 route tests.
+"""Mount the internal tooling surface by default for the test session.
 
-Historical tests import ``apps.api.main:app`` and exercise routes that are now
-available only through the explicit legacy composition. Production defaults
-remain public-only; the composition tests construct the public app directly.
-This harness is temporary migration support for the later C6/C7 test waves.
+Production leaves this opt-in (``ERPGUARD_INTERNAL_SURFACES=true``); tests
+exercise demo/fake-ERP/record-to-skill tooling directly, so it must be on.
 """
 
 import os
 
 
-os.environ.setdefault("ERPGUARD_LEGACY_API_ENABLED", "true")
+os.environ.setdefault("ERPGUARD_INTERNAL_SURFACES", "true")

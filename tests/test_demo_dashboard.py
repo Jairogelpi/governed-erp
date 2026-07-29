@@ -27,7 +27,7 @@ def test_demo_dashboard_returns_html_and_links_full_demo():
 
 
 def test_health_endpoint_still_works_after_demo_dashboard_route():
-    response = client.get("/health")
+    response = client.get("/v1/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}

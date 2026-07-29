@@ -91,7 +91,7 @@ def test_missing_recording_returns_404():
 
 
 def test_health_endpoint_still_works_after_recording_routes():
-    response = client.get("/health")
+    response = client.get("/v1/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
