@@ -2,14 +2,14 @@ from erpguard.canonical.enums import ERPType
 from erpguard.adapters.odoo.config import OdooConfig
 from erpguard.db.repositories import create_connection
 from erpguard.db.session import SessionLocal, init_db
-from erpguard.product.activation_gate import ActivationGateService
-from erpguard.product.approval_decision import ApprovalDecisionService
-from erpguard.product.approval_request import ApprovalRequestService
-from erpguard.product.draft_review import DraftReviewService
-from erpguard.product.dry_run_proof import DryRunProofService
+from erpguard.release_ops.activation_gate import ActivationGateService
+from erpguard.release_ops.approval_decision import ApprovalDecisionService
+from erpguard.release_ops.approval_request import ApprovalRequestService
+from erpguard.release_ops.draft_review import DraftReviewService
+from erpguard.release_ops.dry_run_proof import DryRunProofService
 from erpguard.product.models import BusinessAnalysisRequest
-from erpguard.product.services import BusinessAnalysisService
-from erpguard.product.skill_package_builder import SkillPackageBuilder
+from erpguard.release_ops.services import BusinessAnalysisService
+from erpguard.release_ops.skill_package_builder import SkillPackageBuilder
 
 
 class FakeOdooClient:
@@ -58,7 +58,7 @@ def _make_full_flow(monkeypatch):
     init_db()
     session = SessionLocal()
     monkeypatch.setattr(
-        "erpguard.product.services.build_readonly_client", lambda cfg: FakeOdooClient()
+        "erpguard.release_ops.services.build_readonly_client", lambda cfg: FakeOdooClient()
     )
     connection = create_connection(session, "Odoo", erp_type=ERPType.ODOO, config=_CONFIG)
     config = OdooConfig.model_validate(_CONFIG)

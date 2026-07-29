@@ -12,9 +12,9 @@ from erpguard.product.models import (
     WritePermissionPreviewModel,
     WriteReadinessAssessmentModel,
 )
-from erpguard.product.write_candidate_detector import WriteCandidateDetector
-from erpguard.product.write_permission_preview import WritePermissionPreviewService
-from erpguard.product.write_risk_matrix import WriteRiskMatrix
+from erpguard.release_ops.write_candidate_detector import WriteCandidateDetector
+from erpguard.release_ops.write_permission_preview import WritePermissionPreviewService
+from erpguard.release_ops.write_risk_matrix import WriteRiskMatrix
 
 
 class WriteReadinessAssessmentService:

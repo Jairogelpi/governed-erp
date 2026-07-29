@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from erpguard.product.ui_recorder_script import (
+from erpguard.release_ops.ui_recorder_script import (
     build_recorder_script,
     selector_priority_attrs,
     secret_field_names,

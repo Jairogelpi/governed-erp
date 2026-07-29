@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from erpguard.db.session import SessionLocal, init_db
 from erpguard.version import __version__
 
 _SPRINT_CHAIN = [

@@ -7,9 +7,9 @@ from erpguard.db.repositories import (
     list_draft_reviews,
 )
 from erpguard.db.session import SessionLocal, init_db
-from erpguard.product.draft_review import DraftReviewService
+from erpguard.release_ops.draft_review import DraftReviewService
 from erpguard.product.models import BusinessAnalysisRequest
-from erpguard.product.services import BusinessAnalysisService
+from erpguard.release_ops.services import BusinessAnalysisService
 
 
 class FakeReadOnlyOdooClient:
@@ -74,7 +74,7 @@ def _make_draft(monkeypatch):
     init_db()
     session = SessionLocal()
     fake_client = FakeReadOnlyOdooClient()
-    monkeypatch.setattr("erpguard.product.services.build_readonly_client", lambda cfg: fake_client)
+    monkeypatch.setattr("erpguard.release_ops.services.build_readonly_client", lambda cfg: fake_client)
     connection = create_connection(session, "Odoo Demo", erp_type=ERPType.ODOO, config=_ODOO_CONFIG)
     config = OdooConfig.model_validate(_ODOO_CONFIG)
     result = BusinessAnalysisService(session, connection, config).analyze(BusinessAnalysisRequest())

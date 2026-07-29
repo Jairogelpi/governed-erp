@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 
 from erpguard.db.session import SessionLocal, init_db
-from erpguard.product.release_readiness import ReleaseReadinessService, _SAFETY_BOUNDARIES, _SPRINT_CHAIN
-from erpguard.product.demo_seed import DemoSeedService
-from erpguard.product.operator_smoke import OperatorSmokeService
+from erpguard.release_ops.release_readiness import ReleaseReadinessService, _SAFETY_BOUNDARIES, _SPRINT_CHAIN
+from erpguard.release_ops.demo_seed import DemoSeedService
+from erpguard.release_ops.operator_smoke import OperatorSmokeService
 from erpguard.version import __version__
 
 

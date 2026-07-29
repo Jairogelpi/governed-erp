@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from erpguard.db.session import SessionLocal, init_db
-from erpguard.product.live_read_policy import LiveReadPolicyService
+from erpguard.release_ops.live_read_policy import LiveReadPolicyService
 
 
 @pytest.fixture(autouse=True)

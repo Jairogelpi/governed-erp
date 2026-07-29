@@ -4,7 +4,7 @@ import json
 from typing import Any
 
 from erpguard.db.repositories import create_skill, create_skill_version, create_operator_session
-from erpguard.product.platform_tenant import TenantService
+from erpguard.release_ops.platform_tenant import TenantService
 
 
 _DEMO_SKILL_PACKAGE: dict[str, Any] = {

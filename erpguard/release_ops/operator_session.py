@@ -8,7 +8,7 @@ from erpguard.db.repositories import (
     get_operator_session,
     update_operator_session,
 )
-from erpguard.product.operator_flow_state import FLOW_STEPS, next_step
+from erpguard.release_ops.operator_flow_state import FLOW_STEPS, next_step
 
 
 class OperatorSessionService:

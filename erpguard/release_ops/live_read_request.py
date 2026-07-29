@@ -11,8 +11,8 @@ from erpguard.db.repositories import (
     get_skill,
     list_live_read_execution_requests_for_skill,
 )
-from erpguard.product.connection_context import ConnectionContextService
-from erpguard.product.idempotency import IdempotencyService
+from erpguard.release_ops.connection_context import ConnectionContextService
+from erpguard.release_ops.idempotency import IdempotencyService
 from erpguard.product.models import LiveReadExecutionRequestModel
 
 

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from erpguard.product.operator_orchestrator import OperatorOrchestrator
-from erpguard.product.operator_session import OperatorSessionService
-from erpguard.product.platform_tenant import TenantService
-from erpguard.product.release_readiness import ReleaseReadinessService
+from erpguard.release_ops.operator_orchestrator import OperatorOrchestrator
+from erpguard.release_ops.operator_session import OperatorSessionService
+from erpguard.release_ops.platform_tenant import TenantService
+from erpguard.release_ops.release_readiness import ReleaseReadinessService
 
 
 class OperatorSmokeService:
@@ -60,7 +60,7 @@ class OperatorSmokeService:
 
         # 6 — Safety boundaries constant check
         try:
-            from erpguard.product.release_readiness import _SAFETY_BOUNDARIES
+            from erpguard.release_ops.release_readiness import _SAFETY_BOUNDARIES
             all_false = all(not v for v in _SAFETY_BOUNDARIES.values())
             if all_false:
                 checks.append(_ok("safety_boundaries", "All write flags are false. Generic/R3R4 writes locked."))
@@ -71,7 +71,7 @@ class OperatorSmokeService:
 
         # 7 — R2 policy service importable
         try:
-            from erpguard.product.r2_write_policy import _ALLOW_R2_REAL_WRITE_PILOT
+            from erpguard.release_ops.r2_write_policy import _ALLOW_R2_REAL_WRITE_PILOT
             assert not _ALLOW_R2_REAL_WRITE_PILOT
             checks.append(_ok("r2_pilot_flag_default_off", "ALLOW_R2_REAL_WRITE_PILOT=false confirmed."))
         except Exception as exc:

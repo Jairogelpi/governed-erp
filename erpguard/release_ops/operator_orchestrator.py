@@ -8,7 +8,7 @@ from erpguard.db.repositories import (
     get_operator_session,
     update_operator_session,
 )
-from erpguard.product.operator_flow_state import (
+from erpguard.release_ops.operator_flow_state import (
     BLOCKING_STEPS,
     SAFE_READONLY_BOUNDARY,
     is_before_or_at,
@@ -108,7 +108,7 @@ class OperatorOrchestrator:
     def _step_awaiting_tenant(self, known_ids: dict) -> tuple[dict, str]:
         if known_ids.get("tenant_id"):
             return {}, f"Tenant already set: {known_ids['tenant_id']}"
-        from erpguard.product.platform_tenant import TenantService
+        from erpguard.release_ops.platform_tenant import TenantService
         tenant = TenantService(self.session).create(name="Operator Flow Tenant", environment="staging")
         return {"tenant_id": tenant.tenant_id}, f"Auto-created tenant: {tenant.tenant_id}"
 
@@ -137,7 +137,7 @@ class OperatorOrchestrator:
         from erpguard.adapters.odoo.config import OdooConfig
         from erpguard.canonical.enums import ERPType
         from erpguard.product.models import BusinessAnalysisRequest
-        from erpguard.product.services import BusinessAnalysisService
+        from erpguard.release_ops.services import BusinessAnalysisService
         connection = get_connection(self.session, connection_id)
         if connection is None or connection.erp_type != ERPType.ODOO.value:
             return {}, f"Connection '{connection_id}' not found or not Odoo — skipping."
@@ -171,7 +171,7 @@ class OperatorOrchestrator:
         from erpguard.db.repositories import get_connection, get_opportunity
         from erpguard.adapters.odoo.config import OdooConfig
         from erpguard.canonical.enums import ERPType
-        from erpguard.product.services import BusinessAnalysisService
+        from erpguard.release_ops.services import BusinessAnalysisService
         opp = get_opportunity(self.session, opportunity_id)
         if opp is None:
             raise ValueError(f"Opportunity '{opportunity_id}' not found.")
@@ -187,7 +187,7 @@ class OperatorOrchestrator:
         draft_id = known_ids.get("draft_id")
         if not draft_id:
             raise ValueError("draft_id required for review_draft step.")
-        from erpguard.product.draft_review import DraftReviewService
+        from erpguard.release_ops.draft_review import DraftReviewService
         review = DraftReviewService(self.session).get_or_create(draft_id)
         return {"review_id": review.review_id}, f"Draft reviewed: {review.review_id} ({review.status})"
 
@@ -195,7 +195,7 @@ class OperatorOrchestrator:
         review_id = known_ids.get("review_id")
         if not review_id:
             raise ValueError("review_id required for compile_skill step.")
-        from erpguard.product.skill_package_builder import SkillPackageBuilder
+        from erpguard.release_ops.skill_package_builder import SkillPackageBuilder
         compiled = SkillPackageBuilder(self.session).build(review_id)
         return {"skill_id": compiled.skill_id, "version_id": compiled.version_id}, f"Skill compiled: {compiled.skill_id}"
 
@@ -203,7 +203,7 @@ class OperatorOrchestrator:
         skill_id = known_ids.get("skill_id")
         if not skill_id:
             raise ValueError("skill_id required for run_dry_run_proof step.")
-        from erpguard.product.dry_run_proof import DryRunProofService
+        from erpguard.release_ops.dry_run_proof import DryRunProofService
         proof = DryRunProofService(self.session).run(skill_id)
         return {"proof_id": proof.proof_id}, f"Dry-run proof: {proof.status} ({proof.cases_passed}/{proof.cases_total} passed)"
 
@@ -211,7 +211,7 @@ class OperatorOrchestrator:
         skill_id = known_ids.get("skill_id")
         if not skill_id:
             raise ValueError("skill_id required for request_approval step.")
-        from erpguard.product.approval_request import ApprovalRequestService
+        from erpguard.release_ops.approval_request import ApprovalRequestService
         req = ApprovalRequestService(self.session).create(
             skill_id=skill_id,
             requested_by={"type": "operator_flow", "id": "auto", "display_name": "Operator Flow"},
@@ -223,7 +223,7 @@ class OperatorOrchestrator:
         skill_id = known_ids.get("skill_id")
         if not skill_id:
             raise ValueError("skill_id required for submit_decision step.")
-        from erpguard.product.approval_decision import ApprovalDecisionService
+        from erpguard.release_ops.approval_decision import ApprovalDecisionService
         decision = ApprovalDecisionService(self.session).decide(
             skill_id=skill_id,
             decided_by={"type": "operator_flow", "id": "auto", "display_name": "Operator Flow"},
@@ -236,7 +236,7 @@ class OperatorOrchestrator:
         skill_id = known_ids.get("skill_id")
         if not skill_id:
             raise ValueError("skill_id required for run_activation_gate step.")
-        from erpguard.product.activation_gate import ActivationGateService
+        from erpguard.release_ops.activation_gate import ActivationGateService
         gate = ActivationGateService(self.session).evaluate(skill_id)
         return {"activation_gate_id": gate.gate_id}, f"Activation gate: {gate.gate_status} ({gate.gate_id})"
 
@@ -244,8 +244,8 @@ class OperatorOrchestrator:
         skill_id = known_ids.get("skill_id")
         if not skill_id:
             raise ValueError("skill_id required for run_live_read step.")
-        from erpguard.product.live_read_request import LiveReadRequestService
-        from erpguard.product.live_read_runtime import LiveReadRuntimeService
+        from erpguard.release_ops.live_read_request import LiveReadRequestService
+        from erpguard.release_ops.live_read_runtime import LiveReadRuntimeService
         lr_req, _ = LiveReadRequestService(self.session).create(
             skill_id=skill_id,
             requested_by={"type": "operator_flow", "id": "auto", "display_name": "Operator Flow"},
@@ -261,7 +261,7 @@ class OperatorOrchestrator:
         skill_id = known_ids.get("skill_id")
         if not skill_id:
             raise ValueError("skill_id required for run_write_readiness step.")
-        from erpguard.product.write_readiness_assessment import WriteReadinessAssessmentService
+        from erpguard.release_ops.write_readiness_assessment import WriteReadinessAssessmentService
         assessment = WriteReadinessAssessmentService(self.session).run(skill_id)
         return {"assessment_id": assessment.assessment_id}, f"Write readiness: {assessment.overall_risk_level} (can_execute_real_writes={assessment.can_execute_real_writes})"
 

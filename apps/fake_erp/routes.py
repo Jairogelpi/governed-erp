@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse
 
 from erpguard.adapters.fake import FakeERPAdapter
 from erpguard.canonical.objects import SalesOrder, SalesOrderLine
-from erpguard.product.ui_recorder_script import build_recorder_script
+from erpguard.release_ops.ui_recorder_script import build_recorder_script
 
 
 router = APIRouter(prefix="/fake-erp", tags=["fake-erp"])

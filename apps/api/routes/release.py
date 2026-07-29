@@ -10,9 +10,9 @@ from apps.api.schemas.release import (
     SafetyBoundariesResponse,
 )
 from erpguard.db.session import SessionLocal, init_db
-from erpguard.product.demo_seed import DemoSeedService
-from erpguard.product.operator_smoke import OperatorSmokeService
-from erpguard.product.release_readiness import (
+from erpguard.release_ops.demo_seed import DemoSeedService
+from erpguard.release_ops.operator_smoke import OperatorSmokeService
+from erpguard.release_ops.release_readiness import (
     ReleaseReadinessService,
     _SAFETY_BOUNDARIES,
     _BLOCKED_OPERATIONS,
@@ -82,7 +82,7 @@ def safety_boundaries():
         R2_ALLOWED_WRITE_MODELS,
         R2_ALLOWED_WRITE_FIELDS,
     )
-    from erpguard.product.r2_write_policy import _ALLOWED_ENVIRONMENTS
+    from erpguard.release_ops.r2_write_policy import _ALLOWED_ENVIRONMENTS
 
     return {
         "safety_boundaries": _SAFETY_BOUNDARIES,

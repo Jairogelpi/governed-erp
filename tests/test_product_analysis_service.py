@@ -5,7 +5,7 @@ from erpguard.adapters.odoo.config import OdooConfig
 from erpguard.db.repositories import create_connection, get_automation_draft, get_business_snapshot, get_opportunity_scan, list_automation_drafts, list_business_signals, list_opportunities
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.product.models import BusinessAnalysisRequest
-from erpguard.product.services import BusinessAnalysisService
+from erpguard.release_ops.services import BusinessAnalysisService
 
 
 class FakeReadOnlyOdooClient:
@@ -92,7 +92,7 @@ def make_service():
 def test_business_analysis_service_persists_snapshot_signals_and_scan(monkeypatch):
     session, connection, config = make_service()
     fake_client = FakeReadOnlyOdooClient()
-    monkeypatch.setattr("erpguard.product.services.build_readonly_client", lambda cfg: fake_client)
+    monkeypatch.setattr("erpguard.release_ops.services.build_readonly_client", lambda cfg: fake_client)
 
     result = BusinessAnalysisService(session, connection, config).analyze(BusinessAnalysisRequest())
 
@@ -123,7 +123,7 @@ def test_business_analysis_service_persists_snapshot_signals_and_scan(monkeypatc
 def test_roi_and_scanner_produce_business_opportunities(monkeypatch):
     session, connection, config = make_service()
     fake_client = FakeReadOnlyOdooClient()
-    monkeypatch.setattr("erpguard.product.services.build_readonly_client", lambda cfg: fake_client)
+    monkeypatch.setattr("erpguard.release_ops.services.build_readonly_client", lambda cfg: fake_client)
 
     result = BusinessAnalysisService(session, connection, config).analyze(BusinessAnalysisRequest())
 
@@ -137,7 +137,7 @@ def test_roi_and_scanner_produce_business_opportunities(monkeypatch):
 def test_skill_draft_builder_creates_non_executable_draft(monkeypatch):
     session, connection, config = make_service()
     fake_client = FakeReadOnlyOdooClient()
-    monkeypatch.setattr("erpguard.product.services.build_readonly_client", lambda cfg: fake_client)
+    monkeypatch.setattr("erpguard.release_ops.services.build_readonly_client", lambda cfg: fake_client)
 
     result = BusinessAnalysisService(session, connection, config).analyze(BusinessAnalysisRequest())
     draft = BusinessAnalysisService(session, connection, config).draft(result.opportunities[0].opportunity_id)
