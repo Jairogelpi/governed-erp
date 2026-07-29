@@ -5,7 +5,7 @@ understanding and improving ERP business processes. It keeps ERP effects behind
 explicit safety boundaries: the current implementation is read-only or
 simulated, and raw ERP writes are disabled.
 
-> Current project state: **Phase 13.1 - Replay and Proof integrity**.
+> Current project state: **Phase 14 - Process-to-Skill compiler v2**.
 
 ## What exists now
 
@@ -99,10 +99,10 @@ dependent tests may be skipped when Chromium is unavailable.
 
 ## Roadmap
 
-Completed: Phases 0–13, from baseline freeze through the candidate
+Completed: Phases 0–14, from baseline freeze through the candidate
 integrity gate, controlled API composition, connector convergence, the
-full product consolidation (Phase 11.5 C0–C8), historical replay, and
-the regression engine / Proof of Improvement:
+full product consolidation (Phase 11.5 C0–C8), historical replay, the
+regression engine / Proof of Improvement, and the skill compiler:
 
 - C0 inventory
 - C1 composition root
@@ -191,7 +191,29 @@ relationship exists between the two tables). `ProofService` also now
 requires both replays to be `status="frozen"`, not merely `"completed"`,
 before generating a proof. Migration `0012` adds the coverage columns.
 
-Next: Phase 14 — Process-to-Skill compiler v2.
+Phase 14 — Process-to-Skill compiler v2 (master spec section 18):
+`erpguard/domain/skills/` compiles a submitted `ProcessCandidate` with an
+acceptable `ProcessProof` into a versioned `SkillPackage`. Real, checkable
+validation for 4 of spec 18.3's items — capability existence / no raw
+native methods (every workflow-step capability must exist in the target
+connector's `capability_definitions()`), policy references resolve, proof
+acceptability (recommendation not `reject`/`needs_changes`), package hash
+reproducibility. Everything else (fingerprint requirements, postconditions,
+compensation, idempotency strategy, full JSON Schema validation) ships as
+documented structural placeholders, not fabricated passes — this
+codebase's connectors are all read-only, so "postconditions/idempotency
+for writes" is vacuously satisfied by construction, and compilation is
+rejected outright if a step ever claims write capability (nothing exists
+to check a postcondition against). Only `draft → compiled → approved` is
+implemented; `shadow`/`canary`/`active`/`rolled_back`/`deprecated` need a
+live execution/deployment runtime that doesn't exist yet (Phase 15+). API:
+`POST /v1/process-candidates/{id}/compile` (this repo's real candidate
+prefix, not the spec's literal `/v1/candidates`),
+`GET`/`POST /v1/skills/{skill_id}/versions/{version_id}[/approve]` (spec
+23.6) — the legacy v0 skills router (`apps/api/routes/public_v1/skills.py`)
+is untouched and has no `/versions/` path segment, so there's no collision.
+
+Next: Phase 15 — Execution Permit runtime.
 
 The exact phase gates and no-goals are defined in the [master implementation
 specification](docs/specs/84_erpguard_evolution_master_spec.md).
