@@ -60,4 +60,8 @@ jobs:
       - name: Upgrade PostgreSQL baseline
         env:
           ERPGUARD_DATABASE_URL: postgresql+psycopg://erpguard:erpguard@localhost:5432/erpguard
-        run: python -m pytest tests/test_phase2_migrations.py -q
+        run: python -m alembic upgrade head
+      - name: Test retired-schema migration against real PostgreSQL
+        env:
+          ERPGUARD_DATABASE_URL: postgresql+psycopg://erpguard:erpguard@localhost:5432/erpguard
+        run: python -m pytest tests/test_phase2_migrations.py tests/test_c82_retired_schema_postgres.py -q
