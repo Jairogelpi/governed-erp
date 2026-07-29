@@ -5,7 +5,7 @@ understanding and improving ERP business processes. It keeps ERP effects behind
 explicit safety boundaries: the current implementation is read-only or
 simulated, and raw ERP writes are disabled.
 
-> Current project state: **Phase 11.5 C6 - Legacy composition removed**.
+> Current project state: **Phase 11.5 C8 - Product consolidation complete**.
 
 ## What exists now
 
@@ -75,7 +75,7 @@ reproducible demo surfaces.
 
 - `real`: identity boundaries, migrations, encrypted local secrets, canonical
   storage, validation, connector registry/runtime convergence, variant
-  projection, candidate immutability and public/internal/legacy app composition
+  projection, candidate immutability and public/internal app composition
   boundaries.
 - `fixture`: FakeConnector, Fake ERP data and local process/variant fixtures.
 - `staging_only`: real Odoo read-only transport paths and live smoke checks.
@@ -99,13 +99,27 @@ dependent tests may be skipped when Chromium is unavailable.
 
 ## Roadmap
 
-Completed: Phases 0–11.1 plus Phase 11.5 C0–C2, from baseline freeze through
-the candidate integrity gate, controlled API composition and connector
-convergence.
+Completed: Phases 0–11.1 plus Phase 11.5 C0–C8, from baseline freeze through
+the candidate integrity gate, controlled API composition, connector
+convergence, and the full product consolidation:
 
-Next: the later regression/proof gates, then process-to-skill compilation,
-governed execution permits, controlled quotation flow, shadow and
-canary operation, experiments, product web experience and public release freeze.
+- C0 inventory
+- C1 composition root
+- C2 connector convergence
+- C2.5 quality gate (mypy clean)
+- C3 evolution routes moved to their final `public_v1` location
+- C4 skills/identity routes finalized; recording/replay pipeline extracted
+  out of `erpguard/product`
+- C5 dead repository function pruning (`erpguard/db/repositories.py`
+  6699 → 1631 lines)
+- C6 legacy composition root and unreachable code deleted
+- C7 migration-scaffolding retirement
+- C8 final consolidation gate (ruff, mypy, pytest, alembic all green)
+
+Next: Phase 12 — Historical Replay. Before that: classify and relocate the
+remaining `erpguard/product` modules that still back live internal-demo/
+safety/approval flows, and an ORM/schema audit (no deletions yet) of
+`erpguard/db/models.py` to identify tables with zero remaining consumers.
 
 The exact phase gates and no-goals are defined in the [master implementation
 specification](docs/specs/84_erpguard_evolution_master_spec.md).
@@ -120,10 +134,12 @@ specification](docs/specs/84_erpguard_evolution_master_spec.md).
   backfills existing OCEL rows before large-scale benchmarking.
 - Candidate branching has no activation path or replay path; submitted candidates are tenant-isolated and immutable.
 - No raw ERP execution or ERP write capability is enabled.
-- Legacy and internal route surfaces are not mounted by default; the controlled
-  demo requires the explicit internal-surface flag.
-- Connector setup/auth/credential compatibility routes are legacy-only; the
-  public connection path resolves SDK v2 definitions and uses `credential_ref`.
+- The internal route surface is not mounted by default; the controlled demo
+  requires the explicit internal-surface flag. The legacy composition root
+  was deleted entirely in wave C6 and cannot be re-enabled.
+- The public connection path resolves SDK v2 definitions and uses
+  `credential_ref`; there is no separate connector setup/auth/credential
+  compatibility surface anymore.
 
 ## Legacy release history
 
