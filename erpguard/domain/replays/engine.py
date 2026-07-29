@@ -94,6 +94,7 @@ class ReplayEngine:
                     policy_id=result.policy_id,
                     policy_version=result.policy_version,
                     summary=result.summary,
+                    risk_level=result.risk_level.value,
                 )
             )
             predicted_effects.append(

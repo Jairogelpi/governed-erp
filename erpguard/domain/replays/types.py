@@ -31,6 +31,7 @@ class DecisionTrace(ReplayModel):
     policy_id: str
     policy_version: str
     summary: str
+    risk_level: str = ""
 
 
 class PredictedEffect(ReplayModel):
