@@ -5,7 +5,7 @@ understanding and improving ERP business processes. It keeps ERP effects behind
 explicit safety boundaries: the current implementation is read-only or
 simulated, and raw ERP writes are disabled.
 
-> Current project state: **Phase 11.5 C2 - Connector Convergence**.
+> Current project state: **Phase 11.5 C6 - Legacy composition removed**.
 
 ## What exists now
 
@@ -24,8 +24,8 @@ identity/tenants
 
 The default FastAPI app mounts only the declared `/v1` public route roots.
 The Fake ERP/operator demo is internal and requires
-`ERPGUARD_INTERNAL_SURFACES=true`; the pre-C1 route graph is available only
-with `ERPGUARD_LEGACY_API_ENABLED=true`.
+`ERPGUARD_INTERNAL_SURFACES=true`. The pre-C1 legacy route graph and its
+opt-in flag were removed in wave C6; there is no way to mount it anymore.
 
 The repository can currently:
 
