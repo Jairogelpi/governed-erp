@@ -19,6 +19,7 @@ PUBLIC_ROUTERS = (
     variants.router,
     candidates.router,
     replays.router,
+    replays.processes_router,
     proofs.router,
     skills.router,
     approvals.router,
