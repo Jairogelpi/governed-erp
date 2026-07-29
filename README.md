@@ -115,11 +115,16 @@ convergence, and the full product consolidation:
 - C6 legacy composition root and unreachable code deleted
 - C7 migration-scaffolding retirement
 - C8 final consolidation gate (ruff, mypy, pytest, alembic all green)
+- C8.1 read-only ORM/schema audit of `erpguard/db/models.py` (see
+  [docs/architecture/c8_1_orm_schema_audit.md](docs/architecture/c8_1_orm_schema_audit.md));
+  `erpguard/product` now contains only `models.py`, everything else was
+  classified and relocated into `erpguard/release_ops`
 
-Next: Phase 12 — Historical Replay. Before that: classify and relocate the
-remaining `erpguard/product` modules that still back live internal-demo/
-safety/approval flows, and an ORM/schema audit (no deletions yet) of
-`erpguard/db/models.py` to identify tables with zero remaining consumers.
+Next: Phase 12 — Historical Replay. Before that: write the Alembic migration
+that drops the 99 orphaned tables the C8.1 audit identified, informed by its
+caveat that the schema declares no `ForeignKey()` constraints anywhere, so
+cross-table drop safety needs a manual column skim, not just the audit's
+name-based reachability check.
 
 The exact phase gates and no-goals are defined in the [master implementation
 specification](docs/specs/84_erpguard_evolution_master_spec.md).
