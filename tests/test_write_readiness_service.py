@@ -5,7 +5,7 @@ import pytest
 
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.release_ops.write_risk_matrix import WriteRiskMatrix
-from erpguard.product.models import WriteDetectedCandidateModel
+from erpguard.release_ops.models import WriteDetectedCandidateModel
 
 
 @pytest.fixture(autouse=True)

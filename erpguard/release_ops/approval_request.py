@@ -9,7 +9,7 @@ from erpguard.db.repositories import (
     get_latest_skill_version,
     get_skill,
 )
-from erpguard.product.models import ApprovalRequestModel
+from erpguard.release_ops.models import ApprovalRequestModel
 
 
 class ApprovalRequestService:

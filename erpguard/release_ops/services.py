@@ -19,7 +19,7 @@ from erpguard.db.repositories import (
     get_opportunity,
     get_opportunity_scan,
 )
-from erpguard.product.models import (
+from erpguard.release_ops.models import (
     AutomationDraftModel,
     BusinessAnalysisRequest,
     BusinessAnalysisResult,

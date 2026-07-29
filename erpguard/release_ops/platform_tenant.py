@@ -9,7 +9,7 @@ from erpguard.db.repositories import (
     list_tenants,
     suspend_tenant,
 )
-from erpguard.product.models import (
+from erpguard.release_ops.models import (
     TenantKillSwitchConfig,
     TenantModel,
     TenantRateLimitConfig,

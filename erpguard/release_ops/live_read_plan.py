@@ -4,7 +4,7 @@ import json
 from uuid import uuid4
 
 from erpguard.db.repositories import get_latest_skill_version, get_opportunity
-from erpguard.product.models import LiveReadPlanModel, LiveReadStepModel
+from erpguard.release_ops.models import LiveReadPlanModel, LiveReadStepModel
 
 _FORBIDDEN_REAL_METHODS = {
     "create", "write", "unlink", "copy",

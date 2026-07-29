@@ -11,7 +11,7 @@ from erpguard.db.repositories import (
     get_skill,
     list_approval_decisions_for_skill,
 )
-from erpguard.product.models import ActivationGateModel, GateCheckModel
+from erpguard.release_ops.models import ActivationGateModel, GateCheckModel
 
 
 class ActivationGateService:

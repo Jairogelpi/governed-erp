@@ -9,7 +9,7 @@ from erpguard.db.repositories import (
     get_opportunity,
     list_draft_reviews,
 )
-from erpguard.product.models import (
+from erpguard.release_ops.models import (
     DraftGuardModel,
     DraftInputFieldModel,
     DraftOutputFieldModel,

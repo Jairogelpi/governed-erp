@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from erpguard.adapters.odoo.r2_write_client import R2_ALLOWED_WRITE_FIELDS, R2_ALLOWED_WRITE_MODELS
 from erpguard.db.repositories import get_latest_write_readiness_certification_for_skill
-from erpguard.product.models import R2WritePilotPolicyCheckModel, R2WritePilotPolicyViolation
+from erpguard.release_ops.models import R2WritePilotPolicyCheckModel, R2WritePilotPolicyViolation
 
 _ALLOW_R2_REAL_WRITE_PILOT = False
 _ALLOW_GENERIC_REAL_ODOO_WRITES = False

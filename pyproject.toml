@@ -40,7 +40,6 @@ extend-exclude = ["docs", "erpguard.egg-info"]
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I"]
 ignore = ["I001"]
-per-file-ignores = {"erpguard/product/release_readiness.py" = ["F401"]}
 
 [tool.mypy]
 python_version = "3.11"

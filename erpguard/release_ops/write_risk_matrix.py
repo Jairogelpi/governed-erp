@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from erpguard.product.models import WriteDetectedCandidateModel, WriteRiskMatrixEntryModel
+from erpguard.release_ops.models import WriteDetectedCandidateModel, WriteRiskMatrixEntryModel
 
 _RISK_RULES: dict[str, dict] = {
     "create": {"risk_level": "R2", "risk_code": "creates_new_records", "reversible": False, "rationale": "Creates new records in Odoo — requires dual approval and rollback plan"},

@@ -136,7 +136,7 @@ class OperatorOrchestrator:
         from erpguard.db.repositories import get_connection
         from erpguard.adapters.odoo.config import OdooConfig
         from erpguard.canonical.enums import ERPType
-        from erpguard.product.models import BusinessAnalysisRequest
+        from erpguard.release_ops.models import BusinessAnalysisRequest
         from erpguard.release_ops.services import BusinessAnalysisService
         connection = get_connection(self.session, connection_id)
         if connection is None or connection.erp_type != ERPType.ODOO.value:

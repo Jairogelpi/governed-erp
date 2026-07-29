@@ -13,7 +13,7 @@ from erpguard.db.repositories import (
 )
 from erpguard.release_ops.connection_context import ConnectionContextService
 from erpguard.release_ops.idempotency import IdempotencyService
-from erpguard.product.models import LiveReadExecutionRequestModel
+from erpguard.release_ops.models import LiveReadExecutionRequestModel
 
 
 class LiveReadRequestService:

@@ -12,7 +12,7 @@ from erpguard.db.repositories import (
     get_skill_version,
     mark_review_compiled,
 )
-from erpguard.product.models import CompiledSkillModel
+from erpguard.release_ops.models import CompiledSkillModel
 
 
 class SkillPackageBuilder:

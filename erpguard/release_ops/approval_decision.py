@@ -9,7 +9,7 @@ from erpguard.db.repositories import (
     list_approval_decisions_for_skill,
     update_approval_request_status,
 )
-from erpguard.product.models import ApprovalDecisionModel
+from erpguard.release_ops.models import ApprovalDecisionModel
 
 _ALLOWED_DECISIONS = {"approve", "reject", "request_changes"}
 

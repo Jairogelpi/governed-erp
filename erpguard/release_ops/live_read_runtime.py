@@ -18,7 +18,7 @@ from erpguard.db.repositories import (
 from erpguard.release_ops.connection_context import ConnectionContextService
 from erpguard.release_ops.live_read_plan import LiveReadPlanService
 from erpguard.release_ops.live_read_policy import LiveReadPolicyService
-from erpguard.product.models import (
+from erpguard.release_ops.models import (
     LiveReadPlanModel,
     LiveReadRunModel,
     WriteCandidateModel,

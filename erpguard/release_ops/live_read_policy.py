@@ -7,7 +7,7 @@ from erpguard.db.repositories import (
     get_latest_skill_version,
     get_skill,
 )
-from erpguard.product.models import LiveReadPolicyResult, LiveReadPolicyViolation
+from erpguard.release_ops.models import LiveReadPolicyResult, LiveReadPolicyViolation
 
 _ALLOW_REAL_ODOO_READS = True
 _ALLOW_LIVE_READ_EVIDENCE = True

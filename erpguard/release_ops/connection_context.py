@@ -4,7 +4,7 @@ import json
 
 from erpguard.core.errors import ObjectNotFoundError
 from erpguard.db.repositories import get_connection, get_latest_skill_version, get_skill
-from erpguard.product.models import ConnectionContextModel
+from erpguard.release_ops.models import ConnectionContextModel
 
 
 class ConnectionContextService:

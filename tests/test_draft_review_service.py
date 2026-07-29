@@ -8,7 +8,7 @@ from erpguard.db.repositories import (
 )
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.release_ops.draft_review import DraftReviewService
-from erpguard.product.models import BusinessAnalysisRequest
+from erpguard.release_ops.models import BusinessAnalysisRequest
 from erpguard.release_ops.services import BusinessAnalysisService
 
 

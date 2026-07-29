@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from erpguard.product.models import WriteDetectedCandidateModel, WritePermissionPreviewModel
+from erpguard.release_ops.models import WriteDetectedCandidateModel, WritePermissionPreviewModel
 
 _PERMISSIONS_BY_METHOD: dict[str, list[str]] = {
     "create": ["create"],

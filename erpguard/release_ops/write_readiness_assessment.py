@@ -8,7 +8,7 @@ from erpguard.db.repositories import (
     get_latest_skill_version,
     get_write_readiness_assessment,
 )
-from erpguard.product.models import (
+from erpguard.release_ops.models import (
     WritePermissionPreviewModel,
     WriteReadinessAssessmentModel,
 )
@@ -52,7 +52,7 @@ class WriteReadinessAssessmentService:
                                   permission_preview=permission_preview, blocking_issues=blocking_issues)
 
     def get(self, assessment_id: str) -> WriteReadinessAssessmentModel:
-        from erpguard.product.models import WriteDetectedCandidateModel, WriteRiskMatrixEntryModel
+        from erpguard.release_ops.models import WriteDetectedCandidateModel, WriteRiskMatrixEntryModel
         row = get_write_readiness_assessment(self.session, assessment_id)
         if row is None:
             raise ObjectNotFoundError(f"Assessment '{assessment_id}' not found.")

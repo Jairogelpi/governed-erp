@@ -8,7 +8,7 @@ from erpguard.db.repositories import (
     get_latest_skill_version,
     get_skill,
 )
-from erpguard.product.models import DryRunProofModel, DryRunCaseResultModel
+from erpguard.release_ops.models import DryRunProofModel, DryRunCaseResultModel
 
 
 _SAFE_EXPECTED_DECISIONS = {"allow", "review_required", "block"}

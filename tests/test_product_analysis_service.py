@@ -4,7 +4,7 @@ from erpguard.canonical.enums import ERPType
 from erpguard.adapters.odoo.config import OdooConfig
 from erpguard.db.repositories import create_connection, get_automation_draft, get_business_snapshot, get_opportunity_scan, list_automation_drafts, list_business_signals, list_opportunities
 from erpguard.db.session import SessionLocal, init_db
-from erpguard.product.models import BusinessAnalysisRequest
+from erpguard.release_ops.models import BusinessAnalysisRequest
 from erpguard.release_ops.services import BusinessAnalysisService
 
 
