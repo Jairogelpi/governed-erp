@@ -16,7 +16,7 @@ from erpguard.version import __version__
 
 _ROUTER_IMPORTS = (
     ("apps.api.routes.health", "router"),
-    ("apps.api.routes.identity", "router"),
+    ("apps.api.routes.public_v1.identity", "router"),
     ("apps.api.routes.connections", "router"),
     ("apps.api.routes.unified_connections", "router"),
     ("apps.api.routes.public_v1.events", "router"),
@@ -89,7 +89,7 @@ _ROUTER_IMPORTS = (
     ("apps.api.routes.skill_schedules", "router"),
     ("apps.api.routes.operator_evidence", "router"),
     ("apps.api.routes.audit", "router"),
-    ("apps.api.routes.skills", "router"),
+    ("apps.api.routes.public_v1.skills", "router"),
     ("apps.fake_erp.routes", "router"),
 )
 

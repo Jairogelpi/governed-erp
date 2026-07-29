@@ -135,7 +135,7 @@
         "GET"
       ],
       "endpoint": "get_current_user_endpoint",
-      "endpoint_module": "apps.api.routes.identity"
+      "endpoint_module": "apps.api.routes.public_v1.identity"
     },
     {
       "path": "/v1/identity/tenants/{tenant_id}/members",
@@ -143,7 +143,7 @@
         "POST"
       ],
       "endpoint": "add_membership_endpoint",
-      "endpoint_module": "apps.api.routes.identity"
+      "endpoint_module": "apps.api.routes.public_v1.identity"
     },
     {
       "path": "/v1/process-candidates",
@@ -199,7 +199,7 @@
         "GET"
       ],
       "endpoint": "list_skills_endpoint",
-      "endpoint_module": "apps.api.routes.skills"
+      "endpoint_module": "apps.api.routes.public_v1.skills"
     },
     {
       "path": "/v1/skills",
@@ -207,7 +207,7 @@
         "POST"
       ],
       "endpoint": "create_skill_endpoint",
-      "endpoint_module": "apps.api.routes.skills"
+      "endpoint_module": "apps.api.routes.public_v1.skills"
     },
     {
       "path": "/v1/skills/{skill_id}",
@@ -215,7 +215,7 @@
         "GET"
       ],
       "endpoint": "get_skill_endpoint",
-      "endpoint_module": "apps.api.routes.skills"
+      "endpoint_module": "apps.api.routes.public_v1.skills"
     },
     {
       "path": "/v1/skills/{skill_id}/inspect",
@@ -223,7 +223,7 @@
         "GET"
       ],
       "endpoint": "inspect_skill_endpoint",
-      "endpoint_module": "apps.api.routes.skills"
+      "endpoint_module": "apps.api.routes.public_v1.skills"
     },
     {
       "path": "/v1/skills/{skill_id}/plan-action",
@@ -231,7 +231,7 @@
         "POST"
       ],
       "endpoint": "plan_skill_action_endpoint",
-      "endpoint_module": "apps.api.routes.skills"
+      "endpoint_module": "apps.api.routes.public_v1.skills"
     },
     {
       "path": "/v1/skills/{skill_id}/run",
@@ -239,7 +239,7 @@
         "POST"
       ],
       "endpoint": "run_skill_endpoint",
-      "endpoint_module": "apps.api.routes.skills"
+      "endpoint_module": "apps.api.routes.public_v1.skills"
     },
     {
       "path": "/v1/skills/{skill_id}/run-ui",
@@ -247,7 +247,7 @@
         "POST"
       ],
       "endpoint": "run_skill_ui_endpoint",
-      "endpoint_module": "apps.api.routes.skills"
+      "endpoint_module": "apps.api.routes.public_v1.skills"
     },
     {
       "path": "/v1/skills/{skill_id}/runs",
@@ -255,7 +255,7 @@
         "GET"
       ],
       "endpoint": "list_skill_runs_endpoint",
-      "endpoint_module": "apps.api.routes.skills"
+      "endpoint_module": "apps.api.routes.public_v1.skills"
     },
     {
       "path": "/v1/skills/{skill_id}/runs/{skill_run_id}",
@@ -263,7 +263,7 @@
         "GET"
       ],
       "endpoint": "get_skill_run_endpoint",
-      "endpoint_module": "apps.api.routes.skills"
+      "endpoint_module": "apps.api.routes.public_v1.skills"
     },
     {
       "path": "/v1/skills/{skill_id}/runs/{skill_run_id}/timeline",
@@ -271,7 +271,7 @@
         "GET"
       ],
       "endpoint": "get_skill_run_timeline_endpoint",
-      "endpoint_module": "apps.api.routes.skills"
+      "endpoint_module": "apps.api.routes.public_v1.skills"
     },
     {
       "path": "/v1/skills/{skill_id}/simulate-approval-decision",
@@ -279,7 +279,7 @@
         "POST"
       ],
       "endpoint": "simulate_skill_approval_decision_endpoint",
-      "endpoint_module": "apps.api.routes.skills"
+      "endpoint_module": "apps.api.routes.public_v1.skills"
     },
     {
       "path": "/v1/variants",

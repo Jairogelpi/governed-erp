@@ -1090,26 +1090,6 @@
     "reason": "explicit keep-and-move disposition"
   },
   {
-    "path": "apps/api/routes/identity.py",
-    "module": "apps.api.routes.identity",
-    "declared_routes": [
-      {
-        "method": "GET",
-        "path": "/v1/identity/me",
-        "function": "get_current_user_endpoint"
-      },
-      {
-        "method": "POST",
-        "path": "/v1/identity/tenants/{tenant_id}/members",
-        "function": "add_membership_endpoint"
-      }
-    ],
-    "classification": "migrate",
-    "final_destination": "apps/api/routes/public_v1",
-    "deletion_wave": "C1",
-    "reason": "explicit keep-and-move disposition"
-  },
-  {
     "path": "apps/api/routes/internal/demo.py",
     "module": "apps.api.routes.internal.demo",
     "declared_routes": [],
@@ -1939,11 +1919,22 @@
   {
     "path": "apps/api/routes/public_v1/identity.py",
     "module": "apps.api.routes.public_v1.identity",
-    "declared_routes": [],
+    "declared_routes": [
+      {
+        "method": "GET",
+        "path": "/v1/identity/me",
+        "function": "get_current_user_endpoint"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/identity/tenants/{tenant_id}/members",
+        "function": "add_membership_endpoint"
+      }
+    ],
     "classification": "keep",
     "final_destination": "apps/api/routes/public_v1",
-    "deletion_wave": "C1",
-    "reason": "canonical C1 public route owner"
+    "deletion_wave": null,
+    "reason": "moved into final public_v1 location in wave C4"
   },
   {
     "path": "apps/api/routes/public_v1/processes.py",
@@ -1991,11 +1982,67 @@
   {
     "path": "apps/api/routes/public_v1/skills.py",
     "module": "apps.api.routes.public_v1.skills",
-    "declared_routes": [],
+    "declared_routes": [
+      {
+        "method": "GET",
+        "path": "/v1/skills",
+        "function": "list_skills_endpoint"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/skills",
+        "function": "create_skill_endpoint"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/skills/{skill_id}",
+        "function": "get_skill_endpoint"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/skills/{skill_id}/inspect",
+        "function": "inspect_skill_endpoint"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/skills/{skill_id}/plan-action",
+        "function": "plan_skill_action_endpoint"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/skills/{skill_id}/run",
+        "function": "run_skill_endpoint"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/skills/{skill_id}/run-ui",
+        "function": "run_skill_ui_endpoint"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/skills/{skill_id}/runs",
+        "function": "list_skill_runs_endpoint"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/skills/{skill_id}/runs/{skill_run_id}",
+        "function": "get_skill_run_endpoint"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/skills/{skill_id}/runs/{skill_run_id}/timeline",
+        "function": "get_skill_run_timeline_endpoint"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/skills/{skill_id}/simulate-approval-decision",
+        "function": "simulate_skill_approval_decision_endpoint"
+      }
+    ],
     "classification": "keep",
     "final_destination": "apps/api/routes/public_v1",
-    "deletion_wave": "C1",
-    "reason": "canonical C1 public route owner"
+    "deletion_wave": null,
+    "reason": "moved into final public_v1 location in wave C4"
   },
   {
     "path": "apps/api/routes/public_v1/variants.py",
@@ -2520,71 +2567,6 @@
         "method": "GET",
         "path": "/v1/skills/{skill_id}/versions",
         "function": "list_skill_versions"
-      }
-    ],
-    "classification": "migrate",
-    "final_destination": "apps/api/routes/public_v1",
-    "deletion_wave": "C1",
-    "reason": "explicit behavior-migration disposition"
-  },
-  {
-    "path": "apps/api/routes/skills.py",
-    "module": "apps.api.routes.skills",
-    "declared_routes": [
-      {
-        "method": "GET",
-        "path": "/v1/skills",
-        "function": "list_skills_endpoint"
-      },
-      {
-        "method": "POST",
-        "path": "/v1/skills",
-        "function": "create_skill_endpoint"
-      },
-      {
-        "method": "GET",
-        "path": "/v1/skills/{skill_id}",
-        "function": "get_skill_endpoint"
-      },
-      {
-        "method": "GET",
-        "path": "/v1/skills/{skill_id}/inspect",
-        "function": "inspect_skill_endpoint"
-      },
-      {
-        "method": "POST",
-        "path": "/v1/skills/{skill_id}/plan-action",
-        "function": "plan_skill_action_endpoint"
-      },
-      {
-        "method": "POST",
-        "path": "/v1/skills/{skill_id}/run",
-        "function": "run_skill_endpoint"
-      },
-      {
-        "method": "POST",
-        "path": "/v1/skills/{skill_id}/run-ui",
-        "function": "run_skill_ui_endpoint"
-      },
-      {
-        "method": "GET",
-        "path": "/v1/skills/{skill_id}/runs",
-        "function": "list_skill_runs_endpoint"
-      },
-      {
-        "method": "GET",
-        "path": "/v1/skills/{skill_id}/runs/{skill_run_id}",
-        "function": "get_skill_run_endpoint"
-      },
-      {
-        "method": "GET",
-        "path": "/v1/skills/{skill_id}/runs/{skill_run_id}/timeline",
-        "function": "get_skill_run_timeline_endpoint"
-      },
-      {
-        "method": "POST",
-        "path": "/v1/skills/{skill_id}/simulate-approval-decision",
-        "function": "simulate_skill_approval_decision_endpoint"
       }
     ],
     "classification": "migrate",
