@@ -175,7 +175,7 @@
         "POST"
       ],
       "endpoint": "register_process",
-      "endpoint_module": "apps.api.routes.processes"
+      "endpoint_module": "apps.api.routes.public_v1.processes"
     },
     {
       "path": "/v1/processes/{process_key}/diff",
@@ -183,7 +183,7 @@
         "GET"
       ],
       "endpoint": "diff_process",
-      "endpoint_module": "apps.api.routes.processes"
+      "endpoint_module": "apps.api.routes.public_v1.processes"
     },
     {
       "path": "/v1/processes/{process_key}/versions/{version}",
@@ -191,7 +191,7 @@
         "GET"
       ],
       "endpoint": "get_process",
-      "endpoint_module": "apps.api.routes.processes"
+      "endpoint_module": "apps.api.routes.public_v1.processes"
     },
     {
       "path": "/v1/skills",

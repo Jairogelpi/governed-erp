@@ -20,7 +20,7 @@ _ROUTER_IMPORTS = (
     ("apps.api.routes.connections", "router"),
     ("apps.api.routes.unified_connections", "router"),
     ("apps.api.routes.public_v1.events", "router"),
-    ("apps.api.routes.processes", "router"),
+    ("apps.api.routes.public_v1.processes", "router"),
     ("apps.api.routes.public_v1.variants", "router"),
     ("apps.api.routes.public_v1.candidates", "router"),
     ("apps.api.routes.demo", "router"),

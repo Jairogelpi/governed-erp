@@ -1756,31 +1756,6 @@
     "reason": "explicit behavior-migration disposition"
   },
   {
-    "path": "apps/api/routes/processes.py",
-    "module": "apps.api.routes.processes",
-    "declared_routes": [
-      {
-        "method": "POST",
-        "path": "/v1/processes/",
-        "function": "register_process"
-      },
-      {
-        "method": "GET",
-        "path": "/v1/processes/{process_key}/diff",
-        "function": "diff_process"
-      },
-      {
-        "method": "GET",
-        "path": "/v1/processes/{process_key}/versions/{version}",
-        "function": "get_process"
-      }
-    ],
-    "classification": "migrate",
-    "final_destination": "apps/api/routes/public_v1",
-    "deletion_wave": "C1",
-    "reason": "explicit keep-and-move disposition"
-  },
-  {
     "path": "apps/api/routes/product.py",
     "module": "apps.api.routes.product",
     "declared_routes": [
@@ -1973,11 +1948,27 @@
   {
     "path": "apps/api/routes/public_v1/processes.py",
     "module": "apps.api.routes.public_v1.processes",
-    "declared_routes": [],
+    "declared_routes": [
+      {
+        "method": "POST",
+        "path": "/v1/processes/",
+        "function": "register_process"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/processes/{process_key}/diff",
+        "function": "diff_process"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/processes/{process_key}/versions/{version}",
+        "function": "get_process"
+      }
+    ],
     "classification": "keep",
     "final_destination": "apps/api/routes/public_v1",
-    "deletion_wave": "C1",
-    "reason": "canonical C1 public route owner"
+    "deletion_wave": null,
+    "reason": "moved into final public_v1 location in wave C3"
   },
   {
     "path": "apps/api/routes/public_v1/proofs.py",
