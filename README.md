@@ -5,7 +5,7 @@ understanding and improving ERP business processes. It keeps ERP effects behind
 explicit safety boundaries: the current implementation is read-only or
 simulated, and raw ERP writes are disabled.
 
-> Current project state: **Phase 12 - Historical replay**.
+> Current project state: **Phase 13 - Regression engine and Proof of Improvement**.
 
 ## What exists now
 
@@ -99,9 +99,10 @@ dependent tests may be skipped when Chromium is unavailable.
 
 ## Roadmap
 
-Completed: Phases 0–12, from baseline freeze through the candidate
+Completed: Phases 0–13, from baseline freeze through the candidate
 integrity gate, controlled API composition, connector convergence, the
-full product consolidation (Phase 11.5 C0–C8), and historical replay:
+full product consolidation (Phase 11.5 C0–C8), historical replay, and
+the regression engine / Proof of Improvement:
 
 - C0 inventory
 - C1 composition root
@@ -152,7 +153,28 @@ process candidates). The comparison endpoint is a minimal hash/status diff
 between two replay runs, not the regression taxonomy from master spec
 section 16 — that's Phase 13's job. No UI in this pass.
 
-Next: Phase 13 — Regression engine and Proof of Improvement.
+Phase 13 — Regression engine and Proof of Improvement (master spec sections
+16/17): `erpguard/domain/proofs/` classifies regressions between two replay
+runs and generates an immutable Proof of Improvement. Given this codebase's
+single real policy evaluator (`formula_guard`, binary block/allow), only 4
+of the spec's 11 regression categories are genuinely detectable —
+`new_unsafe_effect` (critical: a decision the baseline blocked is now
+allowed), `false_block` (low: the reverse, surfaced for review not assumed
+an improvement — no ground truth to tell), `evidence_incompleteness`
+(medium), `postcondition_failure` (medium). The other 7 (duplicate
+detection, entity resolution, approval count, fingerprint, latency, token
+metrics) have no detector here and are never emitted — documented in
+`regression_classifier.py`'s module docstring. Eligibility (17.3): 2 of the
+7 criteria are structurally unmeasurable (duplicate-prevention rate,
+test-suite pass/fail) and there's no reviewer-decision field in the spec's
+own `ProofOfImprovement` model to invent an approval workflow around, so
+this implementation's ceiling is `eligible_for_shadow` — it never
+recommends `eligible_for_canary`/`eligible_for_promotion`. Any critical
+regression → `reject`. API: `POST /v1/replays/{id}/proofs`,
+`GET /v1/proofs/{id}` (spec 23.5). Proofs are permanently immutable from
+creation (17.4) — no freeze verb, updates are always rejected.
+
+Next: Phase 14 — Process-to-Skill compiler v2.
 
 The exact phase gates and no-goals are defined in the [master implementation
 specification](docs/specs/84_erpguard_evolution_master_spec.md).
