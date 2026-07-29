@@ -585,31 +585,6 @@
     "reason": "explicit behavior-migration disposition"
   },
   {
-    "path": "apps/api/routes/candidates.py",
-    "module": "apps.api.routes.candidates",
-    "declared_routes": [
-      {
-        "method": "POST",
-        "path": "/v1/process-candidates/",
-        "function": "create_candidate"
-      },
-      {
-        "method": "GET",
-        "path": "/v1/process-candidates/{candidate_id}",
-        "function": "get_candidate"
-      },
-      {
-        "method": "POST",
-        "path": "/v1/process-candidates/{candidate_id}/submit",
-        "function": "submit_candidate"
-      }
-    ],
-    "classification": "migrate",
-    "final_destination": "apps/api/routes/public_v1",
-    "deletion_wave": "C1",
-    "reason": "explicit keep-and-move disposition"
-  },
-  {
     "path": "apps/api/routes/connections.py",
     "module": "apps.api.routes.connections",
     "declared_routes": [
@@ -843,51 +818,6 @@
     "final_destination": null,
     "deletion_wave": "C6",
     "reason": "explicit retirement disposition"
-  },
-  {
-    "path": "apps/api/routes/events.py",
-    "module": "apps.api.routes.events",
-    "declared_routes": [
-      {
-        "method": "PUT",
-        "path": "/v1/events/cursors",
-        "function": "save_cursor"
-      },
-      {
-        "method": "GET",
-        "path": "/v1/events/cursors/{connector_id}/{stream_key}",
-        "function": "get_cursor"
-      },
-      {
-        "method": "POST",
-        "path": "/v1/events/fake-generate",
-        "function": "generate_fake_events"
-      },
-      {
-        "method": "GET",
-        "path": "/v1/events/ocel/export",
-        "function": "export_ocel"
-      },
-      {
-        "method": "POST",
-        "path": "/v1/events/ocel/import",
-        "function": "import_ocel"
-      },
-      {
-        "method": "POST",
-        "path": "/v1/events/odoo/poll",
-        "function": "ingest_odoo_poll"
-      },
-      {
-        "method": "POST",
-        "path": "/v1/events/odoo/webhook",
-        "function": "ingest_odoo_webhook"
-      }
-    ],
-    "classification": "migrate",
-    "final_destination": "apps/api/routes/public_v1",
-    "deletion_wave": "C1",
-    "reason": "explicit keep-and-move disposition"
   },
   {
     "path": "apps/api/routes/execution_sandbox.py",
@@ -1897,11 +1827,27 @@
   {
     "path": "apps/api/routes/public_v1/candidates.py",
     "module": "apps.api.routes.public_v1.candidates",
-    "declared_routes": [],
+    "declared_routes": [
+      {
+        "method": "POST",
+        "path": "/v1/process-candidates/",
+        "function": "create_candidate"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/process-candidates/{candidate_id}",
+        "function": "get_candidate"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/process-candidates/{candidate_id}/submit",
+        "function": "submit_candidate"
+      }
+    ],
     "classification": "keep",
     "final_destination": "apps/api/routes/public_v1",
-    "deletion_wave": "C1",
-    "reason": "canonical C1 public route owner"
+    "deletion_wave": null,
+    "reason": "moved into final public_v1 location in wave C3"
   },
   {
     "path": "apps/api/routes/public_v1/connections.py",
@@ -1940,11 +1886,47 @@
   {
     "path": "apps/api/routes/public_v1/events.py",
     "module": "apps.api.routes.public_v1.events",
-    "declared_routes": [],
+    "declared_routes": [
+      {
+        "method": "PUT",
+        "path": "/v1/events/cursors",
+        "function": "save_cursor"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/events/cursors/{connector_id}/{stream_key}",
+        "function": "get_cursor"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/events/fake-generate",
+        "function": "generate_fake_events"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/events/ocel/export",
+        "function": "export_ocel"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/events/ocel/import",
+        "function": "import_ocel"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/events/odoo/poll",
+        "function": "ingest_odoo_poll"
+      },
+      {
+        "method": "POST",
+        "path": "/v1/events/odoo/webhook",
+        "function": "ingest_odoo_webhook"
+      }
+    ],
     "classification": "keep",
     "final_destination": "apps/api/routes/public_v1",
-    "deletion_wave": "C1",
-    "reason": "canonical C1 public route owner"
+    "deletion_wave": null,
+    "reason": "moved into final public_v1 location in wave C3"
   },
   {
     "path": "apps/api/routes/public_v1/evidence.py",
@@ -2027,11 +2009,27 @@
   {
     "path": "apps/api/routes/public_v1/variants.py",
     "module": "apps.api.routes.public_v1.variants",
-    "declared_routes": [],
+    "declared_routes": [
+      {
+        "method": "GET",
+        "path": "/v1/variants/",
+        "function": "list_variants"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/variants/cases/{case_id}",
+        "function": "get_case_trace"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/variants/dashboard",
+        "function": "variants_dashboard"
+      }
+    ],
     "classification": "keep",
     "final_destination": "apps/api/routes/public_v1",
-    "deletion_wave": "C1",
-    "reason": "canonical C1 public route owner"
+    "deletion_wave": null,
+    "reason": "moved into final public_v1 location in wave C3"
   },
   {
     "path": "apps/api/routes/r2_readiness.py",
@@ -2621,31 +2619,6 @@
         "method": "GET",
         "path": "/v1/unified/connections/{connection_id}",
         "function": "get_unified_connection"
-      }
-    ],
-    "classification": "migrate",
-    "final_destination": "apps/api/routes/public_v1",
-    "deletion_wave": "C1",
-    "reason": "explicit keep-and-move disposition"
-  },
-  {
-    "path": "apps/api/routes/variants.py",
-    "module": "apps.api.routes.variants",
-    "declared_routes": [
-      {
-        "method": "GET",
-        "path": "/v1/variants/",
-        "function": "list_variants"
-      },
-      {
-        "method": "GET",
-        "path": "/v1/variants/cases/{case_id}",
-        "function": "get_case_trace"
-      },
-      {
-        "method": "GET",
-        "path": "/v1/variants/dashboard",
-        "function": "variants_dashboard"
       }
     ],
     "classification": "migrate",
