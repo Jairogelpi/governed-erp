@@ -10,6 +10,7 @@ class RunPlanRequest(BaseModel):
     skill_package_id: str = Field(min_length=1)
     capability: str = Field(min_length=1)
     idempotency_key: str = Field(min_length=1)
+    capability_payload: dict[str, Any] = Field(default_factory=dict)
 
 
 class RunApproveRequest(BaseModel):

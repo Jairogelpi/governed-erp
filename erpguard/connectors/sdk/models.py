@@ -125,6 +125,7 @@ class NativeExecutionPlan(SDKModel):
     status: str = "planned"
     steps: list[str] = Field(default_factory=list)
     supports_execution: bool = False
+    arguments: dict[str, Any] = Field(default_factory=dict)
 
 
 class ExecutionPermit(SDKModel):

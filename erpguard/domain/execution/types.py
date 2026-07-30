@@ -40,6 +40,11 @@ class ActionPlan(ExecutionModel):
     ambiguities: list[str] = Field(default_factory=list)
     risk: str = "unknown"
     idempotency_key: str
+    # Business arguments the capability needs at execution time (e.g. a
+    # Phase 16 quote.create_draft's partner_id/lines/client_reference).
+    # Only as rich as the caller supplies at plan() time -- this codebase
+    # has no live entity-resolution engine to derive it independently.
+    capability_payload: dict[str, Any] = Field(default_factory=dict)
 
 
 class CheckResult(ExecutionModel):

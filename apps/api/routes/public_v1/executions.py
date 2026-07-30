@@ -52,6 +52,7 @@ def plan_run(
             skill_package_id=request.skill_package_id,
             capability=request.capability,
             idempotency_key=request.idempotency_key,
+            capability_payload=request.capability_payload,
         )
     except RunValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

@@ -35,7 +35,6 @@ from sqlalchemy.orm import Session
 from erpguard.application.connectors.service import ConnectorApplicationService
 from erpguard.config import settings
 from erpguard.connectors.sdk.models import (
-    ConnectorContext,
     ExecutionPermit as SdkExecutionPermit,
     NativeExecutionPlan,
 )
@@ -179,6 +178,7 @@ class PermitService:
         skill_package_id: str,
         capability: str,
         idempotency_key: str,
+        capability_payload: dict | None = None,
     ) -> ExecutionRun:
         skill_package = self._get_skill_package(tenant_id=tenant_id, skill_package_id=skill_package_id)
         if skill_package.status != "approved":
@@ -203,6 +203,7 @@ class PermitService:
             capability=capability,
             canonical_capabilities=[capability],
             idempotency_key=idempotency_key,
+            capability_payload=capability_payload or {},
         )
         operation_hash = stable_digest(plan.model_dump(mode="json"))
 
@@ -361,17 +362,25 @@ class PermitService:
         row = self.get(tenant_id=tenant_id, run_id=run_id)
         verification = self._verify(row)  # raises on any real failure
 
-        connector = ConnectorApplicationService(self.session).registry.get(row.connector_id)
-        context = ConnectorContext(tenant_id=row.tenant_id, connection_id=row.connection_id)
-        native_plan = NativeExecutionPlan(capability=row.capability, steps=[row.capability])
+        stored_plan = ActionPlan.model_validate(json.loads(row.action_plan_json))
+        app_service = ConnectorApplicationService(self.session)
+        connector = app_service.registry.get(row.connector_id)
+        _, context = app_service.connection_context(
+            tenant_id=row.tenant_id, connection_id=row.connection_id, connector_id=row.connector_id
+        )
+        native_plan = NativeExecutionPlan(
+            capability=row.capability, steps=[row.capability], arguments=stored_plan.capability_payload
+        )
         sdk_permit = SdkExecutionPermit(permit_id=row.id, capability=row.capability, approved=True)
 
         result = asyncio.run(connector.execute_capability(context, native_plan, sdk_permit))
+        verify_result = asyncio.run(connector.verify_execution(context, row.capability, result))
 
         row.verification_result_json = json.dumps(
             {
                 "checks": [c.model_dump(mode="json") for c in verification.checks],
                 "connector_result": result.model_dump(mode="json"),
+                "postcondition": verify_result.model_dump(mode="json"),
             },
             sort_keys=True,
             separators=(",", ":"),

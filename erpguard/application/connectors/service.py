@@ -6,9 +6,16 @@ import json
 
 from sqlalchemy.orm import Session
 
+from erpguard.adapters.odoo.client import OdooClient
+from erpguard.adapters.odoo.config import OdooConfig
+from erpguard.adapters.odoo.write_client import OdooQuoteDraftClient
+from erpguard.config import settings
+from erpguard.connectors.odoo.transports import LegacyXmlRpcReadTransport
+from erpguard.connectors.odoo.write_transport import LegacyXmlRpcWriteTransport
 from erpguard.connectors.sdk import ConnectorRuntime, ConnectorRegistry, discover_connectors
 from erpguard.connectors.sdk.models import ConnectorContext, ConnectorMetadata, ConnectionTestResult
-from erpguard.db.model_packages.connections import UnifiedConnection
+from erpguard.db.model_packages.connections import EncryptedSecret, UnifiedConnection
+from erpguard.infrastructure.secrets import EncryptedLocalSecretProvider
 
 
 class ConnectorApplicationError(ValueError):
@@ -78,14 +85,18 @@ class ConnectorApplicationService:
         if connection.connector_type != connector_id:
             raise ConnectorConnectionMismatch("connector_connection_mismatch")
         metadata = json.loads(connection.metadata_json or "{}")
+        services: dict[str, object] = {
+            "connection_endpoint": connection.endpoint,
+            "connection_metadata": metadata,
+        }
+        if connector_id == "odoo":
+            services["transport_factory"] = self._odoo_transport_factory(connection)
+            services["write_transport_factory"] = self._odoo_write_transport_factory(connection)
         context = ConnectorContext(
             tenant_id=tenant_id,
             connection_id=connection.id,
             credential_ref=connection.secret_ref,
-            services={
-                "connection_endpoint": connection.endpoint,
-                "connection_metadata": metadata,
-            },
+            services=services,
         )
         return connection, context
 
@@ -113,3 +124,32 @@ class ConnectorApplicationService:
             return await plugin.test_connection(runtime_context)
         except (RuntimeError, ValueError) as exc:
             raise ConnectorOperationUnavailable("connector_operation_unavailable") from exc
+
+    def _odoo_config(self, connection: UnifiedConnection) -> OdooConfig:
+        metadata = json.loads(connection.metadata_json or "{}")
+        secret_row = (
+            self.session.query(EncryptedSecret)
+            .filter(EncryptedSecret.id == connection.secret_ref, EncryptedSecret.tenant_id == connection.tenant_id)
+            .one_or_none()
+        )
+        if secret_row is None or secret_row.status != "active":
+            raise ConnectorOperationUnavailable("connection_secret_unavailable")
+        api_key = EncryptedLocalSecretProvider(settings.local_secret_key).reveal(secret_row.ciphertext)
+        return OdooConfig(
+            url=connection.endpoint,
+            database=metadata.get("database", ""),
+            username=metadata.get("username", ""),
+            api_key=api_key,
+        )
+
+    def _odoo_transport_factory(self, connection: UnifiedConnection):
+        def factory(context: ConnectorContext) -> LegacyXmlRpcReadTransport:
+            return LegacyXmlRpcReadTransport(OdooClient(self._odoo_config(connection)))
+
+        return factory
+
+    def _odoo_write_transport_factory(self, connection: UnifiedConnection):
+        def factory(context: ConnectorContext) -> LegacyXmlRpcWriteTransport:
+            return LegacyXmlRpcWriteTransport(OdooQuoteDraftClient(self._odoo_config(connection)))
+
+        return factory

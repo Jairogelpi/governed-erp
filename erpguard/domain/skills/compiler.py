@@ -110,11 +110,20 @@ def compile_skill_package(
     checks.append(CheckResult(name="capability_existence", status="passed"))
 
     # -- write-capability rejection (postconditions/compensation gap) ----
+    # Phase 16 built real postcondition (state=="draft" read-back) and
+    # idempotency (client_order_ref lookup) support for exactly one write
+    # capability -- see erpguard/connectors/odoo/plugin.py. Any OTHER
+    # write-capable capability is still rejected outright, since nothing
+    # exists to check a postcondition against for it.
+    _CAPABILITIES_WITH_REAL_POSTCONDITION_SUPPORT = {"quote.create_draft"}
     write_capable = [
         step for step in workflow_steps if capability_by_name[step.capability].supports_execution
     ]
-    if write_capable:
-        names = ", ".join(sorted({step.capability for step in write_capable}))
+    unsupported_write_capable = [
+        step for step in write_capable if step.capability not in _CAPABILITIES_WITH_REAL_POSTCONDITION_SUPPORT
+    ]
+    if unsupported_write_capable:
+        names = ", ".join(sorted({step.capability for step in unsupported_write_capable}))
         checks.append(
             CheckResult(
                 name="postconditions_and_idempotency",
@@ -130,7 +139,11 @@ def compile_skill_package(
         CheckResult(
             name="postconditions_and_idempotency",
             status="passed",
-            detail="vacuously satisfied: no write-capable capability in this workflow",
+            detail=(
+                "vacuously satisfied: no write-capable capability in this workflow"
+                if not write_capable
+                else "real postcondition/idempotency support exists for every write-capable capability used"
+            ),
         )
     )
 
