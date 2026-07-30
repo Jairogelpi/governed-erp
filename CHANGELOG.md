@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased — Phase 18
+
+### Added
+
+- Effects-free shadow deployments admitted only for submitted, valid
+  candidates with an `eligible_for_shadow` Proof of Improvement.
+- Deterministic active/candidate case comparison, normalized difference
+  categories, optional observed outcomes and strict idempotency.
+- Append-only shadow deployments, case evidence and human reviewer labels.
+- Deployment-specific agreement dashboard and migration `0017_shadow_mode`.
+- Sanitized selected disagreement evidence.
+
+### Safety
+
+- The candidate never calls a connector or creates an execution run.
+- Threshold attainment does not activate, promote or route the candidate.
+- Canary, promotion and rollback remain unimplemented Phase 19 work.
+
 ## Unreleased — Phase 17 / 17.1
 
 ### Added

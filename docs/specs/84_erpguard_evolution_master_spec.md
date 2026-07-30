@@ -3542,6 +3542,18 @@ Compare candidate decisions without effects.
 - differences stored;
 - selected example demonstrated.
 
+### Implemented status (2026-07-30)
+
+Completed as an effects-free, tenant-scoped comparison surface. Admission
+requires a submitted valid candidate, an `eligible_for_shadow` proof and
+matching frozen replay scope. Active and candidate definitions run through
+the same deterministic Replay Engine on identical incoming staged/replayed
+cases. Decisions, differences, optional actual outcome and append-only
+review labels are persisted; the dashboard uses a deployment-configurable
+agreement threshold. The selected example demonstrates a removed Formula
+Guard decision being detected without connector access or execution. Phase
+18 does not implement canary routing, activation, promotion or rollback.
+
 ---
 
 ## Phase 19 — Canary/promotion/rollback

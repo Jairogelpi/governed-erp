@@ -21,6 +21,7 @@ PUBLIC_ROOTS = {
     "/v1/executions",
     "/v1/runs",
     "/v1/evidence",
+    "/v1/deployments",
 }
 
 

@@ -310,8 +310,20 @@ reject success. The incident-derived posted-invoice regression remains in
 the automated suite. Phase 17.1 adds no compensation execution or other ERP
 write.
 
-Next: Decision Intelligence Foundation. Phase 18 shadow/canary work remains
-deferred until confirmation effects are understood and explicitly modeled.
+Phase 18 — Shadow Mode is now implemented as an effects-free evaluation
+surface. A submitted valid candidate backed by an `eligible_for_shadow`
+Proof of Improvement can be deployed in status `shadow`. Incoming staged or
+replayed cases are evaluated by the same deterministic Replay Engine against
+the active and candidate definitions; both decisions, normalized
+differences, optional observed outcome and append-only reviewer labels are
+stored. The dashboard applies a deployment-specific agreement threshold but
+cannot promote or activate a version. The Shadow Service has no connector,
+Odoo, permit or execution-runtime dependency and creates no `ExecutionRun`.
+The selected sanitized disagreement is in
+[`docs/demo/phase18_shadow_mode_selected_example.json`](docs/demo/phase18_shadow_mode_selected_example.json).
+
+Next: Decision Intelligence Foundation or Phase 19 canary/promotion design.
+No canary routing, activation, promotion or rollback is implemented yet.
 
 The exact phase gates and no-goals are defined in the [master implementation
 specification](docs/specs/84_erpguard_evolution_master_spec.md).

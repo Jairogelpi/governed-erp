@@ -829,3 +829,35 @@
 - Quality root cause/fix: the open `mypy>=1.13` range installed mypy 2.3 on GitHub Actions, the fresh environment lacked `types-PyYAML`, and Linux considered two Playwright import ignores unused. Development dependencies now use `mypy>=1.13,<2` plus `types-PyYAML>=6.0`; `uv.lock` was refreshed; the obsolete ignores were removed.
 - PostgreSQL root cause/fix: Alembic's default `alembic_version.version_num VARCHAR(32)` could not store historical revision `0012_replay_case_decision_coverage`. Migration 0012 now widens that column to `VARCHAR(128)` on PostgreSQL before Alembic records the revision. SQLite behavior is unchanged.
 - Verification: fresh `pip install -e ".[dev]"` selected mypy 1.20.2; repository-wide Ruff and mypy passed; focused migration/Phase 17 tests passed; the full suite passed with `855 tests collected` on an isolated temporary SQLite database. Local real-PostgreSQL reproduction was unavailable because Docker is not installed, so the pushed PostgreSQL Actions gate remains the authoritative validation.
+
+### 2026-07-30 — Phase 18 Shadow Mode
+
+- Added append-only `ShadowDeployment`, `ShadowCaseResult` and
+  `ShadowCaseReview` persistence plus Alembic migration
+  `0017_shadow_mode`.
+- Added tenant-scoped shadow APIs for deployment creation, identical-case
+  active/candidate evaluation, case listing, human review and an agreement
+  dashboard with a per-deployment threshold.
+- Reused the deterministic Replay Engine and required a submitted valid
+  candidate backed by an `eligible_for_shadow` Proof of Improvement with
+  matching frozen replay scope.
+- Enforced the no-effects boundary: the Shadow Service has no connector,
+  Odoo transport, permit or execution-runtime dependency and creates no
+  `ExecutionRun`; no canary, activation, promotion or rollback was added.
+- Added Phase 18 specification, selected sanitized disagreement evidence
+  and focused tests for comparison, strict idempotency, tenant isolation,
+  proof admission, append-only evidence and dependency boundaries.
+- Initial full-suite verification found the expected public-composition
+  whitelist missing the new `/v1/deployments` root; the whitelist was
+  updated because Shadow is an intentional governed public API.
+- Admission also revalidates both frozen replay states and the stored
+  active/candidate definition digests before creating a deployment, so
+  corrupted or scope-drifted candidate evidence fails closed.
+- Verification: the focused Phase 18 plus public-composition slice passed
+  (`10 passed`); repository-wide Ruff passed; repository-wide mypy passed
+  for 224 source files; Alembic clean SQLite
+  `upgrade head -> downgrade 0016 -> upgrade 0017` passed. A full suite
+  passed before the final admission-integrity assertion with
+  `859 passed, 4 skipped`; after that assertion the affected focused slice,
+  Ruff and mypy passed. At the user's direction, the subsequently started
+  redundant full-suite rerun was stopped and was not repeated.

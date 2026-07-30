@@ -7,6 +7,7 @@ replacement wave in its module docstring.
 
 from . import approvals, candidates, connections, connectors, executions, evidence
 from . import events, health, identity, processes, proofs, replays, skill_packages, skills, variants
+from . import shadow
 
 
 PUBLIC_ROUTERS = (
@@ -27,6 +28,7 @@ PUBLIC_ROUTERS = (
     approvals.router,
     executions.router,
     evidence.router,
+    shadow.router,
 )
 
 __all__ = ["PUBLIC_ROUTERS"]

@@ -1,7 +1,7 @@
 # ERPGuard Evolution capability reality matrix
 
 **Baseline:** `e483f5c5f272139c65a02ebc32ab11f5e323b6a4`  
-**Inventory date:** 2026-07-30 (Phase 17.1 working tree)
+**Inventory date:** 2026-07-30 (Phase 18 working tree)
 
 The labels below are evidence labels, not marketing claims:
 
@@ -38,6 +38,8 @@ The labels below are evidence labels, not marketing claims:
 | Proof of Improvement | `real` | Persisted proof artifacts and decision-coverage gates exist. |
 | Process-to-Skill compiler v2 | `real` | Approved candidate/proof compilation and governed write checks exist. |
 | Signed single-use execution permits | `real` | Tenant-bound plans, approvals, signatures, expiry, one-use enforcement and Evidence Packs exist. |
+| Shadow candidate evaluation | `real` / `no_effects` | Eligible submitted candidates are compared with the active definition on identical cases; differences, observed outcomes and reviews are append-only. No connector or execution runtime is reachable. |
+| Canary, activation, promotion and rollback | `planned` / `blocked` | Explicitly outside Phase 18; meeting an agreement threshold does not change routing or active versions. |
 | Identity and tenant enforcement | `planned` | Master spec Phase 3; incomplete at baseline. |
 | PostgreSQL/Alembic migration foundation | `planned` | Master spec Phase 2; absent from Phase 0 baseline. |
 | Autonomous promotion, marketplace, second ERP connector, generic MCP | `blocked` | Explicit non-goals for the TFM path. |

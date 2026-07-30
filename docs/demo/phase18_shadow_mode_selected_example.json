@@ -1,0 +1,52 @@
+{
+  "artifact_type": "phase18_shadow_selected_example",
+  "environment": "staged_synthetic_event",
+  "contains_private_erp_data": false,
+  "deployment": {
+    "status": "shadow",
+    "active_version": "1.0.0",
+    "candidate_version": "18.0.0",
+    "agreement_threshold": 0.9,
+    "no_effects": true,
+    "proof_recommendation": "eligible_for_shadow"
+  },
+  "case": {
+    "case_id": "SO-SHADOW-MISMATCH",
+    "events": [
+      "sales.quote.created",
+      "sales.quote.reviewed"
+    ],
+    "actual_outcome": {
+      "observed_status": "blocked",
+      "source": "staging_event"
+    }
+  },
+  "comparison": {
+    "active_decision": {
+      "status": "failed",
+      "formula_guard": "block"
+    },
+    "candidate_decision": {
+      "status": "passed",
+      "formula_guard": "not_evaluated"
+    },
+    "agreement": false,
+    "difference_categories": [
+      "decision_removed",
+      "predicted_effect_changed",
+      "safety_violation_changed",
+      "status_changed"
+    ]
+  },
+  "review": {
+    "label": "unsafe_candidate",
+    "reason": "The candidate omitted the decision that blocked the invalid formula."
+  },
+  "safety_evidence": {
+    "connector_calls": 0,
+    "execution_runs_created": 0,
+    "candidate_effects_applied": 0,
+    "promotion_performed": false,
+    "evidence_append_only": true
+  }
+}
