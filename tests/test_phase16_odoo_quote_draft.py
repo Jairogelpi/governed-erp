@@ -61,9 +61,12 @@ def test_quote_create_draft_is_declared_with_supports_execution() -> None:
     plugin = _plugin(_FakeWriteTransport())
     definitions = {item.name: item for item in plugin.capability_definitions()}
     assert definitions["quote.create_draft"].supports_execution is True
+    assert definitions["sales.order.confirm"].supports_execution is True
     # every read capability stays supports_execution=False
     assert all(
-        not d.supports_execution for name, d in definitions.items() if name != "quote.create_draft"
+        not d.supports_execution
+        for name, d in definitions.items()
+        if name not in {"quote.create_draft", "sales.order.confirm"}
     )
 
 

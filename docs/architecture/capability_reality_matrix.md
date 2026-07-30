@@ -1,7 +1,7 @@
 # ERPGuard Evolution capability reality matrix
 
 **Baseline:** `e483f5c5f272139c65a02ebc32ab11f5e323b6a4`  
-**Inventory date:** 2026-07-27
+**Inventory date:** 2026-07-30 (Phase 17.1 working tree)
 
 The labels below are evidence labels, not marketing claims:
 
@@ -26,14 +26,18 @@ The labels below are evidence labels, not marketing claims:
 | Operator action governance | `advisory` / `blocked` | Planning, validation and audit exist; real ERP writes remain disabled. |
 | Odoo connection/diagnosis foundations | `staging_only` | Read-only adapter and controlled diagnosis paths exist; live availability depends on configured staging. |
 | Odoo business reads | `staging_only` | Allowlisted read mappings exist; not a general Odoo model/query API. |
-| Odoo quotation draft creation | `planned` | Required by the master spec’s later Phase 16; not part of Phase 0. |
-| Odoo order confirmation | `blocked` | No raw ERP execution and no governed confirmation runtime in this phase. |
+| Odoo quotation draft creation | `staging_only` | Bounded real `sale.order.create`, idempotent client reference and draft-state postcondition; no generic RPC. |
+| Odoo order confirmation | `staging_only` / `blocked_by_default` | Bounded real `sale.order.action_confirm` behind independent approval, signed one-use permit, staging/amount gates and a false-by-default feature flag. |
+| Confirmation side-effect budget | `real` | Versioned effects and model creation ceilings are evaluated against before/after snapshots. |
+| Confirmation automation fingerprint | `staging_only` | Bounded read-only module, automation, field, permission and configuration signals; incomplete inspection blocks. |
+| Confirmation compensation execution | `advisory` | Typed plan and manual staging runbook; no public cancellation, credit-note or generic compensation capability. |
+| Phase 17 live staging outcome | `real_failure_evidence` | Unexpected posted invoice exceeded budget; run remained failed; authorized manual compensation preserved accounting evidence and net effect zero. |
 | Process event ingestion/OCEL | `planned` | Master spec Phase 6; not implemented by Phase 0. |
 | Variant discovery | `planned` | Master spec Phase 10; not implemented by Phase 0. |
-| Historical replay | `planned` | Master spec Phase 12; not implemented by Phase 0. |
-| Proof of Improvement | `planned` | Master spec Phase 13; not implemented by Phase 0. |
-| Process-to-Skill compiler v2 | `planned` | Master spec Phase 14; current compiler is the pre-migration controlled MVP. |
-| Signed single-use execution permits | `planned` | Master spec Phase 15; current tokens/plans are not claimed as v2 permits. |
+| Historical replay | `real` | Persisted replay runs/cases and regression coverage exist. |
+| Proof of Improvement | `real` | Persisted proof artifacts and decision-coverage gates exist. |
+| Process-to-Skill compiler v2 | `real` | Approved candidate/proof compilation and governed write checks exist. |
+| Signed single-use execution permits | `real` | Tenant-bound plans, approvals, signatures, expiry, one-use enforcement and Evidence Packs exist. |
 | Identity and tenant enforcement | `planned` | Master spec Phase 3; incomplete at baseline. |
 | PostgreSQL/Alembic migration foundation | `planned` | Master spec Phase 2; absent from Phase 0 baseline. |
 | Autonomous promotion, marketplace, second ERP connector, generic MCP | `blocked` | Explicit non-goals for the TFM path. |

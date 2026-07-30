@@ -5,10 +5,10 @@ POST /v1/runs/plan, GET /v1/runs/{run_id}, POST /v1/runs/{run_id}/approve,
 POST /v1/runs/{run_id}/execute. Two additions beyond the spec's literal
 list, needed for the exit criteria ("revoked permits fail" needs something
 to revoke) and to toggle the tenant kill switch this phase introduces --
-POST /v1/runs/{run_id}/revoke and POST /v1/runs/kill-switch -- documented
-here rather than silently invented. `GET .../evidence` and
-`POST .../compensate` (spec 23.7) are out of scope for this phase (no live
-Evidence Pack / compensation-planning logic exists yet).
+POST /v1/runs/{run_id}/revoke and POST /v1/runs/kill-switch. Phase 17 adds
+the spec's ``GET .../evidence`` boundary and an explicit read-only cleanup
+plan. Cleanup is never auto-executed because confirmation can create
+non-universal downstream effects.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from apps.api.dependencies.identity import get_db, require_role
+from apps.api.dependencies.identity import get_current_principal, get_db, require_role
 from apps.api.schemas.execution_permits import (
     KillSwitchRequest,
     KillSwitchResponse,
@@ -28,6 +28,7 @@ from apps.api.schemas.execution_permits import (
 )
 from erpguard.domain.execution.kill_switch_service import KillSwitchService
 from erpguard.domain.execution.permit_service import (
+    EvidenceNotAvailable,
     PermitService,
     RunNotFound,
     RunValidationError,
@@ -63,7 +64,7 @@ def plan_run(
 def get_run(
     run_id: str,
     db: Session = Depends(get_db),
-    principal: Principal = Depends(require_role("viewer")),
+    principal: Principal = Depends(get_current_principal),
 ) -> RunResponse:
     try:
         row = PermitService(db).get(tenant_id=principal.tenant_id, run_id=run_id)
@@ -84,6 +85,7 @@ def approve_run(
             tenant_id=principal.tenant_id,
             run_id=run_id,
             approval_ids=request.approval_ids,
+            approver_actor_id=principal.user_id,
             ttl_seconds=request.ttl_seconds,
         )
     except RunNotFound as exc:
@@ -93,6 +95,36 @@ def approve_run(
     return _response(row)
 
 
+@router.get("/{run_id}/evidence", response_model=dict)
+def get_run_evidence(
+    run_id: str,
+    db: Session = Depends(get_db),
+    principal: Principal = Depends(get_current_principal),
+) -> dict:
+    try:
+        return PermitService(db).get_evidence(tenant_id=principal.tenant_id, run_id=run_id)
+    except RunNotFound as exc:
+        raise HTTPException(status_code=404, detail="run_not_found") from exc
+    except EvidenceNotAvailable as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RunVerificationError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.get("/{run_id}/cleanup-plan", response_model=dict)
+def get_run_cleanup_plan(
+    run_id: str,
+    db: Session = Depends(get_db),
+    principal: Principal = Depends(get_current_principal),
+) -> dict:
+    try:
+        return PermitService(db).get_cleanup_plan(tenant_id=principal.tenant_id, run_id=run_id)
+    except RunNotFound as exc:
+        raise HTTPException(status_code=404, detail="run_not_found") from exc
+    except RunValidationError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
 @router.post("/{run_id}/execute", response_model=RunResponse)
 def execute_run(
     run_id: str,
@@ -100,7 +132,11 @@ def execute_run(
     principal: Principal = Depends(require_role("operator")),
 ) -> RunResponse:
     try:
-        row = PermitService(db).execute(tenant_id=principal.tenant_id, run_id=run_id)
+        row = PermitService(db).execute(
+            tenant_id=principal.tenant_id,
+            run_id=run_id,
+            executor_actor_id=principal.user_id,
+        )
     except RunNotFound as exc:
         raise HTTPException(status_code=404, detail="run_not_found") from exc
     except RunVerificationError as exc:
@@ -136,6 +172,7 @@ def set_kill_switch(
 
 
 def _response(row) -> RunResponse:
+    action_plan = json.loads(row.action_plan_json or "{}")
     return RunResponse(
         id=row.id,
         tenant_id=row.tenant_id,
@@ -146,6 +183,16 @@ def _response(row) -> RunResponse:
         process_version_id=row.process_version_id,
         skill_version_id=row.skill_version_id,
         capability=row.capability,
+        risk=action_plan.get("risk", "unknown"),
+        required_approval_scope=PermitService.required_approval_scope(row),
+        action_plan=action_plan,
+        state_snapshot=json.loads(row.state_snapshot_json or "{}"),
+        control_contract=(
+            json.loads(row.control_contract_json)
+            if row.control_contract_json and row.control_contract_json != "{}"
+            else None
+        ),
+        control_contract_hash=row.control_contract_hash,
         operation_hash=row.operation_hash,
         native_plan_hash=row.native_plan_hash,
         state_snapshot_hash=row.state_snapshot_hash,
@@ -159,4 +206,5 @@ def _response(row) -> RunResponse:
         executed_at=row.executed_at.isoformat() if row.executed_at else None,
         revoked_at=row.revoked_at.isoformat() if row.revoked_at else None,
         verification_result=json.loads(row.verification_result_json) if row.verification_result_json else None,
+        cleanup_plan=json.loads(row.cleanup_plan_json) if row.cleanup_plan_json else None,
     )

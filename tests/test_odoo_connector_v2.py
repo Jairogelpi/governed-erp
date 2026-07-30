@@ -33,11 +33,8 @@ def _plugin() -> OdooConnectorPlugin:
     return OdooConnectorPlugin(lambda context: FakeReadTransport())
 
 
-def test_odoo_v2_plugin_declares_read_capabilities_and_one_scoped_write():
-    """Phase 16 added exactly one write-capable capability
-    (quote.create_draft) -- see erpguard/connectors/odoo/plugin.py and
-    tests/test_phase16_odoo_quote_draft.py for its real postcondition/
-    idempotency coverage. Every other capability stays read-only."""
+def test_odoo_v2_plugin_declares_read_capabilities_and_bounded_writes():
+    """Phases 16/17 add two bounded writes; all others remain read-only."""
 
     plugin = _plugin()
     assert plugin.metadata.connector_id == "odoo"
@@ -45,11 +42,15 @@ def test_odoo_v2_plugin_declares_read_capabilities_and_one_scoped_write():
     definitions = {item.name: item for item in plugin.capability_definitions()}
     assert set(definitions) == {
         "customer.read", "product.read", "quote.read", "odoo.schema.discover",
-        "odoo.permissions.inspect", "quote.create_draft",
+        "odoo.permissions.inspect", "quote.create_draft", "sales.order.confirm",
     }
     assert definitions["quote.create_draft"].supports_execution is True
+    assert definitions["sales.order.confirm"].supports_execution is True
+    assert definitions["sales.order.confirm"].safety_tier == "R3_governed_staging_only"
     assert all(
-        not d.supports_execution for name, d in definitions.items() if name != "quote.create_draft"
+        not d.supports_execution
+        for name, d in definitions.items()
+        if name not in {"quote.create_draft", "sales.order.confirm"}
     )
 
 

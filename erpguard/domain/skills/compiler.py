@@ -115,7 +115,10 @@ def compile_skill_package(
     # capability -- see erpguard/connectors/odoo/plugin.py. Any OTHER
     # write-capable capability is still rejected outright, since nothing
     # exists to check a postcondition against for it.
-    _CAPABILITIES_WITH_REAL_POSTCONDITION_SUPPORT = {"quote.create_draft"}
+    _CAPABILITIES_WITH_REAL_POSTCONDITION_SUPPORT = {
+        "quote.create_draft",
+        "sales.order.confirm",
+    }
     write_capable = [
         step for step in workflow_steps if capability_by_name[step.capability].supports_execution
     ]
@@ -210,6 +213,21 @@ def compile_skill_package(
         for step in workflow_steps
     ]
 
+    write_capability_names = sorted({step.capability for step in write_capable})
+    confirmation_compiled = "sales.order.confirm" in write_capability_names
+    postconditions: list[dict] = []
+    if "quote.create_draft" in write_capability_names:
+        postconditions.append({"capability": "quote.create_draft", "required_state": "draft"})
+    if confirmation_compiled:
+        postconditions.append(
+            {
+                "capability": "sales.order.confirm",
+                "required_state": ["sale", "done"],
+                "forbid_new_invoices": True,
+                "bind_live_snapshot": True,
+            }
+        )
+
     content = SkillPackageContent(
         skill_yaml={
             "skill_id": f"{process_key}_{connector.metadata.connector_id}",
@@ -223,10 +241,30 @@ def compile_skill_package(
         policy_bundle=[p.model_dump(mode="json") for p in candidate_definition.policies],
         guards=[p.name for p in candidate_definition.policies if p.blocking],
         invariants=[],
-        permissions={"read_only": True, "write_capable": False},
+        permissions={
+            "read_only": not write_capable,
+            "write_capable": bool(write_capable),
+            "allowed_write_capabilities": write_capability_names,
+        },
         fingerprint_requirements={"requires_stable_fingerprint": True},
-        postconditions=[],
-        compensation={"required": False, "reason": "no write-capable capability compiled"},
+        postconditions=postconditions,
+        compensation=(
+            {
+                "required": True,
+                "mode": "manual_governed_cleanup",
+                "automatic_rollback": False,
+                "reason": "confirmation may create downstream Odoo operations",
+            }
+            if confirmation_compiled
+            else {
+                "required": False,
+                "reason": (
+                    "draft creation is idempotent and remains reversible while unchanged"
+                    if write_capable
+                    else "no write-capable capability compiled"
+                ),
+            }
+        ),
         input_schema=input_schema,
         output_schema=output_schema,
         proof_of_improvement_ref={"proof_id": proof_id, "recommendation": proof_recommendation},

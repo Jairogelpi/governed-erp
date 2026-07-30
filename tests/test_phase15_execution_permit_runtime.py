@@ -202,7 +202,7 @@ def test_fake_connector_e2e_permit_pipeline_passes(monkeypatch):
     execute_resp = client.post(f"/v1/runs/{run['id']}/execute", headers=headers)
     assert execute_resp.status_code == 200, execute_resp.text
     executed = execute_resp.json()
-    assert executed["status"] == "executed"
+    assert executed["status"] == "blocked"
     assert executed["verification_result"]["connector_result"]["status"] == "blocked"
     assert executed["verification_result"]["connector_result"]["errors"] == ["execution_not_enabled"]
 

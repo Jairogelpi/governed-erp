@@ -3495,6 +3495,33 @@ No fake success.
 
 ---
 
+## Phase 17.1 — Confirmation side-effect contract
+
+### Goal
+
+Bind confirmation approval to the exact automation environment and an
+explicit budget of required, allowed, conditional and forbidden effects.
+
+### Work
+
+- read-only automation fingerprint;
+- versioned side-effect budget and created-record ceilings;
+- fingerprint and control-contract drift detection;
+- structured CompensationPlan;
+- incident-derived unexpected-invoice regression;
+- compensation-versus-rollback ADR and cleanup runbook.
+
+### Exit criteria
+
+- incomplete fingerprint blocks;
+- approval and permit bind the control-contract hash;
+- effects outside budget cannot produce success;
+- unexpected invoice creation/posting has permanent regression coverage;
+- compensation remains separately approved and preserves evidence;
+- no cancellation, accounting or generic write capability is added.
+
+---
+
 ## Phase 18 — Shadow mode
 
 ### Goal

@@ -1,0 +1,148 @@
+{
+  "artifact": "phase17_governed_confirmation_live_staging",
+  "captured_at": "2026-07-30T09:59:58+00:00",
+  "cleanup": {
+    "automatic_rollback": false,
+    "authorized_by_operator": true,
+    "checks": {
+      "credit_links_original": true,
+      "credit_posted_zero_residual": true,
+      "invoice_reversed_zero_residual": true,
+      "net_document_total_zero": true,
+      "order_cancelled": true,
+      "picking_cancelled_not_done": true
+    },
+    "credit_note_id": 4591,
+    "invoice_id": 4590,
+    "mode": "manual_governed_compensation",
+    "order_id": 153,
+    "picking_id": 163,
+    "status": "compensated_and_verified",
+    "steps": [
+      "cancel_uncompleted_picking",
+      "create_linked_credit_note",
+      "post_credit_note",
+      "cancel_sales_order"
+    ]
+  },
+  "database_label": "staging_copy",
+  "final_state": {
+    "credit_note": {
+      "amount_residual": 0.0,
+      "id": 4591,
+      "state": "posted"
+    },
+    "invoice": {
+      "amount_residual": 0.0,
+      "id": 4590,
+      "payment_state": "reversed",
+      "state": "posted"
+    },
+    "order": {
+      "id": 153,
+      "state": "cancel"
+    },
+    "picking": {
+      "date_done": false,
+      "id": 163,
+      "state": "cancel"
+    }
+  },
+  "governance": {
+    "approval_count": 1,
+    "evidence_sealed": true,
+    "independent_approval": true,
+    "permit_single_use": true,
+    "risk": "R3",
+    "run_status": "failed",
+    "snapshot_hash_bound": true
+  },
+  "order": {
+    "amount_total": 0.0484,
+    "client_reference": "ERPGUARD-PHASE17-LIVE-20260730-01",
+    "generated_picking_count": 1,
+    "id": 153,
+    "invoice_count": 1,
+    "line_count": 1,
+    "reference": "FINAL-00455",
+    "state_after": "sale",
+    "state_before": "draft"
+  },
+  "postconditions": {
+    "evidence": {
+      "after": {
+        "amount_total": 0.0484,
+        "client_reference": "ERPGUARD-PHASE17-LIVE-20260730-01",
+        "company_id": 1,
+        "currency_id": 126,
+        "invoices": [
+          {
+            "id": 4590,
+            "move_type": "out_invoice",
+            "name": "FV-2026-0000515",
+            "state": "posted",
+            "write_date": "2026-07-30 09:54:08"
+          }
+        ],
+        "lines": [
+          {
+            "id": 740,
+            "price_subtotal": 0.04,
+            "price_unit": 0.04,
+            "product_id": 1225,
+            "product_name": "[redacted]",
+            "quantity": 1.0,
+            "write_date": "2026-07-30 09:54:08"
+          }
+        ],
+        "name": "FINAL-00455",
+        "order_id": 153,
+        "pickings": [
+          {
+            "id": 163,
+            "name": "WH/OUT/00116",
+            "state": "confirmed",
+            "write_date": "2026-07-30 09:54:08"
+          }
+        ],
+        "state": "sale",
+        "write_date": "2026-07-30 09:54:08"
+      },
+      "before": {
+        "amount_total": 0.0484,
+        "client_reference": "ERPGUARD-PHASE17-LIVE-20260730-01",
+        "company_id": 1,
+        "currency_id": 126,
+        "invoices": [],
+        "lines": [
+          {
+            "id": 740,
+            "price_subtotal": 0.04,
+            "price_unit": 0.04,
+            "product_id": 1225,
+            "product_name": "[redacted]",
+            "quantity": 1.0,
+            "write_date": "2026-07-30 09:53:05"
+          }
+        ],
+        "name": "FINAL-00455",
+        "order_id": 153,
+        "pickings": [],
+        "state": "draft",
+        "write_date": "2026-07-30 09:53:05"
+      },
+      "generated_picking_ids": [
+        163
+      ],
+      "issues": [
+        "unexpected_invoice_created"
+      ]
+    },
+    "status": "verification_failed",
+    "summary": "unexpected_invoice_created",
+    "verified": false
+  },
+  "reality": "live_odoo_19_enterprise_staging",
+  "secrets_in_artifact": false,
+  "server_host": "[redacted-staging-host]"
+}

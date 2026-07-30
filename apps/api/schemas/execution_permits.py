@@ -15,7 +15,7 @@ class RunPlanRequest(BaseModel):
 
 class RunApproveRequest(BaseModel):
     approval_ids: list[str] = Field(default_factory=list)
-    ttl_seconds: int = 900
+    ttl_seconds: int = Field(default=900, ge=1, le=900)
 
 
 class ApprovalCreateRequest(BaseModel):
@@ -52,6 +52,12 @@ class RunResponse(BaseModel):
     process_version_id: str
     skill_version_id: str
     capability: str
+    risk: str
+    required_approval_scope: str | None
+    action_plan: dict[str, Any]
+    state_snapshot: dict[str, Any]
+    control_contract: dict[str, Any] | None
+    control_contract_hash: str
     operation_hash: str
     native_plan_hash: str
     state_snapshot_hash: str
@@ -65,3 +71,4 @@ class RunResponse(BaseModel):
     executed_at: str | None
     revoked_at: str | None
     verification_result: dict[str, Any] | None
+    cleanup_plan: dict[str, Any] | None

@@ -1,9 +1,9 @@
 """Execution Permit runtime persistence (master spec section 19 / Phase 15).
 
 `ExecutionRun` carries a `Run`'s state machine: `planned -> approved ->
-executed`, or `revoked` at any point before `executed`. Once `executed` or
-`revoked` the row is immutable (terminal), mirroring `SkillPackage`'s
-single-transition listener pattern.
+succeeded|blocked|failed|unknown`, or `revoked` before execution. Terminal
+rows are immutable. The legacy `executed` value remains terminal for rows
+created before Phase 17.
 
 `Approval` is single-use: once bound to a run (`used_by_run_id` set) it is
 immutable, enforced the same way.
@@ -39,6 +39,8 @@ class ExecutionRun(Base):
     skill_version_id: Mapped[str] = mapped_column(String(128), nullable=False)
     capability: Mapped[str] = mapped_column(String(128), nullable=False)
     action_plan_json: Mapped[str] = mapped_column(Text, nullable=False)
+    native_plan_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    state_snapshot_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     operation_hash: Mapped[str] = mapped_column(String(128), nullable=False)
     native_plan_hash: Mapped[str] = mapped_column(String(128), nullable=False)
     state_snapshot_hash: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -49,6 +51,10 @@ class ExecutionRun(Base):
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="planned")
     single_use: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     verification_result_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    evidence_pack_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    cleanup_plan_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    control_contract_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    control_contract_hash: Mapped[str] = mapped_column(String(128), nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -76,7 +82,7 @@ class KillSwitch(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
 
 
-_TERMINAL_RUN_STATUSES = {"executed", "revoked"}
+_TERMINAL_RUN_STATUSES = {"executed", "succeeded", "blocked", "failed", "unknown", "revoked"}
 
 
 @event.listens_for(ExecutionRun, "before_update")

@@ -231,10 +231,10 @@ binding are all real, enforced checks. `unsupported_fingerprint` is always
 exists anywhere in this codebase, same gap Phase 14 documented for
 compilation. The connector SDK's `ConnectorPlugin` protocol is untouched;
 `execute()` adapts the rich domain permit into the SDK's simple placeholder
-at the connector call boundary. FakeConnector always returns
-`status="blocked"` (execution is hard-disabled by design) — "executed"
-here means verification passed and execution was attempted, never that a
-write succeeded. Kill switch: a real, tenant-scoped on/off flag checked at
+at the connector call boundary. Since Phase 17, terminal run status reports
+the actual outcome (`succeeded`, `blocked`, `failed`, or `unknown`) rather
+than calling every connector attempt `executed`. Kill switch: a real,
+tenant-scoped on/off flag checked at
 both plan and execute time, not a broader circuit-breaker system. API:
 spec 23.7's `POST /v1/runs/plan`, `GET /v1/runs/{id}`,
 `POST /v1/runs/{id}/approve`, `POST /v1/runs/{id}/execute`, plus two
@@ -247,9 +247,9 @@ exists yet.
 Phase 16 — Real quotation draft (Odoo, master spec Phase 16): closes the
 first real business write. `erpguard/connectors/odoo/plugin.py` declares
 exactly one write-capable capability, `quote.create_draft`
-(`supports_execution=True`); every other capability stays read-only, and
-the connector has no `action_confirm`/invoice/picking method at all, so
-"no invoice/picking/confirmation" holds by construction. Idempotency is
+(`supports_execution=True`); at the Phase 16 baseline every other capability
+was read-only and no confirmation method existed, so that phase's
+"no invoice/picking/confirmation" boundary held by construction. Idempotency is
 real: `execute_capability` searches by `client_order_ref` before creating,
 so a retry with the same reference returns the existing order rather than
 a duplicate. Postconditions are real: `verify_execution` reads the order
@@ -266,7 +266,52 @@ with the same client reference correctly found the existing order and
 performed no write. Automated suite coverage uses injected fake
 transports, never a live call.
 
-Next: Phase 17 — Governed confirmation.
+Phase 17 — Governed confirmation: adds the bounded
+`sales.order.confirm` capability and no generic Odoo RPC execution. Planning
+reads and persists the live order/line/picking/invoice snapshot, enforces an
+R3 preflight (explicit feature flag, staging-only connection, configurable
+amount ceiling, allowed state, forbidden marker and no pre-existing
+invoices), predicts downstream effects conservatively, and binds the
+snapshot hash into the native plan and signed permit. Approval must be
+non-empty, single-use, issued by a different actor, bound by exact scope to
+the run/capability/snapshot, and no older than 900 seconds. Execution is
+restricted to the actor who planned the run. State is re-read before
+approval, by the runtime before execution, and by the connector
+immediately before `action_confirm`; any drift blocks without writing.
+Successful execution verifies the confirmed state, order identity,
+unexpected-invoice boundary and generated picking IDs. Terminal outcomes
+seal a tenant-scoped Evidence Pack available at
+`GET /v1/runs/{run_id}/evidence`; a read-only manual cleanup strategy is
+available at `GET /v1/runs/{run_id}/cleanup-plan`. Automatic rollback is
+deliberately not claimed because confirmation may launch logistics,
+procurement or manufacturing.
+
+The real capability is fail-closed by default:
+`ERPGUARD_ALLOW_ODOO_GOVERNED_CONFIRMATION=false`. Automated coverage uses
+an injected staging transport and proves both success and controlled block
+paths. One separately authorized live Odoo 19 staging experiment confirmed
+an isolated test order but also triggered an unexpected auto-posted invoice.
+ERPGuard detected that forbidden postcondition and marked the run `failed`.
+After separate operator authorization, the uncompleted picking was cancelled,
+the invoice was compensated with a posted linked credit note, and the order
+was cancelled; accounting residuals and net document total were verified at
+zero. This is compensation rather than rollback. The sanitized evidence is
+in
+[`docs/demo/phase17_governed_confirmation_live_staging_evidence.json`](docs/demo/phase17_governed_confirmation_live_staging_evidence.json).
+The feature flag remains disabled by default.
+
+Phase 17.1 hardens that incident into a permanent control contract. Every
+confirmation now carries a versioned side-effect budget, bounded read-only
+automation fingerprint and structured CompensationPlan. Approval and permit
+bind both the order snapshot and control-contract hash. Incomplete
+fingerprints or later fingerprint drift block before the write; observed
+invoice/payment/purchase/manufacturing effects or model creation ceilings
+reject success. The incident-derived posted-invoice regression remains in
+the automated suite. Phase 17.1 adds no compensation execution or other ERP
+write.
+
+Next: Decision Intelligence Foundation. Phase 18 shadow/canary work remains
+deferred until confirmation effects are understood and explicitly modeled.
 
 The exact phase gates and no-goals are defined in the [master implementation
 specification](docs/specs/84_erpguard_evolution_master_spec.md).

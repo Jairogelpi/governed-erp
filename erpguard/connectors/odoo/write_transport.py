@@ -1,6 +1,7 @@
-"""SDK-facing wrapper around `OdooQuoteDraftClient` (Phase 16). Exposes
-exactly the three operations `OdooConnectorPlugin`'s `quote.create_draft`
-capability needs -- not a generic write transport.
+"""SDK-facing bounded write wrapper for Odoo Phases 16 and 17.
+
+It exposes draft creation and governed order confirmation helpers, never a
+generic model/method RPC.
 """
 
 from __future__ import annotations
@@ -17,6 +18,12 @@ class OdooWriteTransport(Protocol):
 
     def read_order(self, order_id: int) -> dict[str, Any]: ...
 
+    def read_confirmation_snapshot(self, order_id: int) -> dict[str, Any]: ...
+
+    def read_confirmation_automation_fingerprint(self, order_id: int) -> dict[str, Any]: ...
+
+    def confirm_order(self, order_id: int) -> None: ...
+
 
 class LegacyXmlRpcWriteTransport:
     """SDK transport adapter around `OdooQuoteDraftClient`."""
@@ -32,3 +39,12 @@ class LegacyXmlRpcWriteTransport:
 
     def read_order(self, order_id: int) -> dict[str, Any]:
         return self._client.read_order(order_id)
+
+    def read_confirmation_snapshot(self, order_id: int) -> dict[str, Any]:
+        return self._client.read_confirmation_snapshot(order_id)
+
+    def read_confirmation_automation_fingerprint(self, order_id: int) -> dict[str, Any]:
+        return self._client.read_confirmation_automation_fingerprint(order_id)
+
+    def confirm_order(self, order_id: int) -> None:
+        self._client.confirm_order(order_id)

@@ -9,6 +9,7 @@
 | `ALLOW_R3_R4_REAL_WRITES` | `false` | Blocks R3/R4 risk tier writes |
 | `ALLOW_R1_REAL_WRITE_PILOT` | `false` | Blocks mail.message.create |
 | `ALLOW_R2_REAL_WRITE_PILOT` | `false` | Blocks res.partner.write |
+| `ERPGUARD_ALLOW_ODOO_GOVERNED_CONFIRMATION` | `false` | Independently blocks bounded staging confirmation |
 
 ## R1 write pilot (Sprint 8)
 
@@ -25,9 +26,16 @@
 - Requires: write readiness certification + 2 distinct approvers + idempotency key + pre/post snapshots
 - Blocked by default. Enable with `ALLOW_R2_REAL_WRITE_PILOT=true` in environment.
 
-## Permanently blocked
+## Governed R3 exception
 
-- `sale.order.action_confirm`
+`sale.order.action_confirm` exists only behind the canonical
+`sales.order.confirm` capability. It requires staging metadata, amount and
+marker gates, complete automation fingerprint, immutable effect budget,
+independent exact-scope approval, signed one-use permit and postconditions.
+It remains disabled by default and is not authorized for production.
+
+## Permanently blocked outside explicit bounded capabilities
+
 - `stock.picking.button_validate`
 - `account.move.action_post`
 - `mrp.production.button_mark_done`

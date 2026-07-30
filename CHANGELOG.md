@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased — Phase 17 / 17.1
+
+### Added
+
+- Bounded staging-only `sales.order.confirm` with independent exact-scope
+  approval and signed single-use permit.
+- Immutable order snapshot, automation fingerprint, side-effect budget,
+  postcondition evaluation, sealed Evidence Pack and CompensationPlan.
+- Migrations `0015_governed_confirmation` and
+  `0016_confirmation_side_effect_contract`.
+- Sanitized live staging failure/compensation evidence and an
+  unexpected-posted-invoice regression.
+
+### Safety
+
+- Confirmation remains false by default.
+- The live unexpected invoice was classified `failed`, not successful.
+- Manual compensation preserved invoice and linked credit note and verified
+  documentary net effect zero.
+- No public cancellation, invoice-posting, payment, deletion or generic Odoo
+  RPC capability was added.
+
 ## 0.14.0 - 2026-07-27
 
 ### Added

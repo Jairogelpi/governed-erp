@@ -41,6 +41,13 @@ Connection config may contain sensitive values. Phase 1 must:
 
 `confirm_sales_order` is R3 by default. Because Phase 1 does not execute actions, R3 means the preflight response can be `allow`, `require_approval`, or `block`, but no write is performed.
 
+The later bounded `sales.order.confirm` capability remains R3 and adds
+effect risk. A successful RPC is not a successful governed run unless
+observed effects remain inside the signed side-effect budget. Invoice or
+payment creation/posting, undeclared purchase/manufacturing creation,
+fingerprint uncertainty and contract drift are hard failures or pre-write
+blocks. Compensation never changes the original failure classification.
+
 ## Audit Requirements
 
 For every preflight request, record:

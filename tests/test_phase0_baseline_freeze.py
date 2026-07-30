@@ -25,4 +25,5 @@ def test_phase0_reality_matrix_preserves_raw_erp_execution_boundary():
         encoding="utf-8"
     )
     assert "No capability in this matrix authorizes an agent to call a raw ERP method." in matrix
-    assert "Odoo order confirmation | `blocked`" in matrix
+    assert "Odoo order confirmation | `staging_only` / `blocked_by_default`" in matrix
+    assert "no generic RPC" in matrix

@@ -146,6 +146,7 @@ class VerificationResult(SDKModel):
     status: str
     verified: bool = False
     summary: str = ""
+    evidence: dict[str, Any] = Field(default_factory=dict)
 
 
 def stable_digest(*parts: str) -> str:

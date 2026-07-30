@@ -54,9 +54,11 @@ class CheckResult(ExecutionModel):
 
 
 class PermitVerificationResult(ExecutionModel):
-    """One entry per spec 19.4 rejection reason. `unsupported_fingerprint`
-    is always `not_checked` -- no connector-agnostic fingerprint-requirement
-    schema exists anywhere in this codebase (same gap Phase 14 documented).
+    """One entry per spec 19.4 rejection reason.
+
+    Generic capabilities retain ``unsupported_fingerprint=not_checked``.
+    Phase 17.1 governed confirmation instead emits a real
+    ``automation_fingerprint`` check bound to its control contract.
     """
 
     checks: list[CheckResult] = Field(default_factory=list)
