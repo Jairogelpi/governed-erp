@@ -19,6 +19,7 @@ PUBLIC_ROOTS = {
     "/v1/skills",
     "/v1/approvals",
     "/v1/executions",
+    "/v1/runs",
     "/v1/evidence",
 }
 
