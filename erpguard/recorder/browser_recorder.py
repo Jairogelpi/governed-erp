@@ -40,7 +40,7 @@ def record_fake_erp_formula_review_flow(base_url: str, order_reference: str, act
         raise BrowserRuntimeUnavailableError("Playwright browser binaries are unavailable.")
 
     try:
-        from playwright.sync_api import TimeoutError as PlaywrightTimeoutError  # type: ignore[import-not-found]
+        from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
         from playwright.sync_api import sync_playwright
     except Exception as exc:  # pragma: no cover - import guard
         raise BrowserRuntimeUnavailableError("Playwright is not installed.") from exc

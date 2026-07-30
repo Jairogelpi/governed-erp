@@ -43,7 +43,7 @@ class BrowserRuntimeUnavailableError(RuntimeError):
 
 def is_playwright_browser_available() -> bool:
     try:
-        from playwright.sync_api import sync_playwright  # type: ignore[import-not-found]
+        from playwright.sync_api import sync_playwright
     except Exception:
         return False
 
