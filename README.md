@@ -5,7 +5,7 @@ understanding and improving ERP business processes. It keeps ERP effects behind
 explicit safety boundaries: the current implementation is read-only or
 simulated, and raw ERP writes are disabled.
 
-> Current project state: **Phase 14 - Process-to-Skill compiler v2**.
+> Current project state: **Phase 15 - Execution Permit runtime**.
 
 ## What exists now
 
@@ -99,10 +99,11 @@ dependent tests may be skipped when Chromium is unavailable.
 
 ## Roadmap
 
-Completed: Phases 0–14, from baseline freeze through the candidate
+Completed: Phases 0–15, from baseline freeze through the candidate
 integrity gate, controlled API composition, connector convergence, the
 full product consolidation (Phase 11.5 C0–C8), historical replay, the
-regression engine / Proof of Improvement, and the skill compiler:
+regression engine / Proof of Improvement, the skill compiler, and the
+execution permit runtime:
 
 - C0 inventory
 - C1 composition root
@@ -213,7 +214,35 @@ prefix, not the spec's literal `/v1/candidates`),
 23.6) — the legacy v0 skills router (`apps/api/routes/public_v1/skills.py`)
 is untouched and has no `/versions/` path segment, so there's no collision.
 
-Next: Phase 15 — Execution Permit runtime.
+Phase 15 — Execution Permit runtime (master spec section 19): a "Run"
+(`ExecutionRun`) carries a permit through `planned → approved → executed`,
+or `revoked`. `plan()` builds the ActionPlan from an approved `SkillPackage`
+and computes reproducible operation/native-plan/state-snapshot hashes.
+`approve()` binds single-use `Approval` records and HMAC-signs the permit
+(same primitive `erpguard/domain/identity/auth.py` uses for bearer tokens).
+`execute()` re-verifies every spec 19.4 rejection reason against *current*
+state — not just trusting plan/approve-time validity — before calling the
+connector: signature/tamper detection, expiry, single-use (reused),
+revocation, tenant/connection/capability matching, and single-use approval
+binding are all real, enforced checks. `unsupported_fingerprint` is always
+`not_checked` — no connector-agnostic fingerprint-requirement schema
+exists anywhere in this codebase, same gap Phase 14 documented for
+compilation. The connector SDK's `ConnectorPlugin` protocol is untouched;
+`execute()` adapts the rich domain permit into the SDK's simple placeholder
+at the connector call boundary. FakeConnector always returns
+`status="blocked"` (execution is hard-disabled by design) — "executed"
+here means verification passed and execution was attempted, never that a
+write succeeded. Kill switch: a real, tenant-scoped on/off flag checked at
+both plan and execute time, not a broader circuit-breaker system. API:
+spec 23.7's `POST /v1/runs/plan`, `GET /v1/runs/{id}`,
+`POST /v1/runs/{id}/approve`, `POST /v1/runs/{id}/execute`, plus two
+documented additions (`POST /v1/runs/{id}/revoke`,
+`POST /v1/runs/kill-switch`) and `POST /v1/approvals` (fills the
+previously-empty stub). `.../evidence` and `.../compensate` (also in 23.7)
+are out of scope — no live Evidence Pack or compensation-planning logic
+exists yet.
+
+Next: Phase 16 — Real quotation draft (Odoo).
 
 The exact phase gates and no-goals are defined in the [master implementation
 specification](docs/specs/84_erpguard_evolution_master_spec.md).
