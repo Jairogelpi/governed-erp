@@ -2,10 +2,12 @@
 
 ERPGuard Evolution is a versioned, testable and governed platform for
 understanding and improving ERP business processes. It keeps ERP effects behind
-explicit safety boundaries: the current implementation is read-only or
-simulated, and raw ERP writes are disabled.
+explicit safety boundaries: almost everything is read-only or simulated.
+The one exception is a single, narrowly-scoped, permit-gated write
+(`quote.create_draft` -- create a draft sales quotation, nothing else) added
+in Phase 16; there is no generic "raw ERP write" capability anywhere.
 
-> Current project state: **Phase 15 - Execution Permit runtime**.
+> Current project state: **Phase 16 - Real quotation draft (Odoo)**.
 
 ## What exists now
 
@@ -99,11 +101,11 @@ dependent tests may be skipped when Chromium is unavailable.
 
 ## Roadmap
 
-Completed: Phases 0–15, from baseline freeze through the candidate
+Completed: Phases 0–16, from baseline freeze through the candidate
 integrity gate, controlled API composition, connector convergence, the
 full product consolidation (Phase 11.5 C0–C8), historical replay, the
-regression engine / Proof of Improvement, the skill compiler, and the
-execution permit runtime:
+regression engine / Proof of Improvement, the skill compiler, the
+execution permit runtime, and the first real business write:
 
 - C0 inventory
 - C1 composition root
@@ -242,7 +244,29 @@ previously-empty stub). `.../evidence` and `.../compensate` (also in 23.7)
 are out of scope — no live Evidence Pack or compensation-planning logic
 exists yet.
 
-Next: Phase 16 — Real quotation draft (Odoo).
+Phase 16 — Real quotation draft (Odoo, master spec Phase 16): closes the
+first real business write. `erpguard/connectors/odoo/plugin.py` declares
+exactly one write-capable capability, `quote.create_draft`
+(`supports_execution=True`); every other capability stays read-only, and
+the connector has no `action_confirm`/invoice/picking method at all, so
+"no invoice/picking/confirmation" holds by construction. Idempotency is
+real: `execute_capability` searches by `client_order_ref` before creating,
+so a retry with the same reference returns the existing order rather than
+a duplicate. Postconditions are real: `verify_execution` reads the order
+back and confirms `state == "draft"`. `ConnectorApplicationService
+.connection_context()` now wires up real credential resolution for the
+first time — it unseals a connection's secret via the existing
+`EncryptedLocalSecretProvider` vault and builds an Odoo transport factory
+from it; this infrastructure existed since the connections phase but had
+never been connected end-to-end for any connector before now. Verified
+live once against a real Odoo 19 staging instance (credentials supplied
+out-of-band, never committed): one real draft `sale.order` created and
+independently confirmed (`state=draft`, no invoice, no delivery); a retry
+with the same client reference correctly found the existing order and
+performed no write. Automated suite coverage uses injected fake
+transports, never a live call.
+
+Next: Phase 17 — Governed confirmation.
 
 The exact phase gates and no-goals are defined in the [master implementation
 specification](docs/specs/84_erpguard_evolution_master_spec.md).
