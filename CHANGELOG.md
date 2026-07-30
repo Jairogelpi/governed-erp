@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased — Phase 18.1
+
+### Added
+
+- Automatic effects-free shadow evaluation after canonical OCEL/Odoo event
+  ingestion.
+- Persisted canonical trace provenance, timestamps, object links,
+  correlation metadata and trace-derived idempotency.
+- Append-only delayed outcomes with closed provenance labels and same-case
+  source-event verification.
+- Operational coverage, decision/review/outcome metrics, variant
+  distribution and 95% Wilson intervals.
+- Multi-gate advisory `eligible_for_canary` recommendation and migration
+  `0018_operational_shadow_feed`.
+
+### Safety
+
+- Manual cases do not count toward canary eligibility.
+- An unresolved `unsafe_candidate` review blocks the recommendation.
+- Recommendation never creates canary routing, activation or promotion.
+- The feed performs no connector write and creates no execution run.
+
 ## Unreleased — Phase 18
 
 ### Added

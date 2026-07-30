@@ -325,6 +325,22 @@ The selected sanitized disagreement is in
 Next: Decision Intelligence Foundation or Phase 19 canary/promotion design.
 No canary routing, activation, promotion or rollback is implemented yet.
 
+Phase 18.1 — Operational Shadow Feed connects that comparison surface to the
+canonical event store. OCEL and bounded Odoo event ingestion automatically
+evaluate affected cases in matching shadow deployments using persisted event
+IDs, real timestamps, source, correlation, object links and canonical state.
+Trace-derived idempotency deduplicates identical ingestion while later events
+produce new immutable comparisons. Observed outcomes arrive separately with
+explicit provenance and verified same-case event links.
+
+Only latest `canonical_feed` cases can contribute to the advisory
+`eligible_for_canary` recommendation. It requires minimum volume, agreement,
+decision coverage, review coverage, outcome reconciliation, a completed
+observation window and no unresolved `unsafe_candidate`. Manual cases cannot
+qualify a candidate. The recommendation cannot activate, promote or route
+anything. Evidence is frozen in
+[`docs/demo/phase18_1_operational_shadow_feed_evidence.json`](docs/demo/phase18_1_operational_shadow_feed_evidence.json).
+
 The exact phase gates and no-goals are defined in the [master implementation
 specification](docs/specs/84_erpguard_evolution_master_spec.md).
 

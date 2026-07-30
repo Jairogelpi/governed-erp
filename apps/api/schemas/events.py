@@ -15,6 +15,10 @@ class OcelImportResponse(BaseModel):
     duplicate_events: int
     created_objects: int
     duplicate_objects: int
+    shadow_deployments: int = 0
+    shadow_evaluations: int = 0
+    shadow_deduplications: int = 0
+    shadow_failures: int = 0
 
 
 class CursorRequest(BaseModel):

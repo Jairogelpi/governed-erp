@@ -26,6 +26,10 @@ class OcelImportSummary:
     duplicate_events: int = 0
     created_objects: int = 0
     duplicate_objects: int = 0
+    shadow_deployments: int = 0
+    shadow_evaluations: int = 0
+    shadow_deduplications: int = 0
+    shadow_failures: int = 0
 
 
 class OcelEventService:
@@ -87,7 +91,29 @@ class OcelEventService:
                     ))
             created_events += 1
         self.session.commit()
-        return OcelImportSummary(created_events, duplicate_events, created_objects, duplicate_objects)
+        affected_object_keys = sorted(
+            {
+                str(object_key)
+                for raw in events.values()
+                for object_key in raw.get("ocel:omap", [])
+            }
+        )
+        from erpguard.domain.shadow.operational_feed import OperationalShadowFeedService
+
+        shadow = OperationalShadowFeedService(self.session).process_applicable_deployments(
+            tenant_id=tenant_id,
+            object_keys=affected_object_keys,
+        )
+        return OcelImportSummary(
+            created_events,
+            duplicate_events,
+            created_objects,
+            duplicate_objects,
+            shadow.deployment_count,
+            shadow.evaluated_case_count,
+            shadow.deduplicated_case_count,
+            shadow.failed_case_count,
+        )
 
     def export_ocel(self, *, tenant_id: str) -> dict:
         objects = (

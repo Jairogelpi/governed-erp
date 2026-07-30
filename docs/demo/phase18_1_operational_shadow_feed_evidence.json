@@ -1,0 +1,51 @@
+{
+  "artifact_type": "phase18_1_operational_shadow_feed_evidence",
+  "contains_private_erp_data": false,
+  "environment": "controlled_odoo_sourced_canonical_fixture",
+  "feed": {
+    "trigger": "canonical_ingestion",
+    "deployment_status": "shadow",
+    "reference_version": "1.0.0",
+    "candidate_version": "18.0.0",
+    "evaluation_mode": "canonical_feed",
+    "no_effects": true
+  },
+  "canonical_trace": {
+    "case_id": "SO-OPERATIONAL-SANITIZED",
+    "event_count": 2,
+    "real_timestamps_preserved": true,
+    "source": "odoo-bridge",
+    "correlation_present": true,
+    "object_links_present": true,
+    "canonical_trace_hash_present": true,
+    "identical_retry_deduplicated": true,
+    "extended_trace_creates_new_evaluation": true
+  },
+  "outcome_reconciliation": {
+    "received_after_evaluation": true,
+    "provenance": "odoo",
+    "source_event_link_verified": true,
+    "observed_decision_status": "passed",
+    "append_only": true
+  },
+  "eligibility": {
+    "checks": [
+      "minimum_case_count",
+      "agreement_threshold",
+      "decision_coverage",
+      "review_coverage",
+      "outcome_reconciliation",
+      "observation_window",
+      "unresolved_unsafe_candidate"
+    ],
+    "manual_cases_count_for_eligibility": false,
+    "recommendation_is_advisory": true,
+    "promotion_performed": false
+  },
+  "safety_evidence": {
+    "execution_runs_created": 0,
+    "connector_writes": 0,
+    "permits_issued": 0,
+    "erp_effects": 0
+  }
+}

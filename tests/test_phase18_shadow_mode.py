@@ -16,7 +16,12 @@ from erpguard.db.model_packages.execution import ExecutionRun
 from erpguard.db.model_packages.identity import IdentityMembership, IdentityUser
 from erpguard.db.model_packages.proof import ProcessProof
 from erpguard.db.model_packages.replay import ProcessReplay
-from erpguard.db.model_packages.shadow import ShadowCaseResult, ShadowDeployment
+from erpguard.db.model_packages.shadow import (
+    ShadowCaseResult,
+    ShadowDeployment,
+    ShadowFeedRun,
+    ShadowOutcomeObservation,
+)
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.domain.events.fake_generator import _fake_sales_order
 from erpguard.domain.identity.auth import issue_token
@@ -175,16 +180,19 @@ def _create_deployment(
     seed: SeededCandidate,
     *,
     threshold: float = 0.75,
+    criteria: dict | None = None,
 ):
+    payload = {
+        "candidate_id": seed.candidate_id,
+        "proof_id": seed.proof_id,
+        "object_type": "sales_order",
+        "agreement_threshold": threshold,
+    }
+    payload.update(criteria or {})
     response = client.post(
         "/v1/deployments/shadow",
         headers=headers,
-        json={
-            "candidate_id": seed.candidate_id,
-            "proof_id": seed.proof_id,
-            "object_type": "sales_order",
-            "agreement_threshold": threshold,
-        },
+        json=payload,
     )
     assert response.status_code == 201, response.text
     return response.json()
@@ -200,6 +208,40 @@ def _case_payload(*, idempotency_key: str = "shadow-case-1") -> dict:
             formula_valid=False,
         ).model_dump(mode="json"),
         "actual_outcome": {"observed_status": "blocked", "source": "staging_event"},
+    }
+
+
+def _canonical_document(*, case_id: str, formula_valid: bool = True) -> dict:
+    order = _fake_sales_order(object_key=case_id, formula_valid=formula_valid)
+    return {
+        "ocel:objects": {
+            case_id: {
+                "ocel:type": "sales_order",
+                "ocel:ovmap": order.model_dump(mode="json"),
+            }
+        },
+        "ocel:events": {
+            f"{case_id}-created": {
+                "ocel:activity": "sales.quote.created",
+                "ocel:timestamp": "2026-07-30T09:00:00Z",
+                "ocel:omap": [case_id],
+                "ocel:vmap": {
+                    "correlation_id": f"corr-{case_id}",
+                    "historical": False,
+                    "synthetic": False,
+                },
+            },
+            f"{case_id}-reviewed": {
+                "ocel:activity": "sales.quote.reviewed",
+                "ocel:timestamp": "2026-07-30T09:05:00Z",
+                "ocel:omap": [case_id],
+                "ocel:vmap": {
+                    "correlation_id": f"corr-{case_id}",
+                    "historical": False,
+                    "synthetic": False,
+                },
+            },
+        },
     }
 
 
@@ -311,20 +353,17 @@ def test_shadow_review_dashboard_and_tenant_isolation(monkeypatch):
         headers=headers,
     )
     assert dashboard.status_code == 200
-    assert dashboard.json() == {
-        "deployment_id": deployment["id"],
-        "status": "shadow",
-        "no_effects": True,
-        "evaluated_case_count": 1,
-        "agreement_count": 1,
-        "disagreement_count": 0,
-        "agreement_rate": 1.0,
-        "agreement_threshold": 0.95,
-        "threshold_met": True,
-        "difference_category_counts": {},
-        "review_label_counts": {"equivalent": 1},
-        "review_count": 1,
-    }
+    metrics = dashboard.json()
+    assert metrics["deployment_id"] == deployment["id"]
+    assert metrics["status"] == "shadow"
+    assert metrics["no_effects"] is True
+    assert metrics["evaluated_case_count"] == 1
+    assert metrics["agreement_rate"] == 1.0
+    assert metrics["agreement_threshold"] == 0.95
+    assert metrics["review_label_counts"] == {"equivalent": 1}
+    assert metrics["operational_case_count"] == 0
+    assert metrics["recommendation"] == "continue_shadow"
+    assert metrics["recommendation_is_advisory"] is True
     cases = client.get(
         f"/v1/deployments/{deployment['id']}/cases",
         headers=headers,
@@ -432,6 +471,322 @@ def test_shadow_case_result_model_is_immutable():
         db.add(row)
         db.commit()
         row.agreement = False
+        with pytest.raises(ValueError, match="shadow_evidence_immutable"):
+            db.commit()
+    finally:
+        db.rollback()
+        db.close()
+
+
+def test_canonical_ingestion_automatically_feeds_shadow_with_real_trace(monkeypatch):
+    monkeypatch.setattr(settings, "auth_secret", "shadow-auth")
+    init_db()
+    tenant_id = f"shadow-feed-{uuid4().hex}"
+    seed = _seed_shadow_eligible_candidate(tenant_id=tenant_id)
+    headers = _identity(tenant_id)
+    client = TestClient(app)
+    deployment = _create_deployment(client, headers, seed)
+    case_id = f"so-operational-{uuid4().hex}"
+
+    db = SessionLocal()
+    try:
+        executions_before = db.query(ExecutionRun).count()
+    finally:
+        db.close()
+    imported = client.post(
+        "/v1/events/ocel/import",
+        headers=headers,
+        json={
+            "document": _canonical_document(case_id=case_id),
+            "source": "odoo-bridge",
+        },
+    )
+    assert imported.status_code == 201, imported.text
+    assert imported.json()["shadow_deployments"] == 1
+    assert imported.json()["shadow_evaluations"] == 1
+    assert imported.json()["shadow_failures"] == 0
+
+    cases = client.get(
+        f"/v1/deployments/{deployment['id']}/cases",
+        headers=headers,
+    ).json()
+    assert len(cases) == 1
+    result = cases[0]
+    assert result["case_id"] == case_id
+    assert result["evaluation_mode"] == "canonical_feed"
+    assert result["event_count"] == 2
+    assert result["first_event_at"] == "2026-07-30T09:00:00Z"
+    assert result["last_event_at"] == "2026-07-30T09:05:00Z"
+    assert result["canonical_trace_hash"]
+    assert result["trace_provenance"]["extraction_mode"] == "canonical_event_store"
+    events = result["trace_provenance"]["events"]
+    assert [event["source"] for event in events] == ["odoo-bridge", "odoo-bridge"]
+    assert events[0]["correlation_id"] == f"corr-{case_id}"
+    assert events[0]["object_links"]
+    assert result["actual_outcome"] is None
+
+    duplicate = client.post(
+        "/v1/events/ocel/import",
+        headers=headers,
+        json={
+            "document": _canonical_document(case_id=case_id),
+            "source": "odoo-bridge",
+        },
+    )
+    assert duplicate.status_code == 201
+    assert duplicate.json()["shadow_evaluations"] == 0
+    assert duplicate.json()["shadow_deduplications"] == 1
+    assert len(
+        client.get(
+            f"/v1/deployments/{deployment['id']}/cases",
+            headers=headers,
+        ).json()
+    ) == 1
+
+    extended = {
+        "ocel:objects": {
+            case_id: {
+                "ocel:type": "sales_order",
+                "ocel:ovmap": _fake_sales_order(
+                    object_key=case_id,
+                    formula_valid=True,
+                ).model_dump(mode="json"),
+            }
+        },
+        "ocel:events": {
+            f"{case_id}-ordered": {
+                "ocel:activity": "sales.order.created",
+                "ocel:timestamp": "2026-07-30T09:10:00Z",
+                "ocel:omap": [case_id],
+                "ocel:vmap": {
+                    "correlation_id": f"corr-{case_id}",
+                    "historical": False,
+                    "synthetic": False,
+                },
+            }
+        },
+    }
+    evolved = client.post(
+        "/v1/events/ocel/import",
+        headers=headers,
+        json={"document": extended, "source": "odoo-bridge"},
+    )
+    assert evolved.status_code == 201
+    assert evolved.json()["shadow_evaluations"] == 1
+    evolved_cases = client.get(
+        f"/v1/deployments/{deployment['id']}/cases",
+        headers=headers,
+    ).json()
+    assert len(evolved_cases) == 2
+    assert evolved_cases[0]["canonical_trace_hash"] != evolved_cases[1]["canonical_trace_hash"]
+    assert evolved_cases[1]["event_count"] == 3
+
+    explicit_feed = client.post(
+        f"/v1/deployments/{deployment['id']}/feed/process",
+        headers=headers,
+        json={"case_ids": [case_id]},
+    )
+    assert explicit_feed.status_code == 201
+    assert explicit_feed.json()["evaluated_case_count"] == 0
+    assert explicit_feed.json()["deduplicated_case_count"] == 1
+    dashboard = client.get(
+        f"/v1/deployments/{deployment['id']}/dashboard",
+        headers=headers,
+    ).json()
+    assert dashboard["evaluated_case_count"] == 1
+    assert dashboard["operational_case_count"] == 1
+
+    db = SessionLocal()
+    try:
+        assert db.query(ExecutionRun).count() == executions_before
+        assert db.query(ShadowFeedRun).count() >= 2
+    finally:
+        db.close()
+
+
+def test_outcome_reconciliation_is_deferred_provenanced_and_idempotent(monkeypatch):
+    monkeypatch.setattr(settings, "auth_secret", "shadow-auth")
+    init_db()
+    tenant_id = f"shadow-outcome-{uuid4().hex}"
+    seed = _seed_shadow_eligible_candidate(tenant_id=tenant_id)
+    headers = _identity(tenant_id)
+    client = TestClient(app)
+    deployment = _create_deployment(client, headers, seed)
+    case_id = f"so-outcome-{uuid4().hex}"
+    client.post(
+        "/v1/events/ocel/import",
+        headers=headers,
+        json={
+            "document": _canonical_document(case_id=case_id),
+            "source": "odoo-bridge",
+        },
+    )
+    result = client.get(
+        f"/v1/deployments/{deployment['id']}/cases",
+        headers=headers,
+    ).json()[0]
+    source_event_id = result["trace_provenance"]["events"][-1]["event_id"]
+    payload = {
+        "idempotency_key": "outcome-1",
+        "outcome": {"state": "reviewed", "formula_valid": True},
+        "observed_decision_status": "passed",
+        "provenance": "odoo",
+        "source_event_ids": [source_event_id],
+        "observed_at": "2026-07-30T10:00:00Z",
+    }
+    url = f"/v1/deployments/{deployment['id']}/cases/{result['id']}/outcomes"
+    first = client.post(url, headers=headers, json=payload)
+    repeated = client.post(url, headers=headers, json=payload)
+    assert first.status_code == repeated.status_code == 201
+    assert repeated.json()["id"] == first.json()["id"]
+    assert first.json()["provenance"] == "odoo"
+
+    changed = {**payload, "outcome": {"state": "confirmed"}}
+    conflict = client.post(url, headers=headers, json=changed)
+    assert conflict.status_code == 409
+    assert conflict.json()["detail"] == "shadow_outcome_idempotency_conflict"
+
+    refreshed = client.get(
+        f"/v1/deployments/{deployment['id']}/cases",
+        headers=headers,
+    ).json()[0]
+    assert refreshed["actual_outcome"] == payload["outcome"]
+    assert refreshed["actual_outcome_provenance"] == "odoo"
+    assert len(refreshed["outcome_observations"]) == 1
+
+    other_case_id = f"so-unrelated-{uuid4().hex}"
+    client.post(
+        "/v1/events/ocel/import",
+        headers=headers,
+        json={
+            "document": _canonical_document(case_id=other_case_id),
+            "source": "odoo-bridge",
+        },
+    )
+    unrelated = next(
+        item
+        for item in client.get(
+            f"/v1/deployments/{deployment['id']}/cases",
+            headers=headers,
+        ).json()
+        if item["case_id"] == other_case_id
+    )
+    unrelated_event_id = unrelated["trace_provenance"]["events"][0]["event_id"]
+    wrong_case_source = client.post(
+        url,
+        headers=headers,
+        json={
+            **payload,
+            "idempotency_key": "outcome-wrong-case",
+            "source_event_ids": [unrelated_event_id],
+        },
+    )
+    assert wrong_case_source.status_code == 409
+    assert wrong_case_source.json()["detail"] == "outcome_source_event_not_found"
+
+
+def test_canary_eligibility_is_metrics_based_and_advisory_only(monkeypatch):
+    monkeypatch.setattr(settings, "auth_secret", "shadow-auth")
+    init_db()
+    tenant_id = f"shadow-metrics-{uuid4().hex}"
+    seed = _seed_shadow_eligible_candidate(tenant_id=tenant_id)
+    headers = _identity(tenant_id)
+    client = TestClient(app)
+    deployment = _create_deployment(
+        client,
+        headers,
+        seed,
+        threshold=0.9,
+        criteria={
+            "minimum_case_count": 1,
+            "minimum_decision_coverage": 1.0,
+            "minimum_review_coverage": 1.0,
+            "minimum_outcome_reconciliation": 1.0,
+            "observation_window_hours": 0,
+        },
+    )
+    case_id = f"so-metrics-{uuid4().hex}"
+    client.post(
+        "/v1/events/ocel/import",
+        headers=headers,
+        json={
+            "document": _canonical_document(case_id=case_id),
+            "source": "odoo-bridge",
+        },
+    )
+    result = client.get(
+        f"/v1/deployments/{deployment['id']}/cases",
+        headers=headers,
+    ).json()[0]
+    review_url = f"/v1/deployments/{deployment['id']}/cases/{result['id']}/reviews"
+    assert client.post(
+        review_url,
+        headers=headers,
+        json={"label": "equivalent", "notes": "Observed result agrees."},
+    ).status_code == 201
+    assert client.post(
+        f"/v1/deployments/{deployment['id']}/cases/{result['id']}/outcomes",
+        headers=headers,
+        json={
+            "idempotency_key": "metrics-outcome",
+            "outcome": {"formula_valid": True},
+            "observed_decision_status": "passed",
+            "provenance": "odoo",
+            "source_event_ids": [],
+            "observed_at": "2026-07-30T10:00:00Z",
+        },
+    ).status_code == 201
+
+    dashboard = client.get(
+        f"/v1/deployments/{deployment['id']}/dashboard",
+        headers=headers,
+    ).json()
+    assert dashboard["canonical_case_count"] == 1
+    assert dashboard["case_coverage_rate"] == 1.0
+    assert dashboard["decision_coverage_rate"] == 1.0
+    assert dashboard["review_coverage_rate"] == 1.0
+    assert dashboard["outcome_reconciliation_rate"] == 1.0
+    assert dashboard["outcome_accuracy"] == 1.0
+    assert dashboard["agreement_confidence_interval_95"]
+    assert dashboard["outcome_accuracy_confidence_interval_95"]
+    assert dashboard["recommendation"] == "eligible_for_canary"
+    assert dashboard["recommendation_is_advisory"] is True
+    assert all(dashboard["canary_eligibility_checks"].values())
+    assert deployment["status"] == "shadow"
+
+    assert client.post(
+        review_url,
+        headers=headers,
+        json={"label": "unsafe_candidate", "notes": "Unresolved safety concern."},
+    ).status_code == 201
+    blocked = client.get(
+        f"/v1/deployments/{deployment['id']}/dashboard",
+        headers=headers,
+    ).json()
+    assert blocked["canary_eligibility_checks"]["no_unresolved_unsafe_candidate"] is False
+    assert blocked["recommendation"] == "continue_shadow"
+
+
+def test_outcome_and_feed_evidence_are_immutable():
+    init_db()
+    db = SessionLocal()
+    try:
+        outcome = ShadowOutcomeObservation(
+            id=f"shadowoutcome_{uuid4().hex}",
+            tenant_id=f"shadow-outcome-{uuid4().hex}",
+            deployment_id="shadow-test",
+            shadow_case_result_id="shadowcase-test",
+            idempotency_key="outcome-test",
+            outcome_json="{}",
+            provenance="fixture",
+            source_event_ids_json="[]",
+            observed_at=datetime.now(timezone.utc),
+            recorded_by="test",
+            deterministic_hash="outcome-hash",
+        )
+        db.add(outcome)
+        db.commit()
+        outcome.provenance = "manual"
         with pytest.raises(ValueError, match="shadow_evidence_immutable"):
             db.commit()
     finally:

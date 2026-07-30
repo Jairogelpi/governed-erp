@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -13,6 +14,8 @@ ReviewerLabel = Literal[
     "needs_investigation",
     "insufficient_evidence",
 ]
+OutcomeProvenance = Literal["manual", "canonical_event", "odoo", "fixture", "synthetic"]
+ObservedDecisionStatus = Literal["passed", "failed", "needs_clarification"]
 
 
 class ShadowModel(BaseModel):
@@ -34,3 +37,12 @@ class ShadowEvaluationInput(ShadowModel):
     event_types: list[str] = Field(min_length=1, max_length=50)
     object_attributes: dict[str, Any]
     actual_outcome: dict[str, Any] | None = None
+
+
+class ShadowOutcomeInput(ShadowModel):
+    idempotency_key: str = Field(min_length=1, max_length=256)
+    outcome: dict[str, Any]
+    observed_decision_status: ObservedDecisionStatus | None = None
+    provenance: OutcomeProvenance
+    source_event_ids: list[str] = Field(default_factory=list, max_length=100)
+    observed_at: datetime

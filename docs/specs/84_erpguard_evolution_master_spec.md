@@ -3556,6 +3556,38 @@ Guard decision being detected without connector access or execution. Phase
 
 ---
 
+## Phase 18.1 — Operational shadow feed
+
+### Goal
+
+Evaluate incoming canonical cases continuously without effects and reconcile
+their observed outcomes later.
+
+### Implemented status (2026-07-30)
+
+Canonical OCEL/Odoo ingestion invokes applicable shadow deployments after
+the event transaction commits. Evaluation preserves canonical event IDs,
+timestamps, source, correlation, object links, variant and trace hash.
+Identical traces deduplicate; evolved traces produce new immutable evidence.
+Observed outcomes are separate append-only records with explicit provenance
+and optional same-case event links.
+
+Only latest operational-feed cases count toward the multi-gate
+`eligible_for_canary` recommendation. Minimum volume, agreement, decision
+coverage, review coverage, outcome reconciliation, observation window and
+absence of unresolved unsafe reviews are required. The recommendation is
+advisory and adds no canary, active pointer, promotion or rollback behavior.
+
+### Exit criteria
+
+- canonical ingestion triggers matching shadow evaluation;
+- real trace provenance is retained;
+- outcomes reconcile asynchronously and append-only;
+- operational evidence, not manual submissions, drives metrics;
+- canary eligibility remains non-executable.
+
+---
+
 ## Phase 19 — Canary/promotion/rollback
 
 ### Goal

@@ -861,3 +861,40 @@
   `859 passed, 4 skipped`; after that assertion the affected focused slice,
   Ruff and mypy passed. At the user's direction, the subsequently started
   redundant full-suite rerun was stopped and was not repeated.
+
+### 2026-07-30 — Phase 18.1 Operational Shadow Feed
+
+- Connected OCEL and bounded Odoo event ingestion to applicable
+  tenant-scoped shadow deployments after canonical persistence commits.
+- Added canonical-feed reconstruction with persisted event IDs, real
+  timestamps, normalized types, source, correlation, historical/synthetic
+  markers, object links, event business-state hashes, variant and canonical
+  trace hash.
+- Derived idempotency from deployment, case and canonical trace; identical
+  retries deduplicate while an evolved trace creates new immutable evidence.
+- Added append-only delayed outcome observations with a closed provenance
+  vocabulary, actor/timestamp/hash evidence and verification that cited
+  source events link to the evaluated canonical object.
+- Added append-only feed-run evidence plus API backfill/retry at
+  `POST /v1/deployments/{deployment_id}/feed/process`.
+- Expanded dashboard metrics with canonical/operational coverage, decision
+  and review coverage, outcome reconciliation/accuracy, variant
+  distribution and Wilson confidence intervals.
+- Added a multi-gate advisory `eligible_for_canary` recommendation requiring
+  operational volume, agreement, decision coverage, review/outcome
+  coverage, observation window and no unresolved unsafe review. Manual
+  Phase 18 cases do not count. No active pointer, routing, promotion,
+  rollback, connector write, permit or execution path was added.
+- Added migration `0018_operational_shadow_feed`, Phase 18.1 specification,
+  sanitized evidence and focused operational-feed tests.
+- Verification so far: Phase 18/18.1, canonical events and variant discovery
+  focused slice passed (`16 passed`); the Phase 18/18.1 file passed again
+  after provenance hardening (`11 passed`); changed-file Ruff and mypy
+  passed; Alembic clean SQLite
+  `upgrade head -> downgrade 0017 -> upgrade 0018` passed. Per user
+  direction, the full repository suite was not run.
+- Final focused regression across Phase 18/18.1, canonical events, Odoo
+  bridge, variant discovery and public composition passed (`22 passed`).
+  Repository-wide Ruff passed and repository-wide mypy passed for 225 source
+  files; `git diff --check` was clean apart from normal Windows line-ending
+  notices.
