@@ -33,17 +33,18 @@ class OdooQuoteDraftClient:
         """Creates exactly one `sale.order` in its default (draft) state.
         Never calls `action_confirm` or any invoicing/picking method."""
 
-        order_lines = [
-            (
-                0,
-                0,
-                {
-                    "product_id": int(line["product_id"]),
-                    "product_uom_qty": line.get("quantity", 1),
-                },
-            )
-            for line in lines
-        ]
+        order_lines = []
+        for line in lines:
+            values: dict[str, Any] = {
+                "product_id": int(line["product_id"]),
+                "product_uom_qty": line.get("quantity", 1),
+            }
+            if "price_unit" in line:
+                # Only set when a governed recommendation supplies a proposed
+                # price (Spec 92 Workstream A); otherwise Odoo's own
+                # pricelist pricing applies, same as before.
+                values["price_unit"] = line["price_unit"]
+            order_lines.append((0, 0, values))
         order_id = self._client._execute_kw(  # noqa: SLF001 -- intentional, single narrow call site
             _SALE_ORDER_MODEL,
             "create",

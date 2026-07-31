@@ -10,6 +10,7 @@ from . import events, health, identity, processes, proofs, replays, skill_packag
 from . import shadow
 from . import decision_intelligence
 from . import opportunity
+from . import recommendations
 
 
 PUBLIC_ROUTERS = (
@@ -34,6 +35,9 @@ PUBLIC_ROUTERS = (
     shadow.router,
     decision_intelligence.router,
     opportunity.router,
+    recommendations.opportunities_router,
+    recommendations.router,
+    recommendations.action_drafts_router,
 )
 
 __all__ = ["PUBLIC_ROUTERS"]

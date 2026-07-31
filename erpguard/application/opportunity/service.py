@@ -122,6 +122,16 @@ class OpportunityEngineService:
             self.session.refresh(row)
         return rows
 
+    def get(self, *, tenant_id: str, opportunity_id: str) -> MarginOpportunity:
+        row = (
+            self.session.query(MarginOpportunity)
+            .filter_by(tenant_id=tenant_id, id=opportunity_id)
+            .one_or_none()
+        )
+        if row is None:
+            raise OpportunityNotFound(opportunity_id)
+        return row
+
     def list_opportunities(self, *, tenant_id: str, margin_analysis_id: str) -> list[MarginOpportunity]:
         return (
             self.session.query(MarginOpportunity)

@@ -24,6 +24,9 @@ PUBLIC_ROOTS = {
     "/v1/deployments",
     "/v1/decision-intelligence",
     "/v1/margin-analyses",
+    "/v1/opportunities",
+    "/v1/recommendations",
+    "/v1/action-drafts",
 }
 
 
