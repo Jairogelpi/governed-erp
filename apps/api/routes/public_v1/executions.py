@@ -51,6 +51,7 @@ def plan_run(
             actor_id=principal.user_id,
             connection_id=request.connection_id,
             skill_package_id=request.skill_package_id,
+            process_key=request.process_key,
             capability=request.capability,
             idempotency_key=request.idempotency_key,
             capability_payload=request.capability_payload,

@@ -44,6 +44,7 @@ from erpguard.connectors.sdk.models import (
 from erpguard.db.model_packages.connections import UnifiedConnection
 from erpguard.db.model_packages.execution import Approval, ExecutionRun
 from erpguard.db.model_packages.skill_package import SkillPackage
+from erpguard.domain.deployment.service import SkillDeploymentService
 from erpguard.domain.execution.approval_service import ApprovalService
 from erpguard.domain.execution.kill_switch_service import KillSwitchService
 from erpguard.domain.execution.types import ActionPlan, CheckResult, PermitVerificationResult
@@ -64,6 +65,10 @@ class RunValidationError(ValueError):
 
 
 class SkillNotActive(RunValidationError):
+    pass
+
+
+class NoActiveSkillForProcess(RunValidationError):
     pass
 
 
@@ -180,6 +185,9 @@ def _safe_execution_error(exc: Exception) -> str:
     return type(exc).__name__
 
 
+_EXECUTABLE_STATUSES = {"approved", "canary", "active"}
+
+
 class PermitService:
     def __init__(self, session: Session):
         self.session = session
@@ -256,13 +264,25 @@ class PermitService:
         tenant_id: str,
         actor_id: str,
         connection_id: str,
-        skill_package_id: str,
+        skill_package_id: str | None = None,
+        process_key: str | None = None,
         capability: str,
         idempotency_key: str,
         capability_payload: dict | None = None,
     ) -> ExecutionRun:
+        if skill_package_id is None:
+            if process_key is None:
+                raise RunValidationError("skill_package_id_or_process_key_required")
+            active = SkillDeploymentService(self.session).get_active(
+                tenant_id=tenant_id, process_key=process_key
+            )
+            if active is None:
+                raise NoActiveSkillForProcess(f"no_active_skill_for_process:{process_key}")
+            skill_package_id = active.id
+
+        assert skill_package_id is not None
         skill_package = self._get_skill_package(tenant_id=tenant_id, skill_package_id=skill_package_id)
-        if skill_package.status != "approved":
+        if skill_package.status not in _EXECUTABLE_STATUSES:
             raise SkillNotActive("inactive_skill")
 
         connection = self._get_connection(tenant_id=tenant_id, connection_id=connection_id)
@@ -448,7 +468,7 @@ class PermitService:
             raise RunValidationError(f"run_not_plannable:{row.status}")
 
         skill_package = self._get_skill_package(tenant_id=tenant_id, skill_package_id=row.skill_package_id)
-        if skill_package.status != "approved":
+        if skill_package.status not in _EXECUTABLE_STATUSES:
             raise SkillNotActive("inactive_skill")
         if KillSwitchService(self.session).is_active(tenant_id=tenant_id):
             raise KillSwitchActive("kill_switch_active")
@@ -542,7 +562,7 @@ class PermitService:
         checks.append(CheckResult(name="altered_state", status="passed"))
 
         skill_package = self._get_skill_package(tenant_id=row.tenant_id, skill_package_id=row.skill_package_id)
-        if skill_package.status != "approved":
+        if skill_package.status not in _EXECUTABLE_STATUSES:
             checks.append(CheckResult(name="inactive_skill", status="failed"))
             raise SkillNotActive("inactive_skill")
         checks.append(CheckResult(name="inactive_skill", status="passed"))

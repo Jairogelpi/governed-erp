@@ -7,7 +7,8 @@ from pydantic import BaseModel, Field
 
 class RunPlanRequest(BaseModel):
     connection_id: str = Field(min_length=1)
-    skill_package_id: str = Field(min_length=1)
+    skill_package_id: str | None = Field(default=None, min_length=1)
+    process_key: str | None = Field(default=None, min_length=1)
     capability: str = Field(min_length=1)
     idempotency_key: str = Field(min_length=1)
     capability_payload: dict[str, Any] = Field(default_factory=dict)
