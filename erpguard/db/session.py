@@ -57,5 +57,6 @@ def init_db() -> None:
     import erpguard.db.model_packages.recommendations  # noqa: F401
     import erpguard.db.model_packages.canary  # noqa: F401
     import erpguard.db.model_packages.outcomes  # noqa: F401
+    import erpguard.db.model_packages.decision_outcome_evidence  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
