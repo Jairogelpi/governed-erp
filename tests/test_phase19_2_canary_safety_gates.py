@@ -11,6 +11,8 @@ from sqlalchemy import update
 
 from apps.api.main import app
 from erpguard.config import settings
+from erpguard.db.model_packages.canary import CanaryRoutingDecision
+from erpguard.db.model_packages.execution import ExecutionRun
 from erpguard.db.model_packages.skill_package import SkillPackage
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.domain.execution.kill_switch_service import KillSwitchService
@@ -202,16 +204,8 @@ def test_promotion_blocked_when_canary_policy_not_completed(monkeypatch):
     assert "canary_policy_not_eligible_for_promotion" in promote_resp.json()["detail"]
 
 
-def test_promotion_permitted_with_completed_policy_and_evidence(monkeypatch):
-    client, headers, tenant_id = _setup(monkeypatch)
-    process_key, stable_id, canary_id = _stable_and_canary_packages(client, headers, monkeypatch, tenant_id)
-    policy = _active_policy(
-        client, headers, tenant_id, process_key=process_key, stable_id=stable_id, canary_id=canary_id,
-        maximum_cases=10,
-    )
-
-    connection_id = _create_connection(client, headers)
-    for i in range(12):
+def _plan_canary_cases(client, headers, connection_id, process_key, count):
+    for i in range(count):
         resp = client.post(
             "/v1/runs/plan", headers=headers,
             json={
@@ -222,12 +216,75 @@ def test_promotion_permitted_with_completed_policy_and_evidence(monkeypatch):
         )
         assert resp.status_code == 201, resp.text
 
+
+def _mark_canary_runs_succeeded(tenant_id: str, policy_id: str) -> None:
+    """The fake connector's `sales.order.read` execution path is disabled
+    (`execution_not_enabled`), so these tests can't drive a real run to
+    `succeeded` through the API. Seeding the terminal status directly is the
+    same technique `_stable_and_canary_packages` already uses to seed
+    `process_key`/`ShadowDeployment` state -- it stands in for "these 12
+    canary cases were later executed and passed postconditions", which is
+    exactly the evidence `_check_canary_policy_eligibility` now requires."""
+
+    db = SessionLocal()
+    try:
+        decisions = (
+            db.query(CanaryRoutingDecision)
+            .filter_by(tenant_id=tenant_id, canary_policy_id=policy_id, selected_lane="canary")
+            .filter(CanaryRoutingDecision.execution_run_id.isnot(None))
+            .all()
+        )
+        run_ids = [row.execution_run_id for row in decisions]
+        db.query(ExecutionRun).filter(ExecutionRun.id.in_(run_ids)).update(
+            {"status": "succeeded"}, synchronize_session=False
+        )
+        db.commit()
+    finally:
+        db.close()
+
+
+def test_promotion_permitted_with_completed_policy_and_evidence(monkeypatch):
+    client, headers, tenant_id = _setup(monkeypatch)
+    process_key, stable_id, canary_id = _stable_and_canary_packages(client, headers, monkeypatch, tenant_id)
+    policy = _active_policy(
+        client, headers, tenant_id, process_key=process_key, stable_id=stable_id, canary_id=canary_id,
+        maximum_cases=10,
+    )
+
+    connection_id = _create_connection(client, headers)
+    _plan_canary_cases(client, headers, connection_id, process_key, 12)
+    _mark_canary_runs_succeeded(tenant_id, policy["id"])
+
     complete_resp = client.post(f"/v1/canary-policies/{policy['id']}/complete", headers=headers)
     assert complete_resp.status_code == 200, complete_resp.text
 
     promote_resp = client.post(f"/v1/skills/{canary_id}/promote-active", headers=headers, json={"reason": "t"})
     assert promote_resp.status_code == 200, promote_resp.text
     assert promote_resp.json()["status"] == "active"
+
+
+def test_promotion_blocked_when_postcondition_evidence_insufficient(monkeypatch):
+    """Sec 9.9/18 "insufficient evidence blocks": a completed policy with
+    enough *planned* cases but no executed/verified postcondition evidence
+    must not be treated as `postcondition_success_rate == 1.0`."""
+
+    client, headers, tenant_id = _setup(monkeypatch)
+    process_key, stable_id, canary_id = _stable_and_canary_packages(client, headers, monkeypatch, tenant_id)
+    policy = _active_policy(
+        client, headers, tenant_id, process_key=process_key, stable_id=stable_id, canary_id=canary_id,
+        maximum_cases=10,
+    )
+
+    connection_id = _create_connection(client, headers)
+    _plan_canary_cases(client, headers, connection_id, process_key, 12)
+    # No terminal execution seeded -- every canary run stays "planned".
+
+    complete_resp = client.post(f"/v1/canary-policies/{policy['id']}/complete", headers=headers)
+    assert complete_resp.status_code == 200, complete_resp.text
+
+    promote_resp = client.post(f"/v1/skills/{canary_id}/promote-active", headers=headers, json={"reason": "t"})
+    assert promote_resp.status_code == 400, promote_resp.text
+    assert "insufficient_postcondition_success_rate" in promote_resp.json()["detail"]
 
 
 def test_canary_status_alone_insufficient_when_no_policy_exists_still_works(monkeypatch):

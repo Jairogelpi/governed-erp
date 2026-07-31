@@ -9,6 +9,7 @@ established for building two packages under one governed process.
 
 from __future__ import annotations
 
+import json
 from uuid import uuid4
 
 import pytest
@@ -18,6 +19,8 @@ from sqlalchemy import update
 
 from apps.api.main import app
 from erpguard.config import settings
+from erpguard.db.model_packages.canary import CanaryRoutingDecision
+from erpguard.db.model_packages.execution import ExecutionRun
 from erpguard.db.model_packages.skill_package import SkillPackage
 from erpguard.db.session import SessionLocal, init_db
 from erpguard.domain.canary.routing import compute_bucket, select_lane
@@ -205,8 +208,6 @@ def test_same_object_always_selects_same_lane_and_decision_is_persisted_and_immu
     assert decisions[0]["selected_lane"] == "canary"
     assert decisions[0]["execution_run_id"] is not None
 
-    from erpguard.db.model_packages.canary import CanaryRoutingDecision
-
     db = SessionLocal()
     try:
         row = db.query(CanaryRoutingDecision).filter_by(id=decisions[0]["id"]).one()
@@ -216,6 +217,61 @@ def test_same_object_always_selects_same_lane_and_decision_is_persisted_and_immu
         db.rollback()
     finally:
         db.close()
+
+
+def test_dashboard_reports_real_cumulative_amount_and_unexpected_side_effects(monkeypatch):
+    """Sec 9.8: `cumulative_amount` and `unexpected_side_effects` must reflect
+    actual run data, not the hardcoded-zero stubs the dashboard used to
+    return. The fake connector's `sales.order.read` execution path can't
+    produce a real line-item write or a real forbidden-effect postcondition
+    failure, so the two scenarios are seeded directly on the `ExecutionRun`
+    rows the routing decisions already point at -- same direct-DB technique
+    `_mark_canary_runs_succeeded` uses elsewhere in this suite."""
+
+    client, headers, tenant_id = _setup(monkeypatch)
+    process_key, stable_id, canary_id = _stable_and_canary_packages(client, headers, monkeypatch, tenant_id)
+    policy = _active_policy(
+        client, headers, tenant_id, process_key=process_key, stable_id=stable_id, canary_id=canary_id,
+        monkeypatch=monkeypatch, percentage_basis_points=10000,  # force canary every time
+    )
+    connection_id = _create_connection(client, headers)
+
+    run_ids = []
+    for i in range(2):
+        plan_resp = client.post(
+            "/v1/runs/plan", headers=headers,
+            json={
+                "connection_id": connection_id, "process_key": process_key, "capability": "sales.order.read",
+                "idempotency_key": f"idem-{uuid4().hex}",
+                "routing_context": {"business_object_key": f"obj-amt-{i}", "capability": "sales.order.read"},
+            },
+        )
+        assert plan_resp.status_code == 201, plan_resp.text
+        run_ids.append(plan_resp.json()["id"])
+
+    db = SessionLocal()
+    try:
+        priced_run = db.query(ExecutionRun).filter_by(id=run_ids[0]).one()
+        plan_payload = json.loads(priced_run.action_plan_json)
+        plan_payload["capability_payload"] = {"lines": [{"quantity": 2, "price_unit": 125.0}]}
+        priced_run.action_plan_json = json.dumps(plan_payload)
+        priced_run.status = "succeeded"
+        priced_run.verification_result_json = json.dumps({"postcondition": {"verified": True}})
+
+        side_effect_run = db.query(ExecutionRun).filter_by(id=run_ids[1]).one()
+        side_effect_run.status = "failed"
+        side_effect_run.verification_result_json = json.dumps(
+            {"postcondition": {"verified": False, "summary": "forbidden_effect_observed:invoice_created"}}
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    dashboard_resp = client.get(f"/v1/canary-policies/{policy['id']}/dashboard", headers=headers)
+    assert dashboard_resp.status_code == 200, dashboard_resp.text
+    dashboard = dashboard_resp.json()
+    assert dashboard["cumulative_amount"] == 250.0
+    assert dashboard["unexpected_side_effects"] == 1
 
 
 def test_two_active_policies_for_same_process_rejected(monkeypatch):

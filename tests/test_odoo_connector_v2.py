@@ -43,15 +43,14 @@ def test_odoo_v2_plugin_declares_read_capabilities_and_bounded_writes():
     assert set(definitions) == {
         "customer.read", "product.read", "quote.read", "odoo.schema.discover",
         "odoo.permissions.inspect", "quote.create_draft", "sales.order.confirm",
+        "sales.quote.create_pricing_scenario_draft",
     }
     assert definitions["quote.create_draft"].supports_execution is True
     assert definitions["sales.order.confirm"].supports_execution is True
     assert definitions["sales.order.confirm"].safety_tier == "R3_governed_staging_only"
-    assert all(
-        not d.supports_execution
-        for name, d in definitions.items()
-        if name not in {"quote.create_draft", "sales.order.confirm"}
-    )
+    assert definitions["sales.quote.create_pricing_scenario_draft"].supports_execution is True
+    _EXECUTABLE = {"quote.create_draft", "sales.order.confirm", "sales.quote.create_pricing_scenario_draft"}
+    assert all(not d.supports_execution for name, d in definitions.items() if name not in _EXECUTABLE)
 
 
 def test_odoo_v2_plugin_reads_schema_objects_and_stable_fingerprint():

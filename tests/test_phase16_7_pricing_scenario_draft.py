@@ -1,5 +1,8 @@
-"""Spec 92 Sec 8 -- pricing scenario draft (`quote.create_draft`, reused, not
-a new connector capability -- see docs/specs' Workstream A plan for why).
+"""Spec 92 Sec 8 -- pricing scenario draft, via the dedicated
+`sales.quote.create_pricing_scenario_draft` connector capability (distinct
+from the plain `quote.create_draft` used by the unrelated Phase 16 feature --
+Sec 8.1 requires this because the pricing-scenario write carries
+recommendation/margin evidence and its own live preconditions).
 
 Full recommendation -> approval -> action draft -> `PermitService.plan()`
 end to end via the public API; execution itself is exercised by
@@ -31,24 +34,60 @@ class _FakeWriteTransport:
     def __init__(self) -> None:
         self.orders: dict[str, int] = {}
         self.rows: dict[int, dict] = {}
+        self.lines: dict[int, list[dict]] = {}
         self._next_id = 500
         self.create_calls = 0
 
     def find_by_client_reference(self, client_reference: str) -> int | None:
         return self.orders.get(client_reference)
 
-    def create_draft(self, *, partner_id: int, lines: list[dict], client_reference: str) -> int:
+    def create_draft(
+        self, *, partner_id: int, lines: list[dict], client_reference: str,
+        company_id: int | None = None, pricelist_id: int | None = None,
+    ) -> int:
         self.create_calls += 1
         order_id = self._next_id
         self._next_id += 1
         self.orders[client_reference] = order_id
         self.rows[order_id] = {
             "id": order_id, "state": "draft", "partner_id": partner_id, "client_order_ref": client_reference,
+            "company_id": company_id, "pricelist_id": pricelist_id,
         }
+        self.lines[order_id] = list(lines)
         return order_id
 
     def read_order(self, order_id: int) -> dict:
         return self.rows[order_id]
+
+    def read_partner(self, partner_id: int) -> dict:
+        return {"id": partner_id, "active": True}
+
+    def read_products(self, product_ids: list[int]) -> list[dict]:
+        return [{"id": pid, "active": True, "sale_ok": True, "name": f"Product {pid}"} for pid in product_ids]
+
+    def read_pricing_scenario_snapshot(self, order_id: int) -> dict:
+        order = self.rows[order_id]
+        return {
+            "order_id": order_id,
+            "state": order["state"],
+            "partner_id": order["partner_id"],
+            "company_id": order.get("company_id"),
+            "currency_id": order.get("currency_id", 1),
+            "pricelist_id": order.get("pricelist_id"),
+            "client_reference": order["client_order_ref"],
+            "lines": [
+                {
+                    "product_id": int(line["product_id"]),
+                    "quantity": float(line["quantity"]),
+                    "price_unit": float(line["price_unit"]),
+                }
+                for line in self.lines.get(order_id, [])
+            ],
+            "invoice_count": 0,
+            "picking_count": 0,
+            "purchase_order_count": 0,
+            "manufacturing_order_count": 0,
+        }
 
 
 def _setup(monkeypatch) -> tuple[TestClient, dict, str]:
@@ -68,7 +107,9 @@ def _active_odoo_skill_package(client: TestClient, headers: dict, monkeypatch, t
         headers=headers,
         json={
             "connector_id": "odoo",
-            "workflow_steps": [{"step_name": "create_draft", "capability": "quote.create_draft"}],
+            "workflow_steps": [
+                {"step_name": "create_draft", "capability": "sales.quote.create_pricing_scenario_draft"}
+            ],
         },
     )
     assert compile_resp.status_code == 201, compile_resp.text
@@ -99,7 +140,7 @@ def _odoo_connection(client: TestClient, headers: dict) -> str:
             "endpoint": "https://odoo.example.test",
             "auth_type": "api_key",
             "secret": "fake-odoo-secret",
-            "metadata": {"database": "test_db", "username": "test_user"},
+            "metadata": {"database": "test_db", "username": "test_user", "environment": "staging"},
         },
     )
     assert resp.status_code == 201, resp.text
