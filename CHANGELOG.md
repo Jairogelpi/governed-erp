@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased — Phase 16.5
+
+### Added
+
+- Immutable, tenant-scoped analytical snapshots over bounded Odoo reads.
+- Versioned Data Quality Reports with explicit revenue/cost coverage and
+  blocking issues.
+- Canonical revenue, refund, cost, margin, discount, unit and customer
+  metrics under `margin-truth/1.0.0`.
+- Deterministic price/volume/mix/discount/cost/refund margin bridge,
+  product/customer drivers and migration `0019_decision_intelligence`.
+
+### Safety
+
+- Odoo extraction is restricted to the existing read transport.
+- Missing cost coverage leaves revenue visible but blocks margin conclusions.
+- Current standard price is labelled as a non-historical fallback.
+- No recommendation, ERP write or execution authority is created.
+
 ## Unreleased — Phase 18.1
 
 ### Added

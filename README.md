@@ -322,9 +322,6 @@ Odoo, permit or execution-runtime dependency and creates no `ExecutionRun`.
 The selected sanitized disagreement is in
 [`docs/demo/phase18_shadow_mode_selected_example.json`](docs/demo/phase18_shadow_mode_selected_example.json).
 
-Next: Decision Intelligence Foundation or Phase 19 canary/promotion design.
-No canary routing, activation, promotion or rollback is implemented yet.
-
 Phase 18.1 — Operational Shadow Feed connects that comparison surface to the
 canonical event store. OCEL and bounded Odoo event ingestion automatically
 evaluate affected cases in matching shadow deployments using persisted event
@@ -340,6 +337,25 @@ observation window and no unresolved `unsafe_candidate`. Manual cases cannot
 qualify a candidate. The recommendation cannot activate, promote or route
 anything. Evidence is frozen in
 [`docs/demo/phase18_1_operational_shadow_feed_evidence.json`](docs/demo/phase18_1_operational_shadow_feed_evidence.json).
+
+Phase 16.5 — Decision Intelligence Foundation adds a separate analytical
+truth layer instead of extending the legacy opportunity scanner. It performs
+bounded Odoo reads for posted invoices, refunds, lines, sales context,
+products, customers, companies, currencies and available valuation data;
+then seals an immutable, tenant-scoped snapshot and Data Quality Report.
+
+Metrics use the versioned `margin-truth/1.0.0` definitions. Historical stock
+valuation is preferred; current standard price is disclosed as a
+low-reliability fallback. Insufficient cost coverage, mixed currencies,
+missing required fields or truncated extraction block margin claims while
+reliable revenue remains visible. The period comparison returns product and
+customer drivers plus a price/volume/mix/discount/cost/refund bridge that
+must balance within tolerance. Repeated analysis of the same snapshot returns
+the same evidence. The sanitized fixture is in
+[`docs/demo/phase16_5_decision_intelligence_evidence.json`](docs/demo/phase16_5_decision_intelligence_evidence.json).
+
+No recommendation, Odoo write, canary routing, activation, promotion or
+rollback is added by this phase.
 
 The exact phase gates and no-goals are defined in the [master implementation
 specification](docs/specs/84_erpguard_evolution_master_spec.md).

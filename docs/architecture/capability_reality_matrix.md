@@ -1,7 +1,8 @@
 # ERPGuard Evolution capability reality matrix
 
-**Baseline:** `e483f5c5f272139c65a02ebc32ab11f5e323b6a4`  
-**Inventory date:** 2026-07-30 (Phase 18.1 working tree)
+**Baseline:** `5feb7a3` plus Phase 16.5 working tree
+
+**Inventory date:** 2026-07-31
 
 The labels below are evidence labels, not marketing claims:
 
@@ -26,6 +27,11 @@ The labels below are evidence labels, not marketing claims:
 | Operator action governance | `advisory` / `blocked` | Planning, validation and audit exist; real ERP writes remain disabled. |
 | Odoo connection/diagnosis foundations | `staging_only` | Read-only adapter and controlled diagnosis paths exist; live availability depends on configured staging. |
 | Odoo business reads | `staging_only` | Allowlisted read mappings exist; not a general Odoo model/query API. |
+| Immutable analytical snapshots | `real` / `read_only` | Bounded Odoo extraction manifest, source rows, hashes, scope and actor are persisted; update/delete are rejected. |
+| Analytical Data Quality Gate | `real` / `blocked_on_insufficient_evidence` | Revenue/cost coverage, duplicates, refunds, currency, required fields, truncation and cost reliability govern which metrics may be claimed. |
+| Versioned margin metrics | `real` / `advisory` | `margin-truth/1.0.0` computes revenue, refunds, COGS, margin, discount, units and product/customer segments from a frozen snapshot. |
+| Period margin bridge | `real` / `advisory` | Deterministic price, volume, mix, discount, cost and refund effects reconcile prior to current margin within tolerance. |
+| Opportunity and ROI engine | `planned` | Phase 16.5 produces analytical facts and drivers, not recommendations or ROI scenarios. |
 | Odoo quotation draft creation | `staging_only` | Bounded real `sale.order.create`, idempotent client reference and draft-state postcondition; no generic RPC. |
 | Odoo order confirmation | `staging_only` / `blocked_by_default` | Bounded real `sale.order.action_confirm` behind independent approval, signed one-use permit, staging/amount gates and a false-by-default feature flag. |
 | Confirmation side-effect budget | `real` | Versioned effects and model creation ceilings are evaluated against before/after snapshots. |

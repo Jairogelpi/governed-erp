@@ -4394,3 +4394,25 @@ Required validation:
 > We connected Odoo, reconstructed a Quote-to-Order process from events, discovered how it actually ran, branched an improved candidate, replayed both versions against the same cases, detected regressions, generated a Proof of Improvement, compiled the candidate into a minimum-privilege skill and safely created a verified quotation in Odoo.
 
 That statement is allowed only when every clause is demonstrated by the final release.
+
+---
+
+# Phase 16.5 — Decision Intelligence Foundation
+
+Phase 16.5 is implemented as an effects-free analytical truth layer. It is
+architecturally separate from the legacy `release_ops` opportunity scanner.
+
+The phase adds immutable analytical snapshots, bounded read-only Odoo
+extraction, a versioned Data Quality Gate, canonical
+`margin-truth/1.0.0` metrics, product/customer diagnostics and an exact
+price/volume/mix/discount/cost/refund margin bridge. Historical stock
+valuation is preferred; current standard price is explicitly labelled as a
+non-historical fallback.
+
+Revenue may be reported independently when its coverage is sufficient.
+Margin is blocked when cost coverage, required fields, currency consistency
+or extraction completeness do not justify the claim. The phase adds no
+recommendation, ROI scenario, ERP write, permit or promotion authority.
+
+The detailed contract and exit evidence are frozen in
+[`89_phase16_5_decision_intelligence_foundation.md`](89_phase16_5_decision_intelligence_foundation.md).

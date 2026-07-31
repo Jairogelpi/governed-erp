@@ -1,0 +1,63 @@
+{
+  "phase": "16.5",
+  "evidence_kind": "sanitized_deterministic_fixture",
+  "metric_definition_version": "margin-truth/1.0.0",
+  "source": {
+    "connector": "odoo",
+    "server_version": "19.0-test",
+    "company_ids": [1],
+    "currency": "EUR",
+    "period_current": ["2026-02-01", "2026-02-28"],
+    "period_comparison": ["2026-01-01", "2026-01-31"],
+    "read_only_methods": [
+      "version",
+      "authenticate",
+      "fields_get",
+      "search_count",
+      "search_read"
+    ],
+    "write_methods": []
+  },
+  "quality": {
+    "cost_coverage_rate": 1.0,
+    "revenue_coverage_rate": 1.0,
+    "duplicate_rate": 0.0,
+    "refund_reconciliation_rate": 1.0,
+    "blocking_issues": []
+  },
+  "comparison": {
+    "net_revenue": "810",
+    "refunds": "90",
+    "cost_of_sales": "540",
+    "gross_margin": "270"
+  },
+  "current": {
+    "net_revenue": "1828",
+    "refunds": "160",
+    "cost_of_sales": "1240",
+    "gross_margin": "588"
+  },
+  "margin_bridge": {
+    "previous_margin": "270",
+    "current_margin": "588",
+    "residual": "0",
+    "tolerance": "0.01",
+    "balanced": true
+  },
+  "idempotency": {
+    "same_snapshot_returns_same_analysis_id": true,
+    "same_snapshot_returns_same_content_hash": true
+  },
+  "fail_closed_example": {
+    "cost_coverage_rate": 0.0,
+    "net_revenue_available": true,
+    "gross_margin_available": false,
+    "margin_bridge_available": false,
+    "blocking_issue": "insufficient_cost_coverage"
+  },
+  "safety": {
+    "erp_write_performed": false,
+    "recommendation_created": false,
+    "execution_authority_created": false
+  }
+}

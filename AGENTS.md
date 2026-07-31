@@ -898,3 +898,28 @@
   Repository-wide Ruff passed and repository-wide mypy passed for 225 source
   files; `git diff --check` was clean apart from normal Windows line-ending
   notices.
+
+### 2026-07-31 — Phase 16.5 Decision Intelligence Foundation
+
+- Added a separate Decision Intelligence domain/application package instead
+  of extending the legacy `release_ops` scanner.
+- Added bounded, read-only Odoo analytical extraction for posted customer
+  invoices/refunds, invoice lines, sales context, products, customers,
+  companies, currencies and available stock valuation layers.
+- Added immutable `AnalyticalSnapshot`, `DataQualityReport` and
+  `MarginAnalysis` persistence plus Alembic migration
+  `0019_decision_intelligence`.
+- Added the `margin-truth/1.0.0` metric contract, explicit cost provenance,
+  coverage gates, refund handling, product/customer diagnostics and a
+  deterministic price/volume/mix/discount/cost/refund margin bridge.
+- Added public snapshot and margin-analysis endpoints under
+  `/v1/decision-intelligence`.
+- Safety boundary: extraction uses only the Odoo read transport; insufficient
+  evidence blocks margin conclusions; no recommendation, ERP write, permit or
+  promotion path was added.
+- Added focused Phase 16.5 tests and sanitized fixture evidence.
+- Verification: the Phase 16.5 plus public-composition slice passed
+  (`11 passed`); repository-wide Ruff passed; repository-wide mypy passed for
+  236 source files; clean SQLite Alembic
+  `upgrade 0019 -> downgrade 0018 -> upgrade 0019` passed. Per operator
+  instruction, the full test suite was not run.
