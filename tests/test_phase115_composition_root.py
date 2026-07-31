@@ -23,6 +23,7 @@ PUBLIC_ROOTS = {
     "/v1/evidence",
     "/v1/deployments",
     "/v1/decision-intelligence",
+    "/v1/margin-analyses",
 }
 
 
