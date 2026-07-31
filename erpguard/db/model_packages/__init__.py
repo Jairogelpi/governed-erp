@@ -17,6 +17,7 @@ from erpguard.db.model_packages.skill_deployment import SkillDeploymentEvent
 from erpguard.db.model_packages.opportunity import MarginOpportunity
 from erpguard.db.model_packages.recommendations import GovernedActionDraft, GovernedRecommendation
 from erpguard.db.model_packages.canary import CanaryPolicy, CanaryRoutingDecision, CanarySafetyIncident
+from erpguard.db.model_packages.outcomes import OutcomeMeasurementPlan, OutcomeObservation, RealizedOutcomeReport
 
 __all__ = [
     "GovernedActionDraft",
@@ -24,6 +25,9 @@ __all__ = [
     "CanaryPolicy",
     "CanaryRoutingDecision",
     "CanarySafetyIncident",
+    "OutcomeMeasurementPlan",
+    "OutcomeObservation",
+    "RealizedOutcomeReport",
     "ProcessDefinition",
     "AnalyticalSnapshot",
     "DataQualityReport",

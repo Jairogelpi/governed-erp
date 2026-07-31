@@ -28,6 +28,8 @@ PUBLIC_ROOTS = {
     "/v1/recommendations",
     "/v1/action-drafts",
     "/v1/canary-policies",
+    "/v1/measurement-plans",
+    "/v1/outcome-reports",
 }
 
 
