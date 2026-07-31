@@ -13,6 +13,8 @@ from erpguard.db.model_packages.shadow import (
     ShadowFeedRun,
     ShadowOutcomeObservation,
 )
+from erpguard.db.model_packages.skill_deployment import SkillDeploymentEvent
+from erpguard.db.model_packages.opportunity import MarginOpportunity
 
 __all__ = [
     "ProcessDefinition",
@@ -24,4 +26,5 @@ __all__ = [
     "ShadowDeployment",
     "ShadowFeedRun",
     "ShadowOutcomeObservation",
+    "SkillDeploymentEvent",
 ]

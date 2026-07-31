@@ -15,6 +15,25 @@ class SkillCompileRequest(BaseModel):
     workflow_steps: list[WorkflowStepRequest] = Field(default_factory=list)
 
 
+class SkillPromoteCanaryRequest(BaseModel):
+    shadow_deployment_id: str = Field(min_length=1)
+    reason: str = Field(default="")
+
+
+class SkillPromoteActiveRequest(BaseModel):
+    reason: str = Field(default="")
+
+
+class SkillRollbackRequest(BaseModel):
+    process_key: str = Field(min_length=1)
+    reason: str = Field(default="")
+
+
+class ActiveSkillPackageResponse(BaseModel):
+    process_key: str
+    active: "SkillPackageResponse | None"
+
+
 class SkillPackageResponse(BaseModel):
     id: str
     tenant_id: str

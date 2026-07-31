@@ -1,12 +1,15 @@
-"""Compiled skill package persistence (master spec section 18).
+"""Compiled skill package persistence (master spec section 18, Phase 19 19.4).
 
-Content (`package_json`/`validation_result_json`/`package_hash`) is set once
-at compile time and never changes. `status` transitions `compiled ->
-approved` exactly once (mirrors `ProcessReplay`'s conditional freeze
-listener, not `ProcessProof`'s unconditional-reject one -- a skill package
-has one real state transition, a proof has none). No child rows exist (the
-whole package is one JSON blob per row), so the header+child two-listener
-pattern Phase 13.1 introduced for `ProcessReplayCase` isn't needed here.
+Content (`package_json`/`validation_result_json`/`package_hash`/
+`candidate_id`/`proof_id`) is set once at compile time and never changes --
+enforced below regardless of `status`. `status` walks a directed lifecycle
+`compiled -> approved -> canary -> active -> rolled_back`, with `deprecated`
+reachable from `active` (superseded by a promotion, not rolled back -- that
+word is reserved for an active package pulled due to a real problem) and
+re-promotable `deprecated -> active` (rollback restoring a prior version).
+Only `rolled_back` is terminal. The listener below is the last-resort guard;
+`erpguard.domain.deployment.service.SkillDeploymentService` is what actually
+walks the state machine and writes the paired `SkillDeploymentEvent`.
 """
 
 from __future__ import annotations
@@ -41,9 +44,28 @@ class SkillPackage(Base):
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+_TERMINAL_STATUSES = {"rolled_back"}
+_IMMUTABLE_CONTENT_ATTRS = (
+    "package_json",
+    "validation_result_json",
+    "package_hash",
+    "candidate_id",
+    "proof_id",
+    "process_key",
+    "candidate_version",
+    "connector_id",
+)
+
+
 @event.listens_for(SkillPackage, "before_update")
-def reject_approved_skill_package_update(mapper, connection, target) -> None:
-    history = inspect(target).attrs.status.history
-    previous_status = history.deleted[0] if history.deleted else target.status
-    if previous_status == "approved":
-        raise ValueError("approved_skill_package_immutable")
+def reject_invalid_skill_package_update(mapper, connection, target) -> None:
+    state = inspect(target)
+    for attr in _IMMUTABLE_CONTENT_ATTRS:
+        history = state.attrs[attr].history
+        if history.deleted:
+            raise ValueError(f"skill_package_{attr}_immutable")
+
+    status_history = state.attrs.status.history
+    previous_status = status_history.deleted[0] if status_history.deleted else target.status
+    if previous_status in _TERMINAL_STATUSES and status_history.deleted:
+        raise ValueError("terminal_skill_package_status_immutable")

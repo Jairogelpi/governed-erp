@@ -330,7 +330,7 @@ def test_approved_skill_package_is_immutable(monkeypatch):
     try:
         row = db.query(SkillPackage).filter_by(tenant_id=tenant_id, id=skill_id).one()
         row.connector_id = "tampered"
-        with pytest.raises(ValueError, match="approved_skill_package_immutable"):
+        with pytest.raises(ValueError, match="skill_package_connector_id_immutable"):
             db.commit()
         db.rollback()
     finally:

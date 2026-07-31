@@ -52,5 +52,7 @@ def init_db() -> None:
     import erpguard.db.model_packages.event_links  # noqa: F401
     import erpguard.db.model_packages.shadow  # noqa: F401
     import erpguard.db.model_packages.decision_intelligence  # noqa: F401
+    import erpguard.db.model_packages.skill_deployment  # noqa: F401
+    import erpguard.db.model_packages.opportunity  # noqa: F401
 
     Base.metadata.create_all(bind=engine)

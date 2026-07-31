@@ -18,7 +18,21 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from apps.api.dependencies.identity import get_db, require_role
-from apps.api.schemas.skill_packages import SkillCompileRequest, SkillPackageResponse
+from apps.api.schemas.skill_packages import (
+    ActiveSkillPackageResponse,
+    SkillCompileRequest,
+    SkillPackageResponse,
+    SkillPromoteActiveRequest,
+    SkillPromoteCanaryRequest,
+    SkillRollbackRequest,
+)
+from erpguard.domain.deployment.service import (
+    CanaryNotEligible,
+    InvalidStatusTransition,
+    NoActiveSkillPackage,
+    SkillDeploymentService,
+)
+from erpguard.domain.deployment.service import SkillPackageNotFound as DeploymentSkillPackageNotFound
 from erpguard.domain.identity.auth import Principal
 from erpguard.domain.skills.service import (
     CandidateNotCompilable,
@@ -30,6 +44,7 @@ from erpguard.domain.skills.service import (
 
 candidates_router = APIRouter(prefix="/v1/process-candidates", tags=["skills"])
 router = APIRouter(prefix="/v1/skills", tags=["skills"])
+processes_router = APIRouter(prefix="/v1/processes", tags=["skills"])
 
 
 @candidates_router.post(
@@ -91,6 +106,83 @@ def approve_skill_package(
     except SkillPackageValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return _response(row)
+
+
+@router.post("/{skill_id}/promote-canary", response_model=SkillPackageResponse)
+def promote_skill_package_to_canary(
+    skill_id: str,
+    request: SkillPromoteCanaryRequest,
+    db: Session = Depends(get_db),
+    principal: Principal = Depends(require_role("admin")),
+) -> SkillPackageResponse:
+    try:
+        row = SkillDeploymentService(db).promote_to_canary(
+            tenant_id=principal.tenant_id,
+            skill_id=skill_id,
+            shadow_deployment_id=request.shadow_deployment_id,
+            actor=principal.user_id,
+            reason=request.reason,
+        )
+    except DeploymentSkillPackageNotFound as exc:
+        raise HTTPException(status_code=404, detail="skill_package_not_found") from exc
+    except (CanaryNotEligible, InvalidStatusTransition) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return _response(row)
+
+
+@router.post("/{skill_id}/promote-active", response_model=SkillPackageResponse)
+def promote_skill_package_to_active(
+    skill_id: str,
+    request: SkillPromoteActiveRequest,
+    db: Session = Depends(get_db),
+    principal: Principal = Depends(require_role("admin")),
+) -> SkillPackageResponse:
+    try:
+        row = SkillDeploymentService(db).promote_to_active(
+            tenant_id=principal.tenant_id,
+            skill_id=skill_id,
+            actor=principal.user_id,
+            reason=request.reason,
+        )
+    except DeploymentSkillPackageNotFound as exc:
+        raise HTTPException(status_code=404, detail="skill_package_not_found") from exc
+    except InvalidStatusTransition as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return _response(row)
+
+
+@router.post("/rollback", response_model=ActiveSkillPackageResponse)
+def rollback_skill_deployment(
+    request: SkillRollbackRequest,
+    db: Session = Depends(get_db),
+    principal: Principal = Depends(require_role("admin")),
+) -> ActiveSkillPackageResponse:
+    try:
+        restored = SkillDeploymentService(db).rollback(
+            tenant_id=principal.tenant_id,
+            process_key=request.process_key,
+            actor=principal.user_id,
+            reason=request.reason,
+        )
+    except NoActiveSkillPackage as exc:
+        raise HTTPException(status_code=400, detail="no_active_skill_package") from exc
+    return ActiveSkillPackageResponse(
+        process_key=request.process_key,
+        active=_response(restored) if restored is not None else None,
+    )
+
+
+@processes_router.get("/{process_key}/active-skill", response_model=ActiveSkillPackageResponse)
+def get_active_skill_package(
+    process_key: str,
+    db: Session = Depends(get_db),
+    principal: Principal = Depends(require_role("viewer")),
+) -> ActiveSkillPackageResponse:
+    active = SkillDeploymentService(db).get_active(tenant_id=principal.tenant_id, process_key=process_key)
+    return ActiveSkillPackageResponse(
+        process_key=process_key,
+        active=_response(active) if active is not None else None,
+    )
 
 
 def _response(row) -> SkillPackageResponse:

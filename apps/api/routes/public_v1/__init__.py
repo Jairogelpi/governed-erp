@@ -9,6 +9,7 @@ from . import approvals, candidates, connections, connectors, executions, eviden
 from . import events, health, identity, processes, proofs, replays, skill_packages, skills, variants
 from . import shadow
 from . import decision_intelligence
+from . import opportunity
 
 
 PUBLIC_ROUTERS = (
@@ -26,11 +27,13 @@ PUBLIC_ROUTERS = (
     skills.router,
     skill_packages.router,
     skill_packages.candidates_router,
+    skill_packages.processes_router,
     approvals.router,
     executions.router,
     evidence.router,
     shadow.router,
     decision_intelligence.router,
+    opportunity.router,
 )
 
 __all__ = ["PUBLIC_ROUTERS"]
