@@ -923,3 +923,8 @@
   236 source files; clean SQLite Alembic
   `upgrade 0019 -> downgrade 0018 -> upgrade 0019` passed. Per operator
   instruction, the full test suite was not run.
+- Initial remote CI showed Docker and PostgreSQL green and completed the
+  Python 3.11 suite with `861 passed, 13 skipped`; its sole failure was the
+  Phase 0 freeze assertion after the capability matrix replaced the historical
+  baseline SHA. Restored that immutable Phase 0 SHA and recorded the current
+  implementation reference separately.

@@ -1,8 +1,10 @@
 # ERPGuard Evolution capability reality matrix
 
-**Baseline:** `5feb7a3` plus Phase 16.5 working tree
+**Phase 0 baseline:** `e483f5c5f272139c65a02ebc32ab11f5e323b6a4`
 
 **Inventory date:** 2026-07-31
+
+**Current implementation reference:** `8087cca` (Phase 16.5)
 
 The labels below are evidence labels, not marketing claims:
 
