@@ -60,6 +60,9 @@ class ExecutionRun(Base):
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     executed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    canary_policy_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    routing_decision_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    deployment_lane: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
 
 class Approval(Base):

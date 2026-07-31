@@ -27,6 +27,7 @@ PUBLIC_ROOTS = {
     "/v1/opportunities",
     "/v1/recommendations",
     "/v1/action-drafts",
+    "/v1/canary-policies",
 }
 
 

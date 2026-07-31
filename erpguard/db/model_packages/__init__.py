@@ -16,10 +16,14 @@ from erpguard.db.model_packages.shadow import (
 from erpguard.db.model_packages.skill_deployment import SkillDeploymentEvent
 from erpguard.db.model_packages.opportunity import MarginOpportunity
 from erpguard.db.model_packages.recommendations import GovernedActionDraft, GovernedRecommendation
+from erpguard.db.model_packages.canary import CanaryPolicy, CanaryRoutingDecision, CanarySafetyIncident
 
 __all__ = [
     "GovernedActionDraft",
     "GovernedRecommendation",
+    "CanaryPolicy",
+    "CanaryRoutingDecision",
+    "CanarySafetyIncident",
     "ProcessDefinition",
     "AnalyticalSnapshot",
     "DataQualityReport",

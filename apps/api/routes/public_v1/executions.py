@@ -52,6 +52,7 @@ def plan_run(
             connection_id=request.connection_id,
             skill_package_id=request.skill_package_id,
             process_key=request.process_key,
+            routing_context=request.routing_context.model_dump(mode="json") if request.routing_context else None,
             capability=request.capability,
             idempotency_key=request.idempotency_key,
             capability_payload=request.capability_payload,
@@ -208,4 +209,7 @@ def _response(row) -> RunResponse:
         revoked_at=row.revoked_at.isoformat() if row.revoked_at else None,
         verification_result=json.loads(row.verification_result_json) if row.verification_result_json else None,
         cleanup_plan=json.loads(row.cleanup_plan_json) if row.cleanup_plan_json else None,
+        canary_policy_id=row.canary_policy_id,
+        routing_decision_id=row.routing_decision_id,
+        deployment_lane=row.deployment_lane,
     )

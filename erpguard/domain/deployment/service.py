@@ -34,6 +34,10 @@ class NoActiveSkillPackage(ValueError):
     pass
 
 
+class CanaryPromotionNotEligible(InvalidStatusTransition):
+    pass
+
+
 class SkillDeploymentService:
     def __init__(self, session: Session):
         self.session = session
@@ -43,6 +47,48 @@ class SkillDeploymentService:
         if row is None:
             raise SkillPackageNotFound(skill_id)
         return row
+
+    def _check_canary_policy_eligibility(self, *, tenant_id: str, skill_id: str) -> None:
+        """Spec 92 Sec 9.9: if a `CanaryPolicy` names this package as its
+        canary candidate, `canary` status alone is not enough to promote --
+        the policy must be `completed`, with no unresolved critical
+        incident and enough operational evidence. Packages promoted
+        without ever having a canary policy (Phase 19's original path)
+        are unaffected -- this check is a no-op when no policy exists."""
+
+        from erpguard.db.model_packages.canary import CanaryPolicy, CanaryRoutingDecision, CanarySafetyIncident
+        from erpguard.domain.canary.eligibility import check_promotion_eligibility
+
+        policy = (
+            self.session.query(CanaryPolicy)
+            .filter_by(tenant_id=tenant_id, canary_skill_package_id=skill_id)
+            .order_by(CanaryPolicy.created_at.desc())
+            .first()
+        )
+        if policy is None:
+            return
+
+        canary_case_count = (
+            self.session.query(CanaryRoutingDecision)
+            .filter_by(tenant_id=tenant_id, canary_policy_id=policy.id, selected_lane="canary")
+            .filter(CanaryRoutingDecision.execution_run_id.isnot(None))
+            .count()
+        )
+        unresolved_critical = (
+            self.session.query(CanarySafetyIncident)
+            .filter_by(tenant_id=tenant_id, canary_policy_id=policy.id, severity="critical", resolved_at=None)
+            .count()
+        )
+        coverage = min(1.0, canary_case_count / policy.maximum_cases) if policy.maximum_cases else 0.0
+        issues = check_promotion_eligibility(
+            policy_status=policy.status,
+            unresolved_critical_incidents=unresolved_critical,
+            canary_case_count=canary_case_count,
+            postcondition_success_rate=1.0 if canary_case_count else None,
+            observation_coverage=coverage,
+        )
+        if issues:
+            raise CanaryPromotionNotEligible(f"canary_policy_not_eligible_for_promotion:{','.join(issues)}")
 
     def _record_event(
         self,
@@ -109,6 +155,8 @@ class SkillDeploymentService:
         row = self._get(tenant_id=tenant_id, skill_id=skill_id)
         if row.status != "canary":
             raise InvalidStatusTransition(f"cannot_promote_to_active_from:{row.status}")
+
+        self._check_canary_policy_eligibility(tenant_id=tenant_id, skill_id=skill_id)
 
         previous_active = (
             self.session.query(SkillPackage)

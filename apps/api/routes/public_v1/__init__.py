@@ -11,6 +11,7 @@ from . import shadow
 from . import decision_intelligence
 from . import opportunity
 from . import recommendations
+from . import canary
 
 
 PUBLIC_ROUTERS = (
@@ -38,6 +39,7 @@ PUBLIC_ROUTERS = (
     recommendations.opportunities_router,
     recommendations.router,
     recommendations.action_drafts_router,
+    canary.router,
 )
 
 __all__ = ["PUBLIC_ROUTERS"]
