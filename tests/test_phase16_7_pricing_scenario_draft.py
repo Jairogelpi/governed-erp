@@ -308,5 +308,5 @@ def test_draft_created_retry_idempotent_and_no_credential_in_evidence(monkeypatc
     assert transport.create_calls == 1
 
     # second execute is a no-op re-verify path, not a second write
-    execute_resp_2 = client.post(f"/v1/runs/{run_id}/execute", headers=headers)
+    client.post(f"/v1/runs/{run_id}/execute", headers=headers)
     assert transport.create_calls == 1

@@ -11,7 +11,6 @@ from apps.api.schemas.outcomes import (
     MeasurementPlanApproveRequest,
     MeasurementPlanCreateRequest,
     MeasurementPlanResponse,
-    ObservedMetricsRequest,
     OutcomeObservationResponse,
     RealizedOutcomeReportResponse,
 )

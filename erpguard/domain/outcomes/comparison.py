@@ -55,6 +55,12 @@ def compare(
     if issues:
         return issues, None, None, None
 
+    # mypy can't narrow through the `issues.append(...)` checks above; these
+    # are guaranteed non-None here since an empty `issues` means neither
+    # "not_available" branch fired.
+    assert baseline_net_revenue is not None and observed.net_revenue is not None
+    assert baseline_gross_margin is not None and observed.gross_margin is not None
+
     revenue_change = observed.net_revenue - baseline_net_revenue
     margin_change = observed.gross_margin - baseline_gross_margin
     margin_percent_change = (

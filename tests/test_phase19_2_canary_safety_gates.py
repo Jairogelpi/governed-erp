@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-import pytest
 from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 from sqlalchemy import update
@@ -92,7 +91,7 @@ def _active_policy(client, headers, tenant_id, *, process_key, stable_id, canary
 def test_maximum_cases_reached_pauses_selection(monkeypatch):
     client, headers, tenant_id = _setup(monkeypatch)
     process_key, stable_id, canary_id = _stable_and_canary_packages(client, headers, monkeypatch, tenant_id)
-    policy = _active_policy(
+    _active_policy(
         client, headers, tenant_id, process_key=process_key, stable_id=stable_id, canary_id=canary_id,
         maximum_cases=1,
     )
@@ -124,7 +123,7 @@ def test_maximum_cases_reached_pauses_selection(monkeypatch):
 def test_maximum_amount_reached_pauses_selection(monkeypatch):
     client, headers, tenant_id = _setup(monkeypatch)
     process_key, stable_id, canary_id = _stable_and_canary_packages(client, headers, monkeypatch, tenant_id)
-    policy = _active_policy(
+    _active_policy(
         client, headers, tenant_id, process_key=process_key, stable_id=stable_id, canary_id=canary_id,
         maximum_total_amount=100, allowed_capabilities=[],
     )

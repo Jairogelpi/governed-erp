@@ -197,7 +197,6 @@ def test_expired_approval_blocks_conversion(monkeypatch):
     recommendation = create_resp.json()
     assert client.post(f"/v1/recommendations/{recommendation['id']}/submit", headers=headers).status_code == 200
 
-    other_headers = _identity(f"approver-tenant-{uuid4().hex}")
     # Approver must be in the same tenant to see the recommendation; reuse tenant_id, different user.
     approver_headers = _identity(tenant_id)
     approval_resp = client.post(
