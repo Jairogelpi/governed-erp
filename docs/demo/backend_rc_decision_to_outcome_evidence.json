@@ -1,0 +1,176 @@
+{
+  "generated_by": "docs/demo generator, ad hoc TestClient run (not a live Odoo instance)",
+  "note": "Recommendation/action-draft/execution use an injected fake Odoo write transport (same technique tests/test_phase16_7_pricing_scenario_draft.py uses); the outcome observation is an explicit `fixture` source. This is real code exercising the real governed pipeline end to end -- it is not a live Odoo staging run. See docs/demo/backend_rc_live_pricing_scenario_evidence.json for the separate, not-yet-performed live staging requirement (Spec 92 Sec 20).",
+  "reality_label_of_this_document": "fixture",
+  "sealed_evidence_bundle": {
+    "chain_hash": "c7b3a0aa246875e921ffa71107d87b889af5d06daad1e427288b108f4ec956bd",
+    "content_hash": "a5ea186a77b1058cab39117a284891785215adc7aa80d3024899f84b507c6ea7",
+    "created_at": "2026-07-31T19:32:33.893386",
+    "created_by": "skill-user-cbc24af3b75640fb86ddedc43a635966",
+    "id": "decisionoutcomeevidence_bc12a8acc40a46bd9c3a01a78f8b7adb",
+    "manifest": [
+      {
+        "content_hash": "488898ed64ad1d728e0d5ad2c819b348296550b62d6bf143395ed07bb29d08ca",
+        "created_at": "2026-07-31T19:32:33.530500",
+        "reality_label": "derived",
+        "resource_id": "rec_012c61e963a94a238824e654cb32599a",
+        "resource_type": "governed_recommendation",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "hash",
+        "created_at": "2026-07-31T19:32:33.472500",
+        "reality_label": "live",
+        "resource_id": "snapshot_bab8064899ba4617bba25542bff4700a",
+        "resource_type": "analytical_snapshot",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "dqhash",
+        "created_at": "2026-07-31T19:32:33.473500",
+        "reality_label": "derived",
+        "resource_id": "dq_644fa2fa75f941779bdeb1af072c8b42",
+        "resource_type": "data_quality_report",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "analysishash_a71a99d48cef40dcaaccced380766d5b",
+        "created_at": "2026-07-31T19:32:33.474500",
+        "reality_label": "derived",
+        "resource_id": "analysis_0ce5b248c5e745409e4b2d6545ee0bd8",
+        "resource_type": "margin_analysis",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "51775a0eb11de7a00d6f94ad6973b895fc0a6641b8efc2f5fc83d9881c259cfd",
+        "created_at": "2026-07-31T19:32:33.493506",
+        "reality_label": "derived",
+        "resource_id": "opp_4e9d983dfb524cf1a367d73b3829f999",
+        "resource_type": "margin_opportunity",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "053030ef60598ee14984d7967ce5ed6fabf8d9207dfcb48008efdf1464994a98",
+        "created_at": "2026-07-31T19:32:33.571502",
+        "reality_label": "manual",
+        "resource_id": "approval_3470d9224f6045ceb33d04d3686e63e4",
+        "resource_type": "recommendation_approval",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "3fe94a4056e620bec912173daa2d5af6e42c0b70f62608e07141172ff8aea2fd",
+        "created_at": "2026-07-31T19:32:33.602507",
+        "reality_label": "derived",
+        "resource_id": "actdraft_72c09cc9401c4972933b71ae15480fe2",
+        "resource_type": "action_draft",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "6074099cfe83d4b24dfedf1ad354c46bbfec6461f2bed264f0b89201b12b219b",
+        "created_at": "2026-07-31T19:32:33.622500",
+        "reality_label": "derived",
+        "resource_id": "actdraft_72c09cc9401c4972933b71ae15480fe2",
+        "resource_type": "action_validation",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "136a0d0425320e7277f1b5ef5dbf7115adb726d0767e53c3b35bf224885ab360",
+        "created_at": "2026-07-31T19:32:33.653504",
+        "reality_label": "staging_live",
+        "resource_id": "run_cc9ffd4c165d404a9fd3203cb38ec8be",
+        "resource_type": "execution_run",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "2ef16997f86250e9869893a88baa6cfee1efebb1e9beea370c52fbc9db4efc98",
+        "created_at": "2026-07-31T19:32:33.681503",
+        "reality_label": "manual",
+        "resource_id": "approval_f218377cc7df479aa17b2efc7fd3bacf",
+        "resource_type": "execution_approval",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "ecf73f8c1fd87975c5b82831a7129b59782c40bac3153e9163830c7e227edcfa",
+        "created_at": "2026-07-31T19:32:33.699505",
+        "reality_label": "derived",
+        "resource_id": "run_cc9ffd4c165d404a9fd3203cb38ec8be",
+        "resource_type": "execution_permit",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "0625b9c6267c93d132aedf1bb402c946ba6a234d874094b9a166bf517234048e",
+        "created_at": "2026-07-31T19:32:33.720506",
+        "reality_label": "staging_live",
+        "resource_id": "run_cc9ffd4c165d404a9fd3203cb38ec8be",
+        "resource_type": "postcondition_result",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "950f3ae759a4d3eaf16099ef568de852a80e35d23189b45fd716d08157cce96f",
+        "created_at": "2026-07-31T19:32:33.720506",
+        "reality_label": "staging_live",
+        "resource_id": "run_cc9ffd4c165d404a9fd3203cb38ec8be",
+        "resource_type": "execution_evidence_pack",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "b7ef153198068391d79d55d438f87bdc11ab494cf24c88108f4d9da56f5e28f1",
+        "created_at": "2026-07-31T19:32:33.410504",
+        "reality_label": "derived",
+        "resource_id": "skdeploy_7835618456a142c7b5ffe94f244c4da5",
+        "resource_type": "audit_event",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "fb494a6ec41eb79013a55743e9ddc8a6990cdf14043c4bd1b6e82eb3acd5637a",
+        "created_at": "2026-07-31T19:32:33.433502",
+        "reality_label": "derived",
+        "resource_id": "skdeploy_3e1940bf74cb4c1092f9420dd7d48b8e",
+        "resource_type": "audit_event",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "2f3faa5f704f81cd31bca4f50dc1ce6d4d384a239da1c3105706fde0ed209dff",
+        "created_at": "2026-07-31T19:32:33.767500",
+        "reality_label": "derived",
+        "resource_id": "outcomeplan_e3fb1139571d44aaa4c40640e51d8c41",
+        "resource_type": "measurement_plan",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "579f8d03b68e6e87abb46e488121175163430ea2b66dd14e620e1fbedb36d17f",
+        "created_at": "2026-07-31T19:32:33.840502",
+        "reality_label": "fixture",
+        "resource_id": "outcomeobs_c03b50ca909f4b9ea8e8d9fc5c9afb88",
+        "resource_type": "outcome_observation",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      },
+      {
+        "content_hash": "40d53a58a149ab4a8061aa1e757d7caaab1e9030f5099c1bcd39e334b041a718",
+        "created_at": "2026-07-31T19:32:33.861507",
+        "reality_label": "derived",
+        "resource_id": "outcomereport_3304da37af8d4704a7fff894f3c3d300",
+        "resource_type": "realized_outcome_report",
+        "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+      }
+    ],
+    "manifest_hash": "daea4b4c29c39be745e709c60c738567e2eec69d04f8700e483bb0b4fe0fa3ac",
+    "measurement_plan_id": "outcomeplan_e3fb1139571d44aaa4c40640e51d8c41",
+    "missing_resources": [],
+    "recommendation_id": "rec_012c61e963a94a238824e654cb32599a",
+    "sealed_at": "2026-07-31T19:32:33.910406",
+    "sealed_by": "skill-user-cbc24af3b75640fb86ddedc43a635966",
+    "status": "sealed",
+    "tenant_id": "demo-tenant-3d0f6aea0cdd49fdbd516351ccdf8a14"
+  },
+  "verification": {
+    "bundle_id": "decisionoutcomeevidence_bc12a8acc40a46bd9c3a01a78f8b7adb",
+    "chain_hash": "c7b3a0aa246875e921ffa71107d87b889af5d06daad1e427288b108f4ec956bd",
+    "content_hash": "a5ea186a77b1058cab39117a284891785215adc7aa80d3024899f84b507c6ea7",
+    "live_mismatches": [],
+    "manifest_hash": "daea4b4c29c39be745e709c60c738567e2eec69d04f8700e483bb0b4fe0fa3ac",
+    "status": "sealed",
+    "stored_hashes_intact": true,
+    "verified": true
+  }
+}

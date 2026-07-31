@@ -931,3 +931,82 @@
 - Follow-up GitHub Actions run `30611074092` completed successfully: Docker,
   PostgreSQL migrations, Python 3.11 quality and Python 3.13 quality were all
   green.
+
+### 2026-07-31 — Spec 92 Governed Decision-to-Outcome Backend RC
+
+- Started on branch `feat/governed-decision-outcome-backend-rc`, which
+  already had Workstreams A (recommendations), B (canary router) and C
+  (outcomes) implemented against baseline `e858f48`, but no Workstream D
+  (evidence bundle), no acceptance E2E test, no docs, and no open PR.
+- Audited A/B/C against the spec text before touching code. Found real
+  gaps: the pricing-scenario action reused the pre-existing
+  `quote.create_draft` capability instead of a distinct one (Sec 8.1
+  requires separation); several Sec 8.3 live preconditions (staging-only,
+  customer active, product active/saleable, forbidden marker) were never
+  checked; the canary dashboard's `cumulative_amount`/
+  `unexpected_side_effects` were hardcoded zero, making the
+  `maximum_total_amount` safety pause inoperative; promotion eligibility's
+  `postcondition_success_rate` was faked as `1.0` whenever any canary case
+  existed rather than computed from actual terminal run outcomes.
+- Fixed all four: added the dedicated `sales.quote.create_pricing_scenario_draft`
+  capability (`erpguard/connectors/odoo/plugin.py`) with a real preflight
+  (`pricing_scenario_preflight`, checked at both `plan()` and `execute()`)
+  and postcondition (`_verify_pricing_scenario_draft`); made
+  `CanaryRouterService._consumed`/`dashboard` compute real amounts/side
+  effects from `ExecutionRun` data; made
+  `SkillDeploymentService._check_canary_policy_eligibility` compute a real
+  success rate from terminal canary-lane runs. Updated the existing test
+  suite for the new capability name and added a genuine
+  insufficient-evidence-blocks-promotion test (previously only the
+  positive path was covered, and it accidentally passed via the fake
+  success-rate).
+- Built Workstream D from scratch:
+  `erpguard/domain/evidence/decision_outcome_bundle.py` (pure hash/label
+  functions), `erpguard/application/evidence/decision_outcome_service.py`
+  (gathers the full lifecycle, builds/seals/verifies/exports),
+  `DecisionOutcomeEvidenceBundle` model + migration `0025`, and the 3-route
+  API surface (`POST .../evidence-bundle`, `GET .../{id}`,
+  `GET .../{id}/verify`). 9 new tests in
+  `tests/test_phase20_2_decision_outcome_evidence.py`.
+- While building the E2E test, found that `RecommendationService
+  .convert_to_run` never routed through the canary router at all — it
+  always resolved the stable active package directly, so Workstream B's
+  router was structurally unreachable from a governed recommendation's
+  execution. Added an optional `routing_context` parameter (same shape
+  `/v1/runs/plan` accepts) that's backward-compatible when omitted.
+- Added `tests/test_backend_rc_end_to_end.py`, the Spec 92 Sec 19
+  acceptance scenario: snapshot → margin analysis → opportunity →
+  recommendation → approval → action draft → two Odoo skill packages
+  (stable + canary sharing one process_key) → canary policy → deterministic
+  routing (asserted reproducible for the same `business_object_key`) →
+  signed permit → execution against the injected fake transport →
+  draft-only postcondition verification → measurement plan → fixture
+  follow-up → realized outcome report → sealed evidence bundle → verified.
+- Added documentation: `docs/specs/92_governed_decision_to_outcome_backend_rc.md`,
+  `docs/architecture/decision_to_outcome_flow.md` (8 required Mermaid
+  diagrams), `docs/security/operational_canary_threat_model.md` (Sec 25's
+  14 threat cases mapped to actual mitigation + test), updated
+  `docs/architecture/capability_reality_matrix.md`, README, CHANGELOG,
+  ROADMAP (the latter was still frozen at "Phase 1 current" from long
+  before this session — rewritten to reflect actual state).
+  `docs/demo/backend_rc_decision_to_outcome_evidence.json` was generated
+  from a real `TestClient` run of the full lifecycle (fixture-backed, not
+  live Odoo). `docs/demo/backend_rc_live_pricing_scenario_evidence.json`
+  is explicitly marked `NOT_PERFORMED` with no fabricated order/price
+  data — no live Odoo 19 staging instance was available in this
+  environment (Spec 92 Sec 20 requires separate authorization for that
+  run).
+- Explicitly did not implement: net ROI with implementation cost (Sec
+  10.6 — `MarginOpportunity.implementation_cost` exists as a column but
+  nothing reads it), the canary dashboard's `estimated_opportunity_value`
+  (stays `null`), or any live Odoo staging execution.
+- Verification: full suite `939 passed, 4 skipped` after every change
+  batch (A/B fixes, then Workstream D, then the routing-context wiring
+  fix + E2E test). Ruff and mypy clean on every file touched; pre-existing
+  errors in untouched files (`erpguard/policies/loader.py`,
+  `erpguard/domain/processes/validation.py` missing `types-PyYAML` stubs;
+  `erpguard/domain/outcomes/comparison.py`'s unrelated `Decimal | None`
+  mypy narrowing) were left alone. Alembic `upgrade head -> downgrade -1
+  -> upgrade head` verified against SQLite for `0025_decision_outcome_evidence`;
+  not verified locally against PostgreSQL (none available in this
+  environment; runs in CI on every push).

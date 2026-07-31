@@ -1,5 +1,56 @@
 # Changelog
 
+## Unreleased — Spec 92 (Governed Decision-to-Outcome Backend RC)
+
+### Added
+
+- Governed recommendation lifecycle (`GovernedRecommendation`,
+  `GovernedActionDraft`): content-frozen at submit, independent approval
+  bound to exact content hash, code-defined allowlisted action templates.
+- New Odoo capability `sales.quote.create_pricing_scenario_draft` —
+  distinct from `quote.create_draft`, with live customer/product/staging
+  preflight and a draft-only postcondition that re-verifies lines, prices
+  and per-line margin against the recommendation's own evidence.
+- Operational canary router: deterministic `sha256`-bucket routing,
+  append-only routing decisions, safety-threshold auto-pause, and
+  promotion hardening requiring a completed policy, zero unresolved
+  critical incidents and a real (not simulated) postcondition success
+  rate.
+- `DecisionOutcomeEvidenceBundle`: hash-chained manifest over the full
+  decision-to-outcome lifecycle, reality-labeled per reference,
+  sealed-immutable, tamper-detected on every read and on demand via
+  `.../verify`.
+- Migrations `0022_recommendation_action_drafts`,
+  `0023_operational_canary_router`, `0024_outcome_measurement`,
+  `0025_decision_outcome_evidence`.
+- `tests/test_backend_rc_end_to_end.py` — full lifecycle acceptance test.
+
+### Fixed
+
+- `RecommendationService.convert_to_run` never routed through the canary
+  router — it always resolved the stable active package directly. Added an
+  optional `routing_context` (same shape `/v1/runs/plan` already accepts),
+  backward-compatible when omitted.
+- Canary dashboard's `cumulative_amount` and `unexpected_side_effects`
+  were hardcoded to `0`/`0.0`, making the `maximum_total_amount` safety
+  pause inoperative. Now computed from actual `ExecutionRun` data.
+- Promotion eligibility's `postcondition_success_rate` was faked as `1.0`
+  whenever any canary case existed, regardless of whether it had actually
+  executed. Now computed from terminal `ExecutionRun` outcomes only.
+
+### Safety
+
+- `sales.quote.create_pricing_scenario_draft` remains false by default
+  (`ERPGUARD_ALLOW_PRICING_SCENARIO_DRAFT=false`) and staging-only.
+- No live Odoo staging run of the pricing-scenario capability has been
+  performed — see
+  `docs/demo/backend_rc_live_pricing_scenario_evidence.json`.
+- Net ROI with implementation cost (Sec 10.6) is not implemented; the
+  field stays unset rather than guessed.
+- No generic model/method/`execute_raw` entry point exists on the Odoo
+  connector; canary bucket selection has no caller-suppliable seed; no
+  credential or secret reference is ever gathered into an evidence bundle.
+
 ## Unreleased — Phase 16.5
 
 ### Added

@@ -1,0 +1,34 @@
+{
+  "status": "NOT_PERFORMED",
+  "reality_label": "planned",
+  "spec_reference": "docs/specs/92_governed_decision_to_outcome_backend_rc.md Sec 20 (Spec 92 Sec 20)",
+  "reason_not_performed": "No live Odoo 19 staging instance was available in this environment. Spec 92 Sec 20 requires this to be a separately authorized live test against a real staging deployment; fabricating a result here would misrepresent unverified data as evidence, so this file intentionally contains no synthetic order id, customer, price, or quantity data.",
+  "what_this_file_will_contain_once_performed": {
+    "order_id": null,
+    "client_reference": null,
+    "recommendation_id": null,
+    "partner_id": null,
+    "company_id": null,
+    "currency_id": null,
+    "pricelist_id": null,
+    "lines": "exact product_id/quantity/proposed_unit_price per line, as created",
+    "state_after_creation": "must equal 'draft'",
+    "invoice_count_after_creation": "must equal 0",
+    "picking_count_after_creation": "must equal 0",
+    "purchase_order_count_after_creation": "must equal 0",
+    "manufacturing_order_count_after_creation": "must equal 0",
+    "retry_result": "must return the same order_id, created=false, no second sale.order row",
+    "postcondition_verification_result": "PermitService.get_evidence(...) sealed_digest, unmodified",
+    "credential_check": "must confirm no secret_ref, api key, or password string appears anywhere in the captured payload",
+    "cleanup_plan": "read-only manual cancellation/archival instructions from GovernedActionDraft.compensation_spec_json, never auto-executed"
+  },
+  "how_to_perform_this_test": [
+    "1. Provision a real Odoo 19 staging instance and a UnifiedConnection with metadata.environment == 'staging'.",
+    "2. Set ERPGUARD_ALLOW_PRICING_SCENARIO_DRAFT=true (false by default).",
+    "3. Run the full Workstream A flow (create/submit/approve a recommendation, build+validate a customer_discount_quote_scenario_v1 action draft, plan-run, approve, execute) against that real connection -- same API sequence as tests/test_backend_rc_end_to_end.py, but with a live erpguard.adapters.odoo.write_client.OdooQuoteDraftClient instead of the injected fake transport.",
+    "4. Capture GET /v1/runs/{run_id}/evidence and paste the sanitized (credential-free) result into this file's 'captured_evidence' key.",
+    "5. Repeat the plan-run/execute call with the same idempotency_key to confirm no duplicate order is created.",
+    "6. Never activate a price list and never confirm the created order -- this capability is draft-only by design."
+  ],
+  "captured_evidence": null
+}

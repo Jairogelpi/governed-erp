@@ -4,7 +4,7 @@
 
 **Inventory date:** 2026-07-31
 
-**Current implementation reference:** `8087cca` (Phase 16.5)
+**Current implementation reference:** Spec 92 Governed Decision-to-Outcome Backend RC (Workstreams A/B/C/D)
 
 The labels below are evidence labels, not marketing claims:
 
@@ -33,7 +33,7 @@ The labels below are evidence labels, not marketing claims:
 | Analytical Data Quality Gate | `real` / `blocked_on_insufficient_evidence` | Revenue/cost coverage, duplicates, refunds, currency, required fields, truncation and cost reliability govern which metrics may be claimed. |
 | Versioned margin metrics | `real` / `advisory` | `margin-truth/1.0.0` computes revenue, refunds, COGS, margin, discount, units and product/customer segments from a frozen snapshot. |
 | Period margin bridge | `real` / `advisory` | Deterministic price, volume, mix, discount, cost and refund effects reconcile prior to current margin within tolerance. |
-| Opportunity and ROI engine | `planned` | Phase 16.5 produces analytical facts and drivers, not recommendations or ROI scenarios. |
+| Opportunity and ROI engine | `real` / `advisory` | Phase 16.6 (`erpguard/domain/opportunity/`): deterministic detection rules over margin drivers produce immutable, evidence-linked `MarginOpportunity` rows with conservative/base/optimistic sizing; `implementation_cost`/`payback_period_days` stay `null` rather than fabricated. |
 | Odoo quotation draft creation | `staging_only` | Bounded real `sale.order.create`, idempotent client reference and draft-state postcondition; no generic RPC. |
 | Odoo order confirmation | `staging_only` / `blocked_by_default` | Bounded real `sale.order.action_confirm` behind independent approval, signed one-use permit, staging/amount gates and a false-by-default feature flag. |
 | Confirmation side-effect budget | `real` | Versioned effects and model creation ceilings are evaluated against before/after snapshots. |
@@ -50,7 +50,12 @@ The labels below are evidence labels, not marketing claims:
 | Operational shadow feed | `real` / `no_effects` | Canonical event ingestion projects affected cases into matching shadow deployments with persisted trace provenance and trace-derived idempotency. |
 | Shadow outcome reconciliation | `real` / `advisory` | Later outcomes are append-only, explicitly sourced and optionally linked to same-case canonical events. |
 | Canary eligibility metrics | `advisory` / `blocked` | Operational coverage, agreement, decisions, reviews, outcomes, safety labels, window and confidence intervals produce a recommendation only. |
-| Canary, activation, promotion and rollback | `planned` / `blocked` | Explicitly outside Phase 18; meeting an agreement threshold does not change routing or active versions. |
+| Canary, activation, promotion and rollback (deployment lifecycle) | `real` / `blocked_on_evidence` | Phase 19: `compiled -> approved -> canary -> active -> rolled_back` with at-most-one-active-package enforcement; promotion requires a `completed` `CanaryPolicy`, zero unresolved critical incidents and a real postcondition success rate when one exists (Spec 92 Sec 9.9). |
+| Governed recommendation lifecycle | `real` | Spec 92 Workstream A (`erpguard/domain/recommendations/`): `draft -> submitted -> approved -> converted`, content-frozen after submit, independent approval bound to exact content hash. |
+| Pricing-scenario Odoo draft (`sales.quote.create_pricing_scenario_draft`) | `staging_only` / `blocked_by_default` | Distinct capability from Phase 16's `quote.create_draft`; live/customer/product preflight, margin/line/total ceilings, draft-only postcondition, idempotent retry. `ERPGUARD_ALLOW_PRICING_SCENARIO_DRAFT=false` by default. No live staging run performed yet — see `docs/demo/backend_rc_live_pricing_scenario_evidence.json`. |
+| Operational canary router | `real` | Spec 92 Workstream B (`erpguard/domain/canary/routing.py`): deterministic `sha256`-bucket lane selection, append-only routing decisions, safety-threshold auto-pause. No RNG, no LLM. |
+| Outcome measurement / realized ROI | `real` / `advisory` | Spec 92 Workstream C (`erpguard/domain/outcomes/`): gated comparison (metric version, currency, coverage), explicit `live_odoo_read` / `fixture` / `manual_import` labeling, no causal-claim language. Net ROI with implementation cost is unimplemented (field stays `null`). |
+| Decision-to-outcome evidence bundle | `real` | Spec 92 Workstream D (`erpguard/domain/evidence/`, `erpguard/application/evidence/`): hash-chained manifest over the full lifecycle, sealed-immutable, tamper-detected on every read. |
 | Identity and tenant enforcement | `planned` | Master spec Phase 3; incomplete at baseline. |
 | PostgreSQL/Alembic migration foundation | `planned` | Master spec Phase 2; absent from Phase 0 baseline. |
 | Autonomous promotion, marketplace, second ERP connector, generic MCP | `blocked` | Explicit non-goals for the TFM path. |
