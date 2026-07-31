@@ -5,6 +5,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from apps.api.schemas.execution_permits import RunRoutingContext
+
 
 class RecommendationCreateRequest(BaseModel):
     recommendation_type: str = Field(min_length=1)
@@ -67,6 +69,7 @@ class ActionDraftCreateRequest(BaseModel):
 
 class ActionDraftPlanRunRequest(BaseModel):
     idempotency_key: str = Field(min_length=1)
+    routing_context: RunRoutingContext | None = None
 
 
 class ActionDraftResponse(BaseModel):

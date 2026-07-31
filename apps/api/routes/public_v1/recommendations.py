@@ -197,6 +197,7 @@ def plan_run_action_draft(
             action_draft_id=action_draft_id,
             actor_id=principal.user_id,
             idempotency_key=request.idempotency_key,
+            routing_context=request.routing_context.model_dump(mode="json") if request.routing_context else None,
         )
     except ActionDraftNotFound as exc:
         raise HTTPException(status_code=404, detail="action_draft_not_found") from exc

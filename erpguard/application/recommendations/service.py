@@ -20,7 +20,7 @@ from erpguard.db.model_packages.decision_intelligence import MarginAnalysis
 from erpguard.db.model_packages.execution import Approval
 from erpguard.db.model_packages.recommendations import GovernedActionDraft, GovernedRecommendation
 from erpguard.domain.deployment.service import SkillDeploymentService
-from erpguard.domain.execution.permit_service import PermitService
+from erpguard.domain.execution.permit_service import NoActiveSkillForProcess, PermitService
 from erpguard.domain.processes.candidate_integrity import stable_digest
 from erpguard.domain.recommendations.state_machine import (
     ACTION_DRAFT_TRANSITIONS,
@@ -246,11 +246,16 @@ class RecommendationService:
             arguments = {
                 "partner_id": pricing_inputs.partner_id,
                 "client_reference": client_reference,
+                "company_id": pricing_inputs.company_id,
+                "currency_id": pricing_inputs.currency_id,
+                "pricelist_id": pricing_inputs.pricelist_id,
                 "lines": [
                     {
                         "product_id": line.product_id,
                         "quantity": line.quantity,
                         "price_unit": str(line.proposed_unit_price),
+                        "cost_reference": str(line.cost_reference),
+                        "minimum_margin_percent": str(line.minimum_margin_percent),
                     }
                     for line in pricing_inputs.lines
                 ],
@@ -322,7 +327,20 @@ class RecommendationService:
         self.session.refresh(row)
         return row
 
-    def convert_to_run(self, *, tenant_id: str, action_draft_id: str, actor_id: str, idempotency_key: str) -> GovernedActionDraft:
+    def convert_to_run(
+        self,
+        *,
+        tenant_id: str,
+        action_draft_id: str,
+        actor_id: str,
+        idempotency_key: str,
+        routing_context: dict | None = None,
+    ) -> GovernedActionDraft:
+        """`routing_context` (Spec 92 Sec 9.5) routes this run through the
+        operational canary router instead of always resolving the current
+        stable active package -- optional so existing callers that never
+        pass it keep the pre-Workstream-B direct-to-stable behavior."""
+
         row = self._get_draft(tenant_id=tenant_id, action_draft_id=action_draft_id)
         if row.status == "converted":
             return row
@@ -332,21 +350,37 @@ class RecommendationService:
         if row.connection_id is None:
             raise RecommendationValidationError("action_draft_missing_connection")
 
-        skill_package = SkillDeploymentService(self.session).get_active(
-            tenant_id=tenant_id, process_key=row.process_key
-        )
-        if skill_package is None:
-            raise NoActiveSkillForActionTemplate(f"no_active_skill_for_process:{row.process_key}")
+        permit_service = PermitService(self.session)
+        if routing_context is not None:
+            try:
+                run = permit_service.plan(
+                    tenant_id=tenant_id,
+                    actor_id=actor_id,
+                    connection_id=row.connection_id,
+                    process_key=row.process_key,
+                    routing_context=routing_context,
+                    capability=row.capability,
+                    idempotency_key=idempotency_key,
+                    capability_payload=json.loads(row.arguments_json),
+                )
+            except NoActiveSkillForProcess as exc:
+                raise NoActiveSkillForActionTemplate(f"no_active_skill_for_process:{row.process_key}") from exc
+        else:
+            skill_package = SkillDeploymentService(self.session).get_active(
+                tenant_id=tenant_id, process_key=row.process_key
+            )
+            if skill_package is None:
+                raise NoActiveSkillForActionTemplate(f"no_active_skill_for_process:{row.process_key}")
 
-        run = PermitService(self.session).plan(
-            tenant_id=tenant_id,
-            actor_id=actor_id,
-            connection_id=row.connection_id,
-            skill_package_id=skill_package.id,
-            capability=row.capability,
-            idempotency_key=idempotency_key,
-            capability_payload=json.loads(row.arguments_json),
-        )
+            run = permit_service.plan(
+                tenant_id=tenant_id,
+                actor_id=actor_id,
+                connection_id=row.connection_id,
+                skill_package_id=skill_package.id,
+                capability=row.capability,
+                idempotency_key=idempotency_key,
+                capability_payload=json.loads(row.arguments_json),
+            )
         row.status = "converted"
         row.converted_run_id = run.id
         self.session.commit()
