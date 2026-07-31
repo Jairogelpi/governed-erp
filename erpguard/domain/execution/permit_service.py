@@ -213,6 +213,10 @@ class PermitService:
         return capability == "sales.order.confirm"
 
     @staticmethod
+    def _is_pricing_scenario(capability: str) -> bool:
+        return capability == "sales.quote.create_pricing_scenario_draft"
+
+    @staticmethod
     def required_approval_scope(row: ExecutionRun) -> str | None:
         if row.capability != "sales.order.confirm":
             return None
@@ -386,6 +390,14 @@ class PermitService:
             predicted_effects = list(preflight.get("predicted_effects", []))
             resolved_objects = [f"sale.order:{live_snapshot.get('order_id')}"]
             risk = "R3"
+        elif self._is_pricing_scenario(capability):
+            preflight_method = getattr(connector, "pricing_scenario_preflight", None)
+            if preflight_method is None:
+                raise RunValidationError("connector_missing_pricing_scenario_preflight")
+            preflight = preflight_method(context, operation)
+            if preflight.get("status") != "passed":
+                issues = ",".join(preflight.get("issues", [])) or "pricing_scenario_preflight_failed"
+                raise RunValidationError(issues)
 
         plan = ActionPlan(
             actor_id=actor_id,
@@ -712,6 +724,29 @@ class PermitService:
                 self._seal_evidence(row, verification_payload)
                 self.session.commit()
                 raise RunStateChanged("control_contract_changed_since_approval")
+
+        if self._is_pricing_scenario(row.capability):
+            preflight_method = getattr(connector, "pricing_scenario_preflight", None)
+            if preflight_method is not None:
+                preflight_operation = CanonicalOperation(
+                    capability=row.capability, arguments=stored_plan.capability_payload
+                )
+                preflight = preflight_method(context, preflight_operation)
+                if preflight.get("status") != "passed":
+                    verification_payload = {
+                        "checks": [c.model_dump(mode="json") for c in verification.checks],
+                        "connector_result": None,
+                        "postcondition": None,
+                        "preflight_recheck": preflight,
+                    }
+                    row.verification_result_json = json.dumps(
+                        verification_payload, sort_keys=True, separators=(",", ":")
+                    )
+                    row.status = "blocked"
+                    row.executed_at = _utc_now()
+                    self._seal_evidence(row, verification_payload)
+                    self.session.commit()
+                    raise RunStateChanged("pricing_scenario_preconditions_changed_since_approval")
 
         execution_error: str | None = None
         try:

@@ -26,7 +26,7 @@ ACTION_TEMPLATES: dict[str, ActionTemplate] = {
         name="customer_discount_quote_scenario_v1",
         version="1",
         execution_classification="executable",
-        capability="quote.create_draft",
+        capability="sales.quote.create_pricing_scenario_draft",
         connector_id="odoo",
         description=(
             "Create a controlled Odoo draft quotation scenario using proposed "

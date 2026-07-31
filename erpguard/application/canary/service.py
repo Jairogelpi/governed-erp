@@ -29,6 +29,33 @@ def _dump(value) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
 
+def _run_amount(run) -> float:
+    """Best-effort amount for a run, used for cumulative-amount tracking
+    (Spec 92 Sec 9.6's `maximum_total_amount` safety pause). `ExecutionRun`
+    has no dedicated amount column -- confirmation runs carry it in the
+    bound state snapshot; pricing-scenario (and other line-based) runs
+    carry it as `quantity * price_unit` per line in the capability payload."""
+
+    try:
+        payload = json.loads(run.action_plan_json).get("capability_payload", {})
+    except (json.JSONDecodeError, TypeError, AttributeError):
+        return 0.0
+    lines = payload.get("lines")
+    if isinstance(lines, list) and lines:
+        total = 0.0
+        for line in lines:
+            try:
+                total += float(line.get("quantity", 0)) * float(line.get("price_unit", 0))
+            except (TypeError, ValueError):
+                continue
+        return total
+    try:
+        state_snapshot = json.loads(run.state_snapshot_json or "{}")
+        return float(state_snapshot.get("amount_total") or 0)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return 0.0
+
+
 class CanaryPolicyNotFound(KeyError):
     pass
 
@@ -229,13 +256,19 @@ class CanaryRouterService:
         )
 
     def _consumed(self, *, tenant_id: str, policy_id: str) -> tuple[int, float]:
+        from erpguard.db.model_packages.execution import ExecutionRun
+
         decisions = (
             self.session.query(CanaryRoutingDecision)
             .filter_by(tenant_id=tenant_id, canary_policy_id=policy_id, selected_lane="canary")
             .filter(CanaryRoutingDecision.execution_run_id.isnot(None))
             .all()
         )
-        return len(decisions), 0.0
+        run_ids = [row.execution_run_id for row in decisions]
+        runs = (
+            self.session.query(ExecutionRun).filter(ExecutionRun.id.in_(run_ids)).all() if run_ids else []
+        )
+        return len(decisions), sum(_run_amount(run) for run in runs)
 
     def route(
         self,
@@ -421,6 +454,10 @@ class CanaryRouterService:
         postcondition_failure_count = sum(
             1 for run in runs if run.status == "succeeded" and "verification_failed" in (run.verification_result_json or "")
         )
+        unexpected_side_effect_count = sum(
+            1 for run in runs if "forbidden_effect_observed" in (run.verification_result_json or "")
+        )
+        cumulative_amount = sum(_run_amount(run) for run in runs)
 
         incidents = self.list_incidents(tenant_id=tenant_id, policy_id=policy_id)
         unresolved_incidents = sum(1 for row in incidents if row.resolved_at is None)
@@ -433,8 +470,8 @@ class CanaryRouterService:
             blocked_count=blocked_count,
             failed_count=failed_count,
             postcondition_failure_count=postcondition_failure_count,
-            unexpected_side_effect_count=0,
-            cumulative_amount=0.0,
+            unexpected_side_effect_count=unexpected_side_effect_count,
+            cumulative_amount=cumulative_amount,
             estimated_opportunity_value=None,
             reviewed_incidents=reviewed_incidents,
             unresolved_incidents=unresolved_incidents,

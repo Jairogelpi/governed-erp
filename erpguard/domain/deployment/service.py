@@ -57,6 +57,7 @@ class SkillDeploymentService:
         are unaffected -- this check is a no-op when no policy exists."""
 
         from erpguard.db.model_packages.canary import CanaryPolicy, CanaryRoutingDecision, CanarySafetyIncident
+        from erpguard.db.model_packages.execution import ExecutionRun
         from erpguard.domain.canary.eligibility import check_promotion_eligibility
 
         policy = (
@@ -68,11 +69,25 @@ class SkillDeploymentService:
         if policy is None:
             return
 
-        canary_case_count = (
+        canary_decisions = (
             self.session.query(CanaryRoutingDecision)
             .filter_by(tenant_id=tenant_id, canary_policy_id=policy.id, selected_lane="canary")
             .filter(CanaryRoutingDecision.execution_run_id.isnot(None))
-            .count()
+            .all()
+        )
+        canary_case_count = len(canary_decisions)
+        run_ids = [row.execution_run_id for row in canary_decisions]
+        runs = (
+            self.session.query(ExecutionRun).filter(ExecutionRun.id.in_(run_ids)).all() if run_ids else []
+        )
+        # Only *terminal* outcomes count as observed evidence -- a run still
+        # `planned`/`approved` has no postcondition result yet and must not
+        # be silently treated as either a success or a failure.
+        terminal_runs = [run for run in runs if run.status in {"succeeded", "blocked", "failed", "unknown"}]
+        postcondition_success_rate = (
+            sum(1 for run in terminal_runs if run.status == "succeeded") / len(terminal_runs)
+            if terminal_runs
+            else None
         )
         unresolved_critical = (
             self.session.query(CanarySafetyIncident)
@@ -84,7 +99,7 @@ class SkillDeploymentService:
             policy_status=policy.status,
             unresolved_critical_incidents=unresolved_critical,
             canary_case_count=canary_case_count,
-            postcondition_success_rate=1.0 if canary_case_count else None,
+            postcondition_success_rate=postcondition_success_rate,
             observation_coverage=coverage,
         )
         if issues:
