@@ -1,0 +1,163 @@
+{
+  "status": "PERFORMED",
+  "reality_label": "staging_live",
+  "spec_reference": "docs/specs/92_governed_decision_to_outcome_backend_rc.md Sec 19/20 (Spec 92 Sec 19, Sec 20)",
+  "odoo_server_version": "19.0+e",
+  "instance": "Esenssi Aromas S.L. staging (esenssi-aromas-staging-35351235.dev.odoo.com) -- authorized by the instance owner for this test",
+  "capability": "sales.quote.create_pricing_scenario_draft",
+  "no_generic_erp_call": "structural -- OdooConnectorPlugin has no model/method/execute_raw attribute (test_no_generic_write_method_exists)",
+  "credential_check": {
+    "method": "output payload scanned for the literal API key string before writing each evidence file",
+    "result": "no credential present in either test's evidence -- ERPGuard's UnifiedConnection stores only an encrypted secret reference (secret_ref), never plaintext, and the evidence pack never references it"
+  },
+  "tests": [
+    {
+      "label": "direct_to_stable",
+      "performed_at": "2026-07-31T22:43:16Z",
+      "note": "Planned without a routing_context -- the action-draft conversion path resolves the stable active package directly, same as before the Sec 19 canary-routing wiring fix. Kept as the first, simpler proof that the capability itself works live before adding canary routing to the second test.",
+      "governed_pipeline": {
+        "recommendation_id": "rec_8d69f40bedb545959bad169162e7f3fd",
+        "action_draft_id": "actdraft_4805721398ec4ef1a38ad5dd21202b6d",
+        "run_id": "run_2feca9a978fa40148e641edb6935080d",
+        "run_status": "succeeded",
+        "skill_capability_allowlist": ["sales.quote.create_pricing_scenario_draft"]
+      },
+      "created_order": {
+        "order_id": 155,
+        "order_name": "GUIA-00465",
+        "state": "draft",
+        "client_reference": "GERP-rec_8d69f40bedb545959bad169162e7f3fd",
+        "partner_id": 1350,
+        "partner_name": "[REDACTED -- real staging customer name, id 1350 kept for traceability]",
+        "company_id": 1,
+        "currency_id": 126,
+        "pricelist_id": 1,
+        "amount_total": 0.484,
+        "lines": [
+          {
+            "product_id": 1225,
+            "product_reference": "ARB02",
+            "quantity": 10.0,
+            "price_unit": 0.04,
+            "cost_reference_supplied_by_recommendation": "0.025",
+            "minimum_margin_percent_supplied_by_recommendation": "20.0",
+            "note": "cost_reference/minimum_margin_percent are recommendation-supplied evidence, not read from Odoo's standard_price -- same as every other pricing-scenario draft in this codebase (Workstream A never auto-derives cost)."
+          }
+        ]
+      },
+      "postcondition_verification": {
+        "status": "verified",
+        "summary": "pricing_scenario_draft_postconditions_verified",
+        "state_is_draft": true,
+        "invoice_count": 0,
+        "picking_count": 0,
+        "purchase_order_count": 0,
+        "manufacturing_order_count": 0,
+        "independently_reread_after_execution": {
+          "method": "direct OdooClient.search_read against sale.order id=155, separate from the governed pipeline's own postcondition check",
+          "state": "draft",
+          "invoice_ids": [],
+          "picking_ids": []
+        }
+      },
+      "confirmation_never_occurred": true,
+      "price_list_never_activated": true,
+      "existing_order_never_modified": true,
+      "retry_idempotency": {
+        "method": "re-called POST /v1/action-drafts/{id}/plan-run with a fresh idempotency_key on the same action draft",
+        "result": "returned the same run_id (run_2feca9a978fa40148e641edb6935080d), no second ExecutionRun or sale.order created"
+      },
+      "cleanup_plan": {
+        "strategy": "manual_cancellation_or_archival",
+        "source": "GovernedActionDraft.compensation_spec_json -- read-only instruction, never auto-executed",
+        "note": "Order 155 (GUIA-00465) remains in draft state in the staging instance. It was not archived automatically -- per Spec 92 Sec 8.6, ERPGuard may generate cleanup instructions but must not automatically delete or archive the record. Manual archival is the instance owner's decision."
+      },
+      "sealed_digest": "b4e09e4b4aa89ba9f721cb88e67daf10af2ab30e9abd479cbeffd64adc0da633",
+      "hashes": {
+        "operation_hash": "15c4e3769ddd463f611a7a679fae9858cc419ee554fe2e031a3b90c23e3f7199",
+        "native_plan_hash": "a96fe2c40c85ad34ca2daa32bc5216913e0a50ba9d2af6fa1202496d8680cbd8",
+        "state_snapshot_hash": "c8a257bb0e0b59916104bf9b2b070e1099808bed99393bde490556faa967ff67"
+      }
+    },
+    {
+      "label": "canary_routed",
+      "performed_at": "2026-08-01T02:21:43Z",
+      "note": "Genuinely canary-routed, closing the gap the first test left open. Two real Odoo skill packages (stable + canary) shared one process_key; an approved, activated CanaryPolicy forced the canary lane (percentage_basis_points=10000); the action draft was planned WITH a routing_context, so CanaryRouterService actually selected the package -- not planned directly to stable.",
+      "canary_policy_id": "canarypolicy_bc6b653af8024f15a2bb6ab41b9c05ce",
+      "stable_skill_package_id": "skillpkg_afbcaac3fae0440c9c98ae338b4bdebe",
+      "canary_skill_package_id": "skillpkg_7abafec157e744a29767359ebc32836d",
+      "routing_proof": {
+        "business_object_key": "rec_612fcadbcef048f59e85a015030184ae (derived: rec-{recommendation_id})",
+        "bucket": 22,
+        "selection_reason": "hash_selected_canary",
+        "determinism_check": "CanaryRouterService.route() called twice with identical inputs before the real plan-run call returned the same bucket (22) and the same selected_skill_package_id both times",
+        "execution_run_confirmed_lane": "canary",
+        "execution_run_confirmed_skill_package_id": "skillpkg_7abafec157e744a29767359ebc32836d",
+        "routing_decisions_persisted": 3
+      },
+      "governed_pipeline": {
+        "recommendation_id": "rec_612fcadbcef048f59e85a015030184ae",
+        "action_draft_id": "actdraft_d3576a7a21f241fbb5c7f0d799e7e733",
+        "run_id": "run_f677079abf2c420eac5e579c2c9882fe",
+        "run_status": "succeeded",
+        "deployment_lane": "canary",
+        "skill_capability_allowlist": ["sales.quote.create_pricing_scenario_draft"]
+      },
+      "created_order": {
+        "order_id": 156,
+        "order_name": "GUIA-00466",
+        "state": "draft",
+        "client_reference": "GERP-rec_612fcadbcef048f59e85a015030184ae",
+        "partner_id": 1350,
+        "partner_name": "[REDACTED -- real staging customer name, id 1350 kept for traceability]",
+        "company_id": 1,
+        "currency_id": 126,
+        "pricelist_id": 1,
+        "amount_total": 0.242,
+        "lines": [
+          {
+            "product_id": 1225,
+            "product_reference": "ARB02",
+            "quantity": 5.0,
+            "price_unit": 0.04,
+            "cost_reference_supplied_by_recommendation": "0.025",
+            "minimum_margin_percent_supplied_by_recommendation": "20.0"
+          }
+        ]
+      },
+      "postcondition_verification": {
+        "status": "verified",
+        "summary": "pricing_scenario_draft_postconditions_verified",
+        "state_is_draft": true,
+        "invoice_count": 0,
+        "picking_count": 0,
+        "purchase_order_count": 0,
+        "manufacturing_order_count": 0,
+        "independently_reread_after_execution": {
+          "method": "direct OdooClient.search_read against sale.order id=156, separate from the governed pipeline's own postcondition check",
+          "state": "draft",
+          "invoice_ids": [],
+          "picking_ids": []
+        }
+      },
+      "confirmation_never_occurred": true,
+      "price_list_never_activated": true,
+      "existing_order_never_modified": true,
+      "retry_idempotency": {
+        "method": "re-called POST /v1/action-drafts/{id}/plan-run with a fresh idempotency_key and the same routing_context on the same action draft",
+        "result": "returned the same run_id (run_f677079abf2c420eac5e579c2c9882fe), no second ExecutionRun or sale.order created"
+      },
+      "cleanup_plan": {
+        "strategy": "manual_cancellation_or_archival",
+        "source": "GovernedActionDraft.compensation_spec_json -- read-only instruction, never auto-executed",
+        "note": "Order 156 (GUIA-00466) remains in draft state in the staging instance. Not archived automatically."
+      },
+      "sealed_digest": "cc145ffb8e399ab044520a9ebdeb6cda60075633830c29f5e3658bafa19eb080",
+      "hashes": {
+        "operation_hash": "0f3039e78e0c42219c7099b49a65c335c5f869c4f1f781119f0ce7b1b96c23ac",
+        "native_plan_hash": "b37d25b346b4a8aaa14f70b3db21410f3e8b34e2a891104b71b67c3df0a7fa06",
+        "state_snapshot_hash": "b6c4070e13efe16d6d126e30d962dfaaa0d275d1edcc4e73ffacdc7064da2c6a"
+      }
+    }
+  ]
+}

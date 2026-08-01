@@ -29,34 +29,126 @@ class OdooQuoteDraftClient:
         )
         return int(rows[0]["id"]) if rows else None
 
-    def create_draft(self, *, partner_id: int, lines: list[dict[str, Any]], client_reference: str) -> int:
+    def create_draft(
+        self,
+        *,
+        partner_id: int,
+        lines: list[dict[str, Any]],
+        client_reference: str,
+        company_id: int | None = None,
+        pricelist_id: int | None = None,
+    ) -> int:
         """Creates exactly one `sale.order` in its default (draft) state.
         Never calls `action_confirm` or any invoicing/picking method."""
 
-        order_lines = [
-            (
-                0,
-                0,
-                {
-                    "product_id": int(line["product_id"]),
-                    "product_uom_qty": line.get("quantity", 1),
-                },
-            )
-            for line in lines
-        ]
+        order_lines = []
+        for line in lines:
+            values: dict[str, Any] = {
+                "product_id": int(line["product_id"]),
+                "product_uom_qty": line.get("quantity", 1),
+            }
+            if "price_unit" in line:
+                # Only set when a governed recommendation supplies a proposed
+                # price (Spec 92 Workstream A); otherwise Odoo's own
+                # pricelist pricing applies, same as before.
+                values["price_unit"] = line["price_unit"]
+            order_lines.append((0, 0, values))
+        values_order: dict[str, Any] = {
+            "partner_id": partner_id,
+            "client_order_ref": client_reference,
+            "order_line": order_lines,
+        }
+        if company_id is not None:
+            values_order["company_id"] = company_id
+        if pricelist_id is not None:
+            values_order["pricelist_id"] = pricelist_id
         order_id = self._client._execute_kw(  # noqa: SLF001 -- intentional, single narrow call site
             _SALE_ORDER_MODEL,
             "create",
-            [
-                {
-                    "partner_id": partner_id,
-                    "client_order_ref": client_reference,
-                    "order_line": order_lines,
-                }
-            ],
+            [values_order],
             {},
         )
         return int(cast(int, order_id))
+
+    def read_partner(self, partner_id: int) -> dict[str, Any]:
+        """Bounded read used by the pricing-scenario preflight (Spec 92 Sec
+        8.3) to confirm the customer exists and is active."""
+
+        rows = self._client.read("res.partner", [partner_id], ["id", "active"])
+        if not rows:
+            raise LookupError(f"partner_not_found:{partner_id}")
+        return {"id": int(rows[0]["id"]), "active": bool(rows[0].get("active", True))}
+
+    def read_products(self, product_ids: list[int]) -> list[dict[str, Any]]:
+        """Bounded read used by the pricing-scenario preflight to confirm
+        every product exists, is active/saleable, and carries no forbidden
+        marker in its name."""
+
+        if not product_ids:
+            return []
+        rows = self._client.read("product.product", product_ids, ["id", "active", "sale_ok", "name"])
+        return [
+            {
+                "id": int(row["id"]),
+                "active": bool(row.get("active", True)),
+                "sale_ok": bool(row.get("sale_ok", True)),
+                "name": str(row.get("name") or ""),
+            }
+            for row in rows
+        ]
+
+    def read_pricing_scenario_snapshot(self, order_id: int) -> dict[str, Any]:
+        """Postcondition read for `sales.quote.create_pricing_scenario_draft`
+        (Spec 92 Sec 8.5) -- narrower than `read_confirmation_snapshot`
+        (no automation-fingerprint fields needed for a draft-only write)."""
+
+        fields = [
+            "id", "name", "state", "partner_id", "company_id", "currency_id",
+            "pricelist_id", "amount_total", "client_order_ref", "order_line",
+            "picking_ids", "invoice_ids",
+        ]
+        rows = self._client.read(_SALE_ORDER_MODEL, [order_id], fields)
+        if not rows:
+            raise LookupError(f"sale_order_not_found:{order_id}")
+        order = rows[0]
+
+        line_ids = [int(value) for value in order.get("order_line", [])]
+        line_rows = (
+            self._client.read("sale.order.line", line_ids, ["id", "product_id", "product_uom_qty", "price_unit"])
+            if line_ids
+            else []
+        )
+        lines = [
+            {
+                "product_id": self._relation_id(line.get("product_id")),
+                "quantity": float(line.get("product_uom_qty") or 0),
+                "price_unit": float(line.get("price_unit") or 0),
+            }
+            for line in sorted(line_rows, key=lambda item: int(item["id"]))
+        ]
+
+        purchase_orders = self._client.search_read(
+            "purchase.order", [["origin", "=", str(order.get("name") or "")]], ["id"], limit=1
+        )
+        manufacturing_orders = self._client.search_read(
+            "mrp.production", [["origin", "=", str(order.get("name") or "")]], ["id"], limit=1
+        )
+
+        return {
+            "order_id": int(order["id"]),
+            "state": str(order.get("state") or ""),
+            "partner_id": self._relation_id(order.get("partner_id")),
+            "company_id": self._relation_id(order.get("company_id")),
+            "currency_id": self._relation_id(order.get("currency_id")),
+            "pricelist_id": self._relation_id(order.get("pricelist_id")),
+            "amount_total": float(order.get("amount_total") or 0),
+            "client_reference": str(order.get("client_order_ref") or ""),
+            "lines": lines,
+            "invoice_count": len(order.get("invoice_ids") or []),
+            "picking_count": len(order.get("picking_ids") or []),
+            "purchase_order_count": len(purchase_orders),
+            "manufacturing_order_count": len(manufacturing_orders),
+        }
 
     def read_order(self, order_id: int) -> dict[str, Any]:
         rows = self._client.read(_SALE_ORDER_MODEL, [order_id], ["id", "name", "state", "partner_id", "client_order_ref"])

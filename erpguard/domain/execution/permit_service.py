@@ -213,6 +213,10 @@ class PermitService:
         return capability == "sales.order.confirm"
 
     @staticmethod
+    def _is_pricing_scenario(capability: str) -> bool:
+        return capability == "sales.quote.create_pricing_scenario_draft"
+
+    @staticmethod
     def required_approval_scope(row: ExecutionRun) -> str | None:
         if row.capability != "sales.order.confirm":
             return None
@@ -266,19 +270,66 @@ class PermitService:
         connection_id: str,
         skill_package_id: str | None = None,
         process_key: str | None = None,
+        routing_context: dict | None = None,
         capability: str,
         idempotency_key: str,
         capability_payload: dict | None = None,
     ) -> ExecutionRun:
+        canary_policy_id: str | None = None
+        routing_decision_id: str | None = None
+        deployment_lane: str | None = None
+        # ponytail: pre-generated so the routing decision (created below,
+        # before the idempotency check further down) can reference the run
+        # id up front. A retry with the same idempotency_key + routing
+        # context still creates a fresh CanaryRoutingDecision row (correct,
+        # append-only evidence) but its execution_run_id won't match the
+        # earlier call's actual returned run on the retry path -- narrow
+        # edge case, not fixed here; revisit if idempotent-canary retries
+        # need exact run-id reconciliation.
+        run_id = f"run_{uuid4().hex}"
+
         if skill_package_id is None:
             if process_key is None:
                 raise RunValidationError("skill_package_id_or_process_key_required")
-            active = SkillDeploymentService(self.session).get_active(
-                tenant_id=tenant_id, process_key=process_key
-            )
-            if active is None:
-                raise NoActiveSkillForProcess(f"no_active_skill_for_process:{process_key}")
-            skill_package_id = active.id
+            if routing_context is not None:
+                from erpguard.application.canary.service import CanaryRouterService
+
+                decision = CanaryRouterService(self.session).route(
+                    tenant_id=tenant_id,
+                    process_key=process_key,
+                    business_object_key=routing_context["business_object_key"],
+                    object_type=routing_context.get("object_type"),
+                    company_id=routing_context.get("company_id"),
+                    capability=capability,
+                    amount=(
+                        float(routing_context["amount"]) if routing_context.get("amount") is not None else None
+                    ),
+                    execution_run_id=run_id,
+                )
+                if decision.selected_lane == "blocked":
+                    raise KillSwitchActive("kill_switch_active")
+                if decision.selected_skill_package_id is None:
+                    # No CanaryPolicy for this process -- routing_context has
+                    # nothing to route against, same as the no-context path.
+                    active = SkillDeploymentService(self.session).get_active(
+                        tenant_id=tenant_id, process_key=process_key
+                    )
+                    if active is None:
+                        raise NoActiveSkillForProcess(f"no_active_skill_for_process:{process_key}")
+                    skill_package_id = active.id
+                else:
+                    skill_package_id = decision.selected_skill_package_id
+                canary_policy_id = decision.canary_policy_id
+                routing_decision_id = decision.id
+                deployment_lane = decision.selected_lane
+            else:
+                active = SkillDeploymentService(self.session).get_active(
+                    tenant_id=tenant_id, process_key=process_key
+                )
+                if active is None:
+                    raise NoActiveSkillForProcess(f"no_active_skill_for_process:{process_key}")
+                skill_package_id = active.id
+                deployment_lane = "stable"
 
         assert skill_package_id is not None
         skill_package = self._get_skill_package(tenant_id=tenant_id, skill_package_id=skill_package_id)
@@ -339,6 +390,14 @@ class PermitService:
             predicted_effects = list(preflight.get("predicted_effects", []))
             resolved_objects = [f"sale.order:{live_snapshot.get('order_id')}"]
             risk = "R3"
+        elif self._is_pricing_scenario(capability):
+            preflight_method = getattr(connector, "pricing_scenario_preflight", None)
+            if preflight_method is None:
+                raise RunValidationError("connector_missing_pricing_scenario_preflight")
+            preflight = preflight_method(context, operation)
+            if preflight.get("status") != "passed":
+                issues = ",".join(preflight.get("issues", [])) or "pricing_scenario_preflight_failed"
+                raise RunValidationError(issues)
 
         plan = ActionPlan(
             actor_id=actor_id,
@@ -410,7 +469,7 @@ class PermitService:
         native_plan_hash = stable_digest(native_plan.model_dump(mode="json"))
 
         row = ExecutionRun(
-            id=f"run_{uuid4().hex}",
+            id=run_id,
             tenant_id=tenant_id,
             actor_id=actor_id,
             connection_id=connection_id,
@@ -429,6 +488,9 @@ class PermitService:
             control_contract_hash=control_contract_hash,
             idempotency_key=idempotency_key,
             status="planned",
+            canary_policy_id=canary_policy_id,
+            routing_decision_id=routing_decision_id,
+            deployment_lane=deployment_lane,
             cleanup_plan_json=json.dumps(
                 (
                     connector.governed_confirmation_cleanup_plan(
@@ -662,6 +724,29 @@ class PermitService:
                 self._seal_evidence(row, verification_payload)
                 self.session.commit()
                 raise RunStateChanged("control_contract_changed_since_approval")
+
+        if self._is_pricing_scenario(row.capability):
+            preflight_method = getattr(connector, "pricing_scenario_preflight", None)
+            if preflight_method is not None:
+                preflight_operation = CanonicalOperation(
+                    capability=row.capability, arguments=stored_plan.capability_payload
+                )
+                preflight = preflight_method(context, preflight_operation)
+                if preflight.get("status") != "passed":
+                    verification_payload = {
+                        "checks": [c.model_dump(mode="json") for c in verification.checks],
+                        "connector_result": None,
+                        "postcondition": None,
+                        "preflight_recheck": preflight,
+                    }
+                    row.verification_result_json = json.dumps(
+                        verification_payload, sort_keys=True, separators=(",", ":")
+                    )
+                    row.status = "blocked"
+                    row.executed_at = _utc_now()
+                    self._seal_evidence(row, verification_payload)
+                    self.session.commit()
+                    raise RunStateChanged("pricing_scenario_preconditions_changed_since_approval")
 
         execution_error: str | None = None
         try:

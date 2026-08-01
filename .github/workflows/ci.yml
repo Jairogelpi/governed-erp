@@ -61,7 +61,24 @@ jobs:
         env:
           ERPGUARD_DATABASE_URL: postgresql+psycopg://erpguard:erpguard@localhost:5432/erpguard
         run: python -m alembic upgrade head
+      - name: Downgrade and re-upgrade the latest migration against PostgreSQL
+        env:
+          ERPGUARD_DATABASE_URL: postgresql+psycopg://erpguard:erpguard@localhost:5432/erpguard
+        run: |
+          python -m alembic downgrade -1
+          python -m alembic upgrade head
       - name: Test retired-schema migration against real PostgreSQL
         env:
           ERPGUARD_DATABASE_URL: postgresql+psycopg://erpguard:erpguard@localhost:5432/erpguard
         run: python -m pytest tests/test_phase2_migrations.py tests/test_c82_retired_schema_postgres.py -q
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

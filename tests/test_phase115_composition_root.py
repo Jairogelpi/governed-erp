@@ -24,6 +24,13 @@ PUBLIC_ROOTS = {
     "/v1/deployments",
     "/v1/decision-intelligence",
     "/v1/margin-analyses",
+    "/v1/opportunities",
+    "/v1/recommendations",
+    "/v1/action-drafts",
+    "/v1/canary-policies",
+    "/v1/measurement-plans",
+    "/v1/outcome-reports",
+    "/v1/decision-outcome-evidence",
 }
 
 

@@ -118,6 +118,7 @@ def compile_skill_package(
     _CAPABILITIES_WITH_REAL_POSTCONDITION_SUPPORT = {
         "quote.create_draft",
         "sales.order.confirm",
+        "sales.quote.create_pricing_scenario_draft",
     }
     write_capable = [
         step for step in workflow_steps if capability_by_name[step.capability].supports_execution
@@ -218,6 +219,10 @@ def compile_skill_package(
     postconditions: list[dict] = []
     if "quote.create_draft" in write_capability_names:
         postconditions.append({"capability": "quote.create_draft", "required_state": "draft"})
+    if "sales.quote.create_pricing_scenario_draft" in write_capability_names:
+        postconditions.append(
+            {"capability": "sales.quote.create_pricing_scenario_draft", "required_state": "draft"}
+        )
     if confirmation_compiled:
         postconditions.append(
             {

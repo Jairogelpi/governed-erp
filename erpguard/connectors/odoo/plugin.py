@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from decimal import Decimal
 
 from erpguard.connectors.odoo.transports import OdooReadTransport
 from erpguard.connectors.odoo.write_transport import OdooWriteTransport
@@ -90,6 +91,19 @@ class OdooConnectorPlugin(ConnectorTemplate):
                 description="Confirm one unchanged staging sale order under a bound R3 permit.",
                 supports_execution=True,
             ),
+            CapabilityDefinition(
+                name="sales.quote.create_pricing_scenario_draft",
+                version="1",
+                safety_tier="write_scoped_draft_only",
+                description=(
+                    "Create one controlled Odoo draft quotation scenario carrying "
+                    "governed-recommendation pricing evidence (Spec 92 Sec 8). "
+                    "Distinct from quote.create_draft: this path additionally "
+                    "verifies customer/product/company preconditions and margin "
+                    "postconditions against the recommendation's evidence."
+                ),
+                supports_execution=True,
+            ),
         ]
         return read_only + write_capable
 
@@ -158,6 +172,12 @@ class OdooConnectorPlugin(ConnectorTemplate):
                 "odoo_sale_order_action_confirm",
                 "verify_confirmation_postconditions",
             ]
+        elif capability == "sales.quote.create_pricing_scenario_draft":
+            steps = [
+                "verify_pricing_scenario_preconditions",
+                "odoo_create_draft_quote_pricing_scenario",
+                "verify_pricing_scenario_postconditions",
+            ]
         else:
             steps = ["odoo_create_draft_quote"]
         return NativeExecutionPlan(
@@ -170,12 +190,65 @@ class OdooConnectorPlugin(ConnectorTemplate):
     ) -> NativeExecutionResult:
         if plan.capability == "sales.order.confirm":
             return self._execute_governed_confirmation(context, plan, permit)
+        if plan.capability == "sales.quote.create_pricing_scenario_draft":
+            return self._execute_pricing_scenario_draft(context, plan)
         if plan.capability != "quote.create_draft":
             return NativeExecutionResult(
                 status="blocked", summary="odoo_connector_v2_is_read_only",
                 errors=["write_capability_not_declared"], safety_flags=ConnectorSafetyFlags(),
             )
         return self._execute_quote_create_draft(context, plan)
+
+    def pricing_scenario_preflight(self, context: ConnectorContext, operation: CanonicalOperation) -> dict:
+        """Spec 92 Sec 8.3 preconditions checked against live Odoo state --
+        the recommendation/approval/feature-flag/margin-floor preconditions
+        are already enforced in `erpguard.domain.recommendations.validation`
+        before an action draft is ever built; this covers the ones that can
+        only be verified against a live connection (staging-only, customer
+        active, products active/saleable, no forbidden product marker)."""
+
+        args = operation.arguments
+        metadata = context.services.get("connection_metadata", {})
+        environment = str(metadata.get("environment", "")).lower()
+        marker = settings.odoo_confirmation_forbidden_marker.casefold()
+
+        issues: list[str] = []
+        if environment != "staging":
+            issues.append("pricing_scenario_requires_staging_connection")
+
+        transport = self._write_transport(context)
+        try:
+            partner_id = int(args["partner_id"])
+        except (KeyError, TypeError, ValueError):
+            issues.append("pricing_scenario_missing_partner_id")
+            partner_id = None
+        if partner_id is not None:
+            try:
+                partner = transport.read_partner(partner_id)
+                if not partner.get("active", True):
+                    issues.append("pricing_scenario_customer_inactive")
+            except LookupError:
+                issues.append("pricing_scenario_customer_not_found")
+
+        product_ids: list[int] = []
+        for line in args.get("lines", []):
+            try:
+                product_ids.append(int(line["product_id"]))
+            except (KeyError, TypeError, ValueError):
+                issues.append("pricing_scenario_line_missing_product_id")
+        if product_ids:
+            products = {product["id"]: product for product in transport.read_products(product_ids)}
+            for product_id in product_ids:
+                product = products.get(product_id)
+                if product is None:
+                    issues.append(f"pricing_scenario_product_not_found:{product_id}")
+                    continue
+                if not product.get("active", True) or not product.get("sale_ok", True):
+                    issues.append(f"pricing_scenario_product_not_saleable:{product_id}")
+                if marker and marker in str(product.get("name", "")).casefold():
+                    issues.append(f"pricing_scenario_forbidden_product_marker:{product_id}")
+
+        return {"status": "blocked" if issues else "passed", "issues": issues, "environment": environment}
 
     def governed_confirmation_snapshot(
         self, context: ConnectorContext, operation: CanonicalOperation
@@ -399,6 +472,43 @@ class OdooConnectorPlugin(ConnectorTemplate):
             safety_flags=ConnectorSafetyFlags(erp_touched=True, erp_write_performed=True),
         )
 
+    def _execute_pricing_scenario_draft(self, context: ConnectorContext, plan: NativeExecutionPlan) -> NativeExecutionResult:
+        try:
+            partner_id = int(plan.arguments["partner_id"])
+            lines = plan.arguments["lines"]
+            client_reference = str(plan.arguments["client_reference"])
+            company_id = int(plan.arguments["company_id"])
+            pricelist_id = int(plan.arguments["pricelist_id"])
+        except (KeyError, TypeError, ValueError) as exc:
+            return NativeExecutionResult(
+                status="blocked", summary="invalid_pricing_scenario_arguments",
+                errors=[str(exc)], safety_flags=ConnectorSafetyFlags(),
+            )
+
+        transport = self._write_transport(context)
+        existing_id = transport.find_by_client_reference(client_reference)
+        if existing_id is not None:
+            # Idempotency: same client_reference -> the existing draft, no
+            # second order created.
+            return NativeExecutionResult(
+                status="ok", summary="pricing_scenario_draft_already_exists_for_client_reference",
+                payload={"order_id": existing_id, "created": False},
+                safety_flags=ConnectorSafetyFlags(erp_touched=True, erp_write_performed=False),
+            )
+
+        order_id = transport.create_draft(
+            partner_id=partner_id,
+            lines=[{"product_id": line["product_id"], "quantity": line["quantity"], "price_unit": line["price_unit"]} for line in lines],
+            client_reference=client_reference,
+            company_id=company_id,
+            pricelist_id=pricelist_id,
+        )
+        return NativeExecutionResult(
+            status="ok", summary="pricing_scenario_draft_created",
+            payload={"order_id": order_id, "created": True},
+            safety_flags=ConnectorSafetyFlags(erp_touched=True, erp_write_performed=True),
+        )
+
     async def verify_execution(
         self, context: ConnectorContext, operation: CanonicalOperation | str, result: NativeExecutionResult
     ) -> VerificationResult:
@@ -448,6 +558,9 @@ class OdooConnectorPlugin(ConnectorTemplate):
                     ),
                 },
             )
+        if capability == "sales.quote.create_pricing_scenario_draft":
+            return self._verify_pricing_scenario_draft(context, operation, result)
+
         if capability != "quote.create_draft" or result.status != "ok":
             return VerificationResult(status="not_executed", verified=False, summary="no_write_to_verify")
 
@@ -463,6 +576,65 @@ class OdooConnectorPlugin(ConnectorTemplate):
                 summary=f"postcondition_failed:expected_state_draft_got_{order.get('state')}",
             )
         return VerificationResult(status="verified", verified=True, summary="draft_state_confirmed")
+
+    def _verify_pricing_scenario_draft(
+        self, context: ConnectorContext, operation: CanonicalOperation | str, result: NativeExecutionResult
+    ) -> VerificationResult:
+        if result.status != "ok":
+            return VerificationResult(status="not_executed", verified=False, summary="no_write_to_verify")
+        order_id = result.payload.get("order_id")
+        if order_id is None:
+            return VerificationResult(status="verification_failed", verified=False, summary="missing_order_id")
+
+        expected = operation.arguments if not isinstance(operation, str) else {}
+        transport = self._write_transport(context)
+        snapshot = transport.read_pricing_scenario_snapshot(int(order_id))
+
+        issues: list[str] = []
+        if snapshot.get("state") != "draft":
+            issues.append(f"postcondition_failed:expected_state_draft_got_{snapshot.get('state')}")
+        if expected.get("partner_id") is not None and snapshot.get("partner_id") != int(expected["partner_id"]):
+            issues.append("postcondition_failed:partner_mismatch")
+        if expected.get("company_id") is not None and snapshot.get("company_id") != int(expected["company_id"]):
+            issues.append("postcondition_failed:company_mismatch")
+        if expected.get("pricelist_id") is not None and snapshot.get("pricelist_id") != int(expected["pricelist_id"]):
+            issues.append("postcondition_failed:pricelist_mismatch")
+
+        expected_lines = {int(line["product_id"]): line for line in expected.get("lines", [])}
+        actual_lines = {int(line["product_id"]): line for line in snapshot.get("lines", []) if line.get("product_id") is not None}
+        if set(expected_lines) != set(actual_lines):
+            issues.append("postcondition_failed:line_product_set_mismatch")
+        else:
+            for product_id, expected_line in expected_lines.items():
+                actual_line = actual_lines[product_id]
+                if float(expected_line["quantity"]) != actual_line["quantity"]:
+                    issues.append(f"postcondition_failed:quantity_mismatch:{product_id}")
+                expected_price = Decimal(str(expected_line["price_unit"]))
+                actual_price = Decimal(str(actual_line["price_unit"]))
+                if abs(expected_price - actual_price) > Decimal("0.01"):
+                    issues.append(f"postcondition_failed:price_mismatch:{product_id}")
+                cost_reference = expected_line.get("cost_reference")
+                minimum_margin = expected_line.get("minimum_margin_percent")
+                if cost_reference is not None and minimum_margin is not None and actual_price > 0:
+                    margin_percent = (actual_price - Decimal(str(cost_reference))) / actual_price * Decimal(100)
+                    if margin_percent < Decimal(str(minimum_margin)):
+                        issues.append(f"postcondition_failed:margin_floor_violated:{product_id}")
+
+        if snapshot.get("invoice_count", 0) > 0:
+            issues.append("forbidden_effect_observed:invoice_created")
+        if snapshot.get("picking_count", 0) > 0:
+            issues.append("forbidden_effect_observed:picking_created")
+        if snapshot.get("purchase_order_count", 0) > 0:
+            issues.append("forbidden_effect_observed:purchase_order_created")
+        if snapshot.get("manufacturing_order_count", 0) > 0:
+            issues.append("forbidden_effect_observed:manufacturing_order_created")
+
+        return VerificationResult(
+            status="verification_failed" if issues else "verified",
+            verified=not issues,
+            summary=";".join(issues) if issues else "pricing_scenario_draft_postconditions_verified",
+            evidence={"snapshot": snapshot},
+        )
 
     def execution_permit(self, permit_id: str, capability: str) -> ExecutionPermit:
         return ExecutionPermit(permit_id=permit_id, capability=capability)

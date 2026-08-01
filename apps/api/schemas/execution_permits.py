@@ -5,10 +5,18 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
+class RunRoutingContext(BaseModel):
+    business_object_key: str = Field(min_length=1)
+    object_type: str | None = None
+    company_id: int | None = None
+    amount: str | None = None
+
+
 class RunPlanRequest(BaseModel):
     connection_id: str = Field(min_length=1)
     skill_package_id: str | None = Field(default=None, min_length=1)
     process_key: str | None = Field(default=None, min_length=1)
+    routing_context: RunRoutingContext | None = None
     capability: str = Field(min_length=1)
     idempotency_key: str = Field(min_length=1)
     capability_payload: dict[str, Any] = Field(default_factory=dict)
@@ -73,3 +81,6 @@ class RunResponse(BaseModel):
     revoked_at: str | None
     verification_result: dict[str, Any] | None
     cleanup_plan: dict[str, Any] | None
+    canary_policy_id: str | None = None
+    routing_decision_id: str | None = None
+    deployment_lane: str | None = None

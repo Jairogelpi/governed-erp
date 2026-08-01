@@ -13,6 +13,15 @@
 **Primary language of TFM and business UI:** Spanish, with English i18n-ready identifiers  
 **Compatibility policy:** Incremental migration inside the existing repository; no destructive rewrite
 
+> **Extension notice:** `docs/specs/92_governed_decision_to_outcome_backend_rc.md`
+> extends this master specification for the current delivery (the
+> Governed Decision-to-Outcome Backend Release Candidate — governed
+> recommendations, the operational canary router, outcome measurement,
+> and the sealed decision-to-outcome evidence bundle). Where the two
+> documents overlap, Spec 92 is the as-built record for its four
+> workstreams; this document remains authoritative for every phase it
+> already covers.
+
 ---
 
 # 0. How an implementation AI must use this document

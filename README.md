@@ -3,11 +3,17 @@
 ERPGuard Evolution is a versioned, testable and governed platform for
 understanding and improving ERP business processes. It keeps ERP effects behind
 explicit safety boundaries: almost everything is read-only or simulated.
-The one exception is a single, narrowly-scoped, permit-gated write
-(`quote.create_draft` -- create a draft sales quotation, nothing else) added
-in Phase 16; there is no generic "raw ERP write" capability anywhere.
+Real ERP writes remain a small, permit-gated, allowlisted set —
+`quote.create_draft` (Phase 16), `sales.order.confirm` (Phase 17) and
+`sales.quote.create_pricing_scenario_draft` (Spec 92) — each staging-only,
+false-by-default, and structurally incapable of a generic "raw ERP write."
 
-> Current project state: **Phase 16 - Real quotation draft (Odoo)**.
+> Current project state: **Spec 92 — Governed Decision-to-Outcome Backend
+> Release Candidate**: opportunity → governed recommendation → independent
+> approval → bounded action draft → operational canary routing → signed
+> permit → controlled Odoo draft → postcondition verification → measured
+> outcome → sealed, hash-chained evidence bundle. See
+> [docs/specs/92_governed_decision_to_outcome_backend_rc.md](docs/specs/92_governed_decision_to_outcome_backend_rc.md).
 
 ## What exists now
 
@@ -77,16 +83,29 @@ reproducible demo surfaces.
 
 - `real`: identity boundaries, migrations, encrypted local secrets, canonical
   storage, validation, connector registry/runtime convergence, variant
-  projection, candidate immutability and public/internal app composition
-  boundaries.
-- `fixture`: FakeConnector, Fake ERP data and local process/variant fixtures.
-- `staging_only`: real Odoo read-only transport paths and live smoke checks.
-- `planned`: historical replay, regression gates, skill compilation v2,
-  execution permits, governed writes and the product web experience.
+  projection, candidate immutability, public/internal app composition
+  boundaries, the governed recommendation/action-draft lifecycle, the
+  operational canary router, outcome measurement gating, and the sealed
+  decision-to-outcome evidence bundle.
+- `fixture`: FakeConnector, Fake ERP data, local process/variant fixtures,
+  and `fixture`/`manual_import`-sourced outcome observations.
+- `staging_only`: real Odoo read-only transport paths, live smoke checks,
+  `sales.order.confirm`, and `sales.quote.create_pricing_scenario_draft`
+  (both false-by-default; the latter was verified live 2026-07-31 — see
+  [docs/demo/backend_rc_live_pricing_scenario_evidence.json](docs/demo/backend_rc_live_pricing_scenario_evidence.json)).
+- `advisory`: canary eligibility recommendations, opportunity/ROI sizing,
+  realized-outcome classification (never a causal claim).
+- `planned`: net ROI with implementation cost (Spec 92 Sec 10.6), the
+  product web experience, and ERPRiskBench.
+
+Full label-by-capability detail lives in the
+[capability reality matrix](docs/architecture/capability_reality_matrix.md).
 
 Read the [current architecture inventory](docs/architecture/current_inventory.md),
 [capability reality matrix](docs/architecture/capability_reality_matrix.md),
-[master specification](docs/specs/84_erpguard_evolution_master_spec.md), and
+[master specification](docs/specs/84_erpguard_evolution_master_spec.md),
+[decision-to-outcome flow diagrams](docs/architecture/decision_to_outcome_flow.md),
+[operational canary threat model](docs/security/operational_canary_threat_model.md), and
 [ADR-0001](docs/adr/0001-erpguard-evolution.md).
 
 ## Quickstart and focused verification
@@ -101,11 +120,14 @@ dependent tests may be skipped when Chromium is unavailable.
 
 ## Roadmap
 
-Completed: Phases 0–16, from baseline freeze through the candidate
-integrity gate, controlled API composition, connector convergence, the
-full product consolidation (Phase 11.5 C0–C8), historical replay, the
-regression engine / Proof of Improvement, the skill compiler, the
-execution permit runtime, and the first real business write:
+Completed: Phases 0–19 plus Spec 92 (Workstreams A/B/C/D — governed
+recommendations, the operational canary router, outcome measurement, and
+the decision-to-outcome evidence bundle), from baseline freeze through the
+candidate integrity gate, controlled API composition, connector
+convergence, the full product consolidation (Phase 11.5 C0–C8), historical
+replay, the regression engine / Proof of Improvement, the skill compiler,
+the execution permit runtime, governed confirmation, shadow mode, decision
+intelligence, and the first real business writes:
 
 - C0 inventory
 - C1 composition root
@@ -356,6 +378,57 @@ the same evidence. The sanitized fixture is in
 
 No recommendation, Odoo write, canary routing, activation, promotion or
 rollback is added by this phase.
+
+Spec 92 — Governed Decision-to-Outcome Backend Release Candidate connects
+Decision Intelligence to Governed Execution, which previously ran side by
+side without a caller ever turning analytical evidence into a governed
+action. `GovernedRecommendation` freezes its content at submit and requires
+independent approval bound to its exact content hash before it can produce
+a `GovernedActionDraft`. The one executable action template,
+`customer_discount_quote_scenario_v1`, targets a new, distinct Odoo
+capability — `sales.quote.create_pricing_scenario_draft`, deliberately
+separate from Phase 16's `quote.create_draft` because it carries
+recommendation/margin evidence and its own live precondition set (staging-
+only connection, active customer, active/saleable products, no forbidden
+marker) and postcondition set (state stays `draft`; lines, prices and
+margin match the recommendation exactly; zero invoice/picking/purchase/
+manufacturing side effects). The Phase 19 skill lifecycle's `canary` status
+now has a real runtime router behind it: deterministic `sha256`-bucket
+routing (no RNG, no LLM), append-only routing decisions, safety-threshold
+auto-pause, and promotion hardening that requires a completed policy, zero
+unresolved critical incidents and a real postcondition success rate — never
+"canary status alone." `OutcomeMeasurementPlan` compares a baseline against
+a follow-up observation under explicit gates (metric version, currency,
+cost coverage) and never emits a causal claim. Finally,
+`DecisionOutcomeEvidenceBundle` seals the entire chain — data, diagnosis,
+recommendation, approval, execution, postconditions, canary routing (when
+used), and observed outcome — into one hash-chained, tamper-evident,
+sealed-immutable record with a reality label on every reference.
+
+Net ROI with implementation cost (Spec 92 Sec 10.6) is implemented:
+`OutcomeMeasurementPlan.implementation_cost` is supplied and frozen at
+plan-creation time (before the outcome is known), and
+`net_realized_value = realized_value - implementation_cost` is computed
+only when a cost was actually supplied — missing cost leaves both fields
+`null`, never guessed or defaulted to a fixed rate. The canary dashboard's
+`estimated_opportunity_value` traces every routed run back through its
+action draft and recommendation to the `MarginOpportunity` that motivated
+it, summing `impact_base` across every distinct opportunity involved —
+`null` when nothing traces back, not fabricated. Two live Odoo 19 staging
+tests of the
+pricing-scenario capability were performed against a real, authorized
+staging instance — one planned direct-to-stable, one genuinely
+canary-routed (two real skill packages, an activated `CanaryPolicy`, and
+the run's persisted `deployment_lane` confirming the canary package was
+actually selected, not assumed). Each created one draft `sale.order`,
+independently re-read to confirm `state=draft` with zero
+invoices/pickings, and a retry proven idempotent (same run, no
+duplicate). See
+[docs/demo/backend_rc_live_pricing_scenario_evidence.json](docs/demo/backend_rc_live_pricing_scenario_evidence.json).
+A generated (fixture-backed, not live-Odoo) full lifecycle evidence bundle
+is in
+[docs/demo/backend_rc_decision_to_outcome_evidence.json](docs/demo/backend_rc_decision_to_outcome_evidence.json).
+Full detail: [docs/specs/92_governed_decision_to_outcome_backend_rc.md](docs/specs/92_governed_decision_to_outcome_backend_rc.md).
 
 The exact phase gates and no-goals are defined in the [master implementation
 specification](docs/specs/84_erpguard_evolution_master_spec.md).

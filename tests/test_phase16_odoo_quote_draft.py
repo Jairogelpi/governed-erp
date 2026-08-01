@@ -63,10 +63,11 @@ def test_quote_create_draft_is_declared_with_supports_execution() -> None:
     assert definitions["quote.create_draft"].supports_execution is True
     assert definitions["sales.order.confirm"].supports_execution is True
     # every read capability stays supports_execution=False
+    _EXECUTABLE = {"quote.create_draft", "sales.order.confirm", "sales.quote.create_pricing_scenario_draft"}
     assert all(
         not d.supports_execution
         for name, d in definitions.items()
-        if name not in {"quote.create_draft", "sales.order.confirm"}
+        if name not in _EXECUTABLE
     )
 
 

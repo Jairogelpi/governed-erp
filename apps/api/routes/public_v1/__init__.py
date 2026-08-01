@@ -10,6 +10,10 @@ from . import events, health, identity, processes, proofs, replays, skill_packag
 from . import shadow
 from . import decision_intelligence
 from . import opportunity
+from . import recommendations
+from . import canary
+from . import outcomes
+from . import decision_outcome_evidence
 
 
 PUBLIC_ROUTERS = (
@@ -34,6 +38,15 @@ PUBLIC_ROUTERS = (
     shadow.router,
     decision_intelligence.router,
     opportunity.router,
+    recommendations.opportunities_router,
+    recommendations.router,
+    recommendations.action_drafts_router,
+    canary.router,
+    outcomes.measurement_plans_router,
+    outcomes.recommendation_plans_router,
+    outcomes.outcome_reports_router,
+    decision_outcome_evidence.recommendation_evidence_router,
+    decision_outcome_evidence.evidence_router,
 )
 
 __all__ = ["PUBLIC_ROUTERS"]

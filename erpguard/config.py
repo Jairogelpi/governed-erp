@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     odoo_confirmation_amount_ceiling: float = 1000.0
     odoo_confirmation_forbidden_marker: str = "ERPGUARD-NO-CONFIRM"
     allow_odoo_governed_confirmation: bool = False
+    allow_pricing_scenario_draft: bool = False
+    pricing_scenario_max_lines: int = 20
+    pricing_scenario_max_total: float = 10000.0
+    recommendation_approval_max_age_seconds: int = 86400
 
     model_config = SettingsConfigDict(
         env_file=".env",

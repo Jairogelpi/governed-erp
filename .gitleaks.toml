@@ -1,0 +1,11 @@
+title = "ERPGuard gitleaks config"
+
+[extend]
+# Keep every default detection rule; only add an allowlist on top.
+useDefault = true
+
+[allowlist]
+description = "ERPGuard's own generated resource IDs (prefix + uuid4().hex), not secrets -- these trip the default generic-api-key rule's entropy heuristic wherever they appear in demo/evidence docs (e.g. docs/demo/backend_rc_live_pricing_scenario_evidence.json)."
+regexes = [
+  '''(rec|actdraft|run|approval|canarypolicy|canaryroute|canaryincident|skillpkg|uconn|decisionoutcomeevidence|outcomeplan)_[0-9a-f]{32}''',
+]
