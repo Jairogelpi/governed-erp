@@ -103,10 +103,14 @@ blocked baseline. `RealizedOutcomeReport` classifies
 `neutral_observed_result` / `inconclusive` / `blocked` and never emits
 `proved`/`caused`/`guaranteed` — `interpretation.py` explicitly labels the
 observed change `"observed_change_is_not_a_causal_claim"`. Net ROI with
-implementation cost (Sec 10.6) is **not implemented**: `MarginOpportunity
-.implementation_cost` exists as a column but nothing populates or reads it
-into `RealizedOutcomeReport`, so `net_realized_value` stays undefined
-rather than guessed — a real, tracked gap, not a silent omission.
+implementation cost (Sec 10.6) is implemented: `OutcomeService.create_plan`
+accepts an optional `implementation_cost`, supplied and frozen at plan
+creation — before the outcome is known, never invented after the fact —
+and `evaluate()` computes `net_realized_value = realized_value -
+implementation_cost` only when a cost was supplied; missing cost leaves
+both `implementation_cost` and `net_realized_value` `null` on the report,
+never guessed or defaulted to a fixed rate (migration
+`0026_outcome_implementation_cost`).
 
 ## Workstream D — Decision-to-Outcome Evidence Bundle
 
@@ -204,13 +208,19 @@ GET  /v1/decision-outcome-evidence/{bundle_id}/verify
 ## Migrations
 
 `0022_recommendation_action_drafts`, `0023_operational_canary_router`,
-`0024_outcome_measurement`, `0025_decision_outcome_evidence`. All verified
+`0024_outcome_measurement`, `0025_decision_outcome_evidence`,
+`0026_outcome_implementation_cost`. All verified
 `upgrade head -> downgrade -1 -> upgrade head` against SQLite (see
-Verification).
+Verification); `0025`/`0026` additionally verified against PostgreSQL 16 in
+CI.
 
 ## Known gaps and deferred work
 
-- Net ROI with implementation cost (Sec 10.6) — not implemented (Workstream C, above).
+Net ROI with implementation cost (Sec 10.6) and the canary dashboard's
+`estimated_opportunity_value` (Sec 9.8) — the two gaps this document
+originally listed here — are both implemented; see Workstream C and
+Workstream B above respectively. What remains:
+
 - **Live Odoo staging test (Sec 19/20) — performed 2026-07-31/2026-08-01**
   against a real Odoo 19 staging instance (server version `19.0+e`),
   authorized by the instance owner. Two runs, both against the real
@@ -232,9 +242,6 @@ Verification).
   retry via a fresh `plan-run` call returned the same `ExecutionRun`
   rather than creating a duplicate. Full evidence:
   `docs/demo/backend_rc_live_pricing_scenario_evidence.json`.
-- Canary dashboard's `estimated_opportunity_value` is always `null` — no
-  code path ties a canary policy back to the `MarginOpportunity.impact_base`
-  it was meant to validate.
 - Sealing a `DecisionOutcomeEvidenceBundle` requires the referenced
   `ExecutionRun` to be terminal but does not require it to be
   `succeeded` specifically (`blocked`/`failed`/`unknown` runs can still
@@ -244,12 +251,14 @@ Verification).
 
 ## Verification
 
-- Full suite: `939 passed, 4 skipped` (Python, local SQLite).
+- Full suite: `942 passed, 4 skipped` (Python, local SQLite).
 - `tests/test_backend_rc_end_to_end.py` drives the entire lifecycle above
   in one flow, asserting: no generic ERP call exists structurally; the
   exact selected canary package is recorded on the `ExecutionRun`; the same
-  routing context always selects the same package/bucket; the sealed
-  evidence bundle's `verify` returns `stored_hashes_intact=True` and
+  routing context always selects the same package/bucket; the canary
+  dashboard's `estimated_opportunity_value` traces back to the real
+  `MarginOpportunity.impact_base`; the sealed evidence bundle's `verify`
+  returns `stored_hashes_intact=True` and
   `live_mismatches=[]`.
 - Ruff and mypy clean on every file touched by this delivery (pre-existing
   errors in untouched files — `erpguard/policies/loader.py`,

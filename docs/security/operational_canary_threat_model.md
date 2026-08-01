@@ -23,17 +23,13 @@ currently does.
 | 13 | **Secret leakage** — a credential, API key, or vault reference enters an evidence bundle, run payload, or dashboard | No gathered resource in `DecisionOutcomeEvidenceService._gather` ever references `UnifiedConnection.secret_ref` or `EncryptedSecret`; `contains_secret_like_field` additionally key-name-scans the manifest/export payload (`secret`, `credential`, `password`, `api_key`, `token`, `private_key`, `access_key`) and `seal()`/`export()` refuse to proceed if it matches anything | `erpguard/domain/evidence/decision_outcome_bundle.py::contains_secret_like_field`; `test_phase20_2_decision_outcome_evidence.py::test_secret_like_field_rejected_from_export`, `::test_no_secret_present_in_sealed_manifest`; `test_phase16_7_pricing_scenario_draft.py::test_draft_created_retry_idempotent_and_no_credential_in_evidence` |
 | 14 | **Idempotency-key collision** — two different operations reuse the same idempotency key | `PermitService.plan()` looks up any prior `ExecutionRun` with the same `(tenant_id, idempotency_key)`; if the `operation_hash` differs it raises `IdempotencyConflict` rather than silently returning the wrong run, and only an exact-hash match short-circuits to the existing row | `erpguard/domain/execution/permit_service.py::plan` (`IdempotencyConflict`); `test_phase15_execution_permit_runtime.py` |
 
-## Residual risk not fully closed by this delivery
+## Live verification note
 
-- **Canary dashboard `estimated_opportunity_value` is always `null`** — no
-  path connects a canary policy's outcome back to the
-  `MarginOpportunity.impact_base` it was meant to validate, so an operator
-  reading the dashboard cannot yet see "this canary is/isn't recovering the
-  value the opportunity promised" in one place. Not a safety hole (no
-  action is gated on this field), but a gap in the operational picture.
-- **Net ROI with implementation cost is unimplemented** (Sec 10.6) — see
-  `docs/specs/92_governed_decision_to_outcome_backend_rc.md`'s "Known gaps"
-  section. Nothing fabricates a number here; the field is simply absent.
+No residual risk remains open from this delivery's original list (canary
+dashboard `estimated_opportunity_value` and net ROI with implementation
+cost are both now implemented — see
+`docs/specs/92_governed_decision_to_outcome_backend_rc.md`).
+
 - **The pricing-scenario write was verified live, including genuinely
   canary-routed** (Sec 19/20) — two real Odoo skill packages sharing one
   process_key, an activated `CanaryPolicy`, and a `routing_context`-planned

@@ -20,9 +20,18 @@
   decision-to-outcome lifecycle, reality-labeled per reference,
   sealed-immutable, tamper-detected on every read and on demand via
   `.../verify`.
+- Net ROI with implementation cost (Sec 10.6): `OutcomeMeasurementPlan
+  .implementation_cost`, supplied and frozen at plan-creation time;
+  `net_realized_value = realized_value - implementation_cost` computed
+  only when a cost was supplied, `null` otherwise.
+- Canary dashboard's `estimated_opportunity_value`: traces every routed
+  run back through its action draft/recommendation to the
+  `MarginOpportunity` that motivated it.
 - Migrations `0022_recommendation_action_drafts`,
   `0023_operational_canary_router`, `0024_outcome_measurement`,
-  `0025_decision_outcome_evidence`.
+  `0025_decision_outcome_evidence`, `0026_outcome_implementation_cost`.
+- CI: PostgreSQL downgrade/upgrade cycle for the latest migration; a
+  `secret-scan` job (gitleaks, full git history, every push/PR).
 - `tests/test_backend_rc_end_to_end.py` — full lifecycle acceptance test.
 
 ### Fixed
@@ -42,13 +51,14 @@
 
 - `sales.quote.create_pricing_scenario_draft` remains false by default
   (`ERPGUARD_ALLOW_PRICING_SCENARIO_DRAFT=false`) and staging-only.
-- Live Odoo 19 staging test performed against a real, authorized staging
-  instance: one draft `sale.order` created, independently re-read to
-  confirm `state=draft` with zero invoices/pickings, retry proven
-  idempotent — see
-  `docs/demo/backend_rc_live_pricing_scenario_evidence.json`.
-- Net ROI with implementation cost (Sec 10.6) is not implemented; the
-  field stays unset rather than guessed.
+- Two live Odoo 19 staging tests performed against a real, authorized
+  staging instance (one direct-to-stable, one genuinely canary-routed):
+  each created one draft `sale.order`, independently re-read to confirm
+  `state=draft` with zero invoices/pickings, retry proven idempotent —
+  see `docs/demo/backend_rc_live_pricing_scenario_evidence.json`.
+- Missing implementation cost leaves `net_realized_value` unset rather
+  than guessed or defaulted to a fixed rate; a negative supplied cost is
+  rejected (`422`).
 - No generic model/method/`execute_raw` entry point exists on the Odoo
   connector; canary bucket selection has no caller-suppliable seed; no
   credential or secret reference is ever gathered into an evidence bundle.

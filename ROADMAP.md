@@ -27,11 +27,14 @@ experiment suite, TFM statistical results, the final public README/demo
 videos, a security/release review, and the `v1.0.0-tfm` freeze — see Spec
 92 Sec 30.
 
-**Known backend gaps carried forward:** net ROI with implementation cost
-(Spec 92 Sec 10.6) and the canary dashboard's `estimated_opportunity_value`
-(always `null`). The Sec 20 live Odoo staging run of the pricing-scenario
-capability has been performed and verified — see
-`docs/demo/backend_rc_live_pricing_scenario_evidence.json`.
+**Backend RC status:** no known gaps remain in Spec 92's backend scope. Net
+ROI with implementation cost (Sec 10.6) and the canary dashboard's
+`estimated_opportunity_value` (Sec 9.8) are both implemented. The Sec 19/20
+live Odoo staging runs of the pricing-scenario capability (direct-to-stable
+and genuinely canary-routed) have been performed and verified — see
+`docs/demo/backend_rc_live_pricing_scenario_evidence.json`. CI gates (Sec
+21) are fully green, including a secret scan that did not exist before this
+delivery.
 
 Real ERP writes, autonomous promotion, and generic raw ERP capabilities
 remain outside scope for every phase above — see each spec's "Out of

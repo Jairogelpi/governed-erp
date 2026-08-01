@@ -405,9 +405,17 @@ recommendation, approval, execution, postconditions, canary routing (when
 used), and observed outcome — into one hash-chained, tamper-evident,
 sealed-immutable record with a reality label on every reference.
 
-Net ROI with implementation cost (Spec 92 Sec 10.6) is not implemented —
-`MarginOpportunity.implementation_cost` exists as a column but nothing
-populates or reads it. Two live Odoo 19 staging tests of the
+Net ROI with implementation cost (Spec 92 Sec 10.6) is implemented:
+`OutcomeMeasurementPlan.implementation_cost` is supplied and frozen at
+plan-creation time (before the outcome is known), and
+`net_realized_value = realized_value - implementation_cost` is computed
+only when a cost was actually supplied — missing cost leaves both fields
+`null`, never guessed or defaulted to a fixed rate. The canary dashboard's
+`estimated_opportunity_value` traces every routed run back through its
+action draft and recommendation to the `MarginOpportunity` that motivated
+it, summing `impact_base` across every distinct opportunity involved —
+`null` when nothing traces back, not fabricated. Two live Odoo 19 staging
+tests of the
 pricing-scenario capability were performed against a real, authorized
 staging instance — one planned direct-to-stable, one genuinely
 canary-routed (two real skill packages, an activated `CanaryPolicy`, and
