@@ -407,10 +407,14 @@ sealed-immutable record with a reality label on every reference.
 
 Net ROI with implementation cost (Spec 92 Sec 10.6) is not implemented —
 `MarginOpportunity.implementation_cost` exists as a column but nothing
-populates or reads it. A live Odoo 19 staging test of the pricing-scenario
-capability was performed against a real, authorized staging instance: one
-draft `sale.order` created, independently re-read to confirm `state=draft`
-with zero invoices/pickings, and a retry proven idempotent (same run, no
+populates or reads it. Two live Odoo 19 staging tests of the
+pricing-scenario capability were performed against a real, authorized
+staging instance — one planned direct-to-stable, one genuinely
+canary-routed (two real skill packages, an activated `CanaryPolicy`, and
+the run's persisted `deployment_lane` confirming the canary package was
+actually selected, not assumed). Each created one draft `sale.order`,
+independently re-read to confirm `state=draft` with zero
+invoices/pickings, and a retry proven idempotent (same run, no
 duplicate). See
 [docs/demo/backend_rc_live_pricing_scenario_evidence.json](docs/demo/backend_rc_live_pricing_scenario_evidence.json).
 A generated (fixture-backed, not live-Odoo) full lifecycle evidence bundle

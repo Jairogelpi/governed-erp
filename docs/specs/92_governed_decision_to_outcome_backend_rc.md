@@ -211,16 +211,26 @@ Verification).
 ## Known gaps and deferred work
 
 - Net ROI with implementation cost (Sec 10.6) — not implemented (Workstream C, above).
-- **Live Odoo staging test (Sec 20) — performed 2026-07-31** against a
-  real Odoo 19 staging instance (server version `19.0+e`), authorized by
-  the instance owner. Full governed pipeline (recommendation → approval →
-  action draft → validated → planned → approved → executed) against the
-  real `LegacyXmlRpcWriteTransport`, not the fake transport the automated
-  suite uses. Created exactly one draft `sale.order` (id 155,
-  `GUIA-00465`), independently re-read after execution to confirm
-  `state=draft` with zero invoices/pickings; retry via a fresh
-  `plan-run` call returned the same `ExecutionRun` rather than creating a
-  duplicate. Full evidence:
+- **Live Odoo staging test (Sec 19/20) — performed 2026-07-31/2026-08-01**
+  against a real Odoo 19 staging instance (server version `19.0+e`),
+  authorized by the instance owner. Two runs, both against the real
+  `LegacyXmlRpcWriteTransport`, not the fake transport the automated suite
+  uses:
+  1. Direct-to-stable: full governed pipeline (recommendation → approval →
+     action draft → validated → planned → approved → executed), one draft
+     `sale.order` created (id 155, `GUIA-00465`).
+  2. Genuinely canary-routed: two real Odoo skill packages sharing one
+     process_key, an approved/activated `CanaryPolicy`, and a
+     `routing_context`-planned run that `CanaryRouterService` actually
+     routed to the canary package (confirmed on the persisted
+     `ExecutionRun.deployment_lane`, not assumed) — one draft `sale.order`
+     created (id 156, `GUIA-00466`).
+
+  Both: independently re-read after execution (a separate `OdooClient`
+  call outside the governed pipeline's own postcondition check) to confirm
+  `state=draft` with zero invoices/pickings/purchase/manufacturing orders;
+  retry via a fresh `plan-run` call returned the same `ExecutionRun`
+  rather than creating a duplicate. Full evidence:
   `docs/demo/backend_rc_live_pricing_scenario_evidence.json`.
 - Canary dashboard's `estimated_opportunity_value` is always `null` — no
   code path ties a canary policy back to the `MarginOpportunity.impact_base`

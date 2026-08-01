@@ -34,11 +34,13 @@ currently does.
 - **Net ROI with implementation cost is unimplemented** (Sec 10.6) — see
   `docs/specs/92_governed_decision_to_outcome_backend_rc.md`'s "Known gaps"
   section. Nothing fabricates a number here; the field is simply absent.
-- **The pricing-scenario write itself was verified live** (Sec 20 — one
-  draft `sale.order` created against a real, authorized Odoo 19 staging
-  instance, independently re-read, retry proven idempotent). **No live run
-  went through canary routing specifically** — the live test planned
-  directly to the stable active package; every canary-routing threat case
-  above (#7, #8, #9, #10) is still verified only against the injected fake
-  transport, not combined with a real Odoo write. See
+- **The pricing-scenario write was verified live, including genuinely
+  canary-routed** (Sec 19/20) — two real Odoo skill packages sharing one
+  process_key, an activated `CanaryPolicy`, and a `routing_context`-planned
+  run that `CanaryRouterService` actually routed to the canary package
+  (confirmed on the persisted `ExecutionRun.deployment_lane` and by
+  re-running the deterministic routing math independently before spending
+  the real write). Two draft `sale.order` rows were created against the
+  real staging instance (one direct-to-stable, one canary-routed), each
+  independently re-read and retry-proven idempotent. See
   `docs/demo/backend_rc_live_pricing_scenario_evidence.json`.
