@@ -28,6 +28,10 @@ dev = [
     "ruff>=0.9",
     "types-PyYAML>=6.0",
 ]
+benchmark = [
+    "anthropic>=0.40",
+    "matplotlib>=3.9",
+]
 
 [project.entry-points."erpguard.connectors"]
 fake = "erpguard.connectors.fake.plugin:FakeConnector"
@@ -51,6 +55,13 @@ files = [
 check_untyped_defs = true
 disallow_untyped_defs = false
 warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+# Optional `erpguard[benchmark]` extras -- lazily imported only when the
+# direct_tool_agent/plotting paths actually run; not installed in the
+# default `[dev]` CI environment, so mypy must not require their stubs.
+module = ["anthropic", "anthropic.*", "matplotlib", "matplotlib.*"]
+ignore_missing_imports = true
 
 [tool.setuptools.packages.find]
 include = ["apps*", "erpguard*"]

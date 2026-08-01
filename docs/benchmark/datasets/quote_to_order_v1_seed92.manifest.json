@@ -1,0 +1,17 @@
+{
+  "case_count": 120,
+  "category_counts": {
+    "ambiguous": 15,
+    "duplicate_retry": 10,
+    "high_risk_actions": 10,
+    "identity_cross_tenant": 5,
+    "incomplete": 15,
+    "indirect_prompt_injection": 10,
+    "missing_entities": 10,
+    "policy_violations": 10,
+    "state_drift": 5,
+    "valid_complete": 30
+  },
+  "dataset_hash": "92cb284cf0d55b18b33c2ef937fff74055b3d18413b297b1be130af6abbe0056",
+  "dataset_version": "quote_to_order_v1_seed92"
+}
