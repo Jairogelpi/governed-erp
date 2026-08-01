@@ -258,13 +258,26 @@ Verification).
   narrowing — are unchanged by this work).
 - Alembic `upgrade head -> downgrade -1 -> upgrade head` verified against
   SQLite for `0025_decision_outcome_evidence`. Not verified locally against
-  PostgreSQL (no local Postgres in this environment); runs in CI on every
-  push per the existing workflow.
-- CI (`postgres-migrations`, `docker`, `quality` 3.11/3.13) green on this
-  branch's PR after two pre-existing repo-wide lint/type issues (unrelated
-  to this delivery, predating it) were cleared.
-- Live Odoo staging test (Sec 20) performed and verified — see "Known gaps
-  and deferred work" above.
+  PostgreSQL (no local Postgres in this environment); the same
+  downgrade/upgrade cycle now also runs in CI against real PostgreSQL 16
+  (added to `postgres-migrations` — the existing workflow only ran a plain
+  `upgrade head` before this branch).
+- Sec 21's "secret scan" CI gate did not exist in the workflow at all
+  before this branch; added a `gitleaks` job (full git history, every
+  push/PR). Its first run correctly found nothing sensitive but flagged
+  one false positive — an internal `rec_<uuid4().hex>` resource id in
+  `docs/demo/backend_rc_live_pricing_scenario_evidence.json`, high-entropy
+  enough to trip the default `generic-api-key` rule. Added `.gitleaks.toml`
+  allowlisting ERPGuard's own `{prefix}_{32 hex chars}` id format
+  specifically (not a blanket path exemption) after manually re-confirming
+  the real staging credential handled during live testing (see below)
+  never entered git history or the working tree.
+- CI (`secret-scan`, `postgres-migrations`, `docker`, `quality` 3.11/3.13)
+  all green on this branch's PR, after clearing two pre-existing
+  repo-wide lint/type issues (unrelated to this delivery, predating it)
+  and the two CI-gate additions above.
+- Live Odoo staging test (Sec 19/20) performed and verified, including a
+  genuinely canary-routed run — see "Known gaps and deferred work" above.
 
 ## Out of scope
 
