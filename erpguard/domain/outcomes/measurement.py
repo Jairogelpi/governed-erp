@@ -19,6 +19,7 @@ def measure(
     observed: ObservedMetrics,
     minimum_data_coverage: float,
     estimated_base: Decimal,
+    implementation_cost: Decimal | None = None,
 ) -> dict[str, Any]:
     if comparison_method == "before_after_with_reference_segment":
         return {
@@ -28,6 +29,7 @@ def measure(
             "observed_margin_percent_change": None,
             "realized_value": None,
             "variance_from_base_estimate": None,
+            "net_realized_value": None,
             "result_classification": "blocked",
             "limitations": ["before_after_with_reference_segment_not_implemented"],
         }
@@ -47,14 +49,16 @@ def measure(
             "observed_margin_percent_change": None,
             "realized_value": None,
             "variance_from_base_estimate": None,
+            "net_realized_value": None,
             "result_classification": "blocked",
             "limitations": issues,
         }
 
-    realized_value, variance, classification, limitations = classify(
+    realized_value, variance, net_realized_value, classification, limitations = classify(
         observed_margin_change=margin_change,
         estimated_base=estimated_base,
         cost_coverage_rate=observed.cost_coverage_rate,
+        implementation_cost=implementation_cost,
     )
     return {
         "blocking_issues": [],
@@ -63,6 +67,7 @@ def measure(
         "observed_margin_percent_change": margin_percent_change,
         "realized_value": realized_value,
         "variance_from_base_estimate": variance,
+        "net_realized_value": net_realized_value,
         "result_classification": classification,
         "limitations": limitations,
     }

@@ -268,6 +268,60 @@ def test_positive_result_classified_correctly(monkeypatch):
     assert report["realized_value"] == "200.00"
 
 
+def test_missing_implementation_cost_leaves_net_roi_null(monkeypatch):
+    client, headers, tenant_id = _setup(monkeypatch)
+    result = _converted_recommendation(client, headers, monkeypatch, tenant_id)
+    recommendation_id = result["recommendation"]["id"]
+    plan = _plan_and_approve(client, headers, tenant_id, recommendation_id)
+    assert plan["implementation_cost"] is None
+
+    client.post(
+        f"/v1/measurement-plans/{plan['id']}/capture-followup", headers=headers,
+        json={"observed": _valid_observed(gross_margin="500.00")},
+    )
+    report = client.post(f"/v1/measurement-plans/{plan['id']}/evaluate", headers=headers).json()
+    assert report["implementation_cost"] is None
+    assert report["net_realized_value"] is None
+    assert "no_implementation_cost_evidenced_net_roi_not_computed" in report["limitations"]
+
+
+def test_supplied_implementation_cost_computes_net_realized_value(monkeypatch):
+    client, headers, tenant_id = _setup(monkeypatch)
+    result = _converted_recommendation(client, headers, monkeypatch, tenant_id)
+    recommendation_id = result["recommendation"]["id"]
+    plan = _plan_and_approve(client, headers, tenant_id, recommendation_id, implementation_cost="50.00")
+    assert plan["implementation_cost"] == "50.00"
+
+    client.post(
+        f"/v1/measurement-plans/{plan['id']}/capture-followup", headers=headers,
+        json={"observed": _valid_observed(gross_margin="500.00")},
+    )
+    report = client.post(f"/v1/measurement-plans/{plan['id']}/evaluate", headers=headers).json()
+    assert report["realized_value"] == "200.00"
+    assert report["implementation_cost"] == "50.00"
+    assert report["net_realized_value"] == "150.00"
+    assert "no_implementation_cost_evidenced_net_roi_not_computed" not in report["limitations"]
+    # No fixed hourly rate or arbitrary cost assumption -- the number is exactly what was supplied.
+    assert "proved" not in " ".join(report["limitations"]).lower()
+    assert "caused" not in " ".join(report["limitations"]).lower()
+
+
+def test_negative_implementation_cost_rejected(monkeypatch):
+    client, headers, tenant_id = _setup(monkeypatch)
+    result = _converted_recommendation(client, headers, monkeypatch, tenant_id)
+    recommendation_id = result["recommendation"]["id"]
+
+    create_resp = client.post(
+        f"/v1/recommendations/{recommendation_id}/measurement-plans", headers=headers,
+        json={
+            "execution_run_ids": [], "comparison_method": "fixture_replay",
+            "observation_start": "2026-02-01", "observation_end": "2026-02-28",
+            "implementation_cost": "-10.00",
+        },
+    )
+    assert create_resp.status_code == 422, create_resp.text
+
+
 def test_negative_result_classified_correctly(monkeypatch):
     client, headers, tenant_id = _setup(monkeypatch)
     result = _converted_recommendation(client, headers, monkeypatch, tenant_id)

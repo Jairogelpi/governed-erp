@@ -14,6 +14,7 @@ class MeasurementPlanCreateRequest(BaseModel):
     minimum_data_coverage: float = Field(default=0.8, ge=0, le=1)
     target_metrics: list[str] = Field(default_factory=list)
     assumptions: list[str] = Field(default_factory=list)
+    implementation_cost: Decimal | None = Field(default=None, ge=0)
 
 
 class MeasurementPlanApproveRequest(BaseModel):
@@ -54,6 +55,7 @@ class MeasurementPlanResponse(BaseModel):
     observation_start: str
     observation_end: str
     minimum_data_coverage: float
+    implementation_cost: str | None
     status: str
     content_hash: str
     approval_scope: str
@@ -88,6 +90,8 @@ class RealizedOutcomeReportResponse(BaseModel):
     observed_margin_percent_change: str | None
     observed_refund_change: str | None
     realized_value: str | None
+    implementation_cost: str | None
+    net_realized_value: str | None
     variance_from_base_estimate: str | None
     result_classification: str
     confidence_band: str

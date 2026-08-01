@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
+from decimal import Decimal
 from uuid import uuid4
 
 from sqlalchemy.orm import Session
@@ -434,6 +435,44 @@ class CanaryRouterService:
             .all()
         )
 
+    def _estimated_opportunity_value(self, *, tenant_id: str, run_ids: list[str]) -> str | None:
+        """Sum of `MarginOpportunity.impact_base` across every distinct
+        opportunity whose recommendation produced one of this policy's
+        routed runs -- traced ExecutionRun -> GovernedActionDraft
+        (via converted_run_id) -> GovernedRecommendation -> MarginOpportunity.
+        `None` when nothing traces back (e.g. a policy for a capability
+        outside the recommendation pipeline), never a guessed number."""
+
+        if not run_ids:
+            return None
+        from erpguard.db.model_packages.opportunity import MarginOpportunity
+        from erpguard.db.model_packages.recommendations import GovernedActionDraft, GovernedRecommendation
+
+        action_drafts = (
+            self.session.query(GovernedActionDraft)
+            .filter(GovernedActionDraft.tenant_id == tenant_id, GovernedActionDraft.converted_run_id.in_(run_ids))
+            .all()
+        )
+        recommendation_ids = {draft.recommendation_id for draft in action_drafts}
+        if not recommendation_ids:
+            return None
+        recommendations = (
+            self.session.query(GovernedRecommendation)
+            .filter(GovernedRecommendation.tenant_id == tenant_id, GovernedRecommendation.id.in_(recommendation_ids))
+            .all()
+        )
+        opportunity_ids = {rec.margin_opportunity_id for rec in recommendations}
+        if not opportunity_ids:
+            return None
+        opportunities = (
+            self.session.query(MarginOpportunity)
+            .filter(MarginOpportunity.tenant_id == tenant_id, MarginOpportunity.id.in_(opportunity_ids))
+            .all()
+        )
+        if not opportunities:
+            return None
+        return str(sum((Decimal(opportunity.impact_base) for opportunity in opportunities), Decimal("0")))
+
     def dashboard(self, *, tenant_id: str, policy_id: str) -> dict:
         from erpguard.db.model_packages.execution import ExecutionRun
 
@@ -472,7 +511,7 @@ class CanaryRouterService:
             postcondition_failure_count=postcondition_failure_count,
             unexpected_side_effect_count=unexpected_side_effect_count,
             cumulative_amount=cumulative_amount,
-            estimated_opportunity_value=None,
+            estimated_opportunity_value=self._estimated_opportunity_value(tenant_id=tenant_id, run_ids=run_ids),
             reviewed_incidents=reviewed_incidents,
             unresolved_incidents=unresolved_incidents,
             minimum_cases=10,

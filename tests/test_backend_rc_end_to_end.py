@@ -158,7 +158,7 @@ def test_backend_rc_end_to_end(monkeypatch):
     assert client.post(f"/v1/action-drafts/{draft['id']}/validate", headers=headers).status_code == 200
 
     # 10-11: canary policy -> approve and activate
-    _active_canary_policy(client, headers, tenant_id, process_key=process_key, stable_id=stable_id, canary_id=canary_id)
+    policy = _active_canary_policy(client, headers, tenant_id, process_key=process_key, stable_id=stable_id, canary_id=canary_id)
 
     # Sec 19 "same canary context selects same package": the deterministic
     # bucket/lane math is pure and reproducible for identical inputs.
@@ -211,6 +211,15 @@ def test_backend_rc_end_to_end(monkeypatch):
     assert execute_resp.status_code == 200, execute_resp.text
     executed = execute_resp.json()
     assert executed["status"] == "succeeded"
+
+    # Sec 9.8: the canary dashboard's estimated_opportunity_value is no
+    # longer a hardcoded null -- it traces this run back through its
+    # action draft/recommendation to the MarginOpportunity that motivated
+    # it (impact_base == 200 for the fixed _segment(...) fixture below).
+    dashboard = client.get(f"/v1/canary-policies/{policy['id']}/dashboard", headers=headers).json()
+    from decimal import Decimal
+
+    assert Decimal(dashboard["estimated_opportunity_value"]) == Decimal("200"), dashboard
 
     # 15: verify draft-only postconditions -- no confirmation/invoice/delivery/purchase/manufacturing.
     evidence_resp = client.get(f"/v1/runs/{run_id}/evidence", headers=headers)

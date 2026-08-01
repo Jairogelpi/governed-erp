@@ -94,6 +94,7 @@ class OutcomeService:
         minimum_data_coverage: float = 0.8,
         target_metrics: list[str] | None = None,
         assumptions: list[str] | None = None,
+        implementation_cost: Decimal | None = None,
     ) -> OutcomeMeasurementPlan:
         recommendation = (
             self.session.query(GovernedRecommendation)
@@ -124,6 +125,9 @@ class OutcomeService:
         if action_draft is None:
             raise OutcomeValidationError("no_converted_action_draft_for_recommendation")
 
+        if implementation_cost is not None and implementation_cost < 0:
+            raise OutcomeValidationError("implementation_cost_must_be_non_negative")
+
         content = {
             "recommendation_id": recommendation_id,
             "recommendation_content_hash": recommendation.content_hash,
@@ -131,6 +135,7 @@ class OutcomeService:
             "comparison_method": comparison_method,
             "observation_start": observation_start,
             "observation_end": observation_end,
+            "implementation_cost": str(implementation_cost) if implementation_cost is not None else None,
         }
         row = OutcomeMeasurementPlan(
             id=f"outcomeplan_{uuid4().hex}",
@@ -148,6 +153,7 @@ class OutcomeService:
             observation_start=observation_start,
             observation_end=observation_end,
             minimum_data_coverage=minimum_data_coverage,
+            implementation_cost=str(implementation_cost) if implementation_cost is not None else None,
             assumptions_json=_dump(assumptions or []),
             status="draft",
             content_hash=stable_digest(content),
@@ -325,6 +331,7 @@ class OutcomeService:
             observed=observed,
             minimum_data_coverage=row.minimum_data_coverage,
             estimated_base=Decimal(recommendation.estimated_impact_base),
+            implementation_cost=Decimal(row.implementation_cost) if row.implementation_cost is not None else None,
         )
 
         content = {
@@ -346,6 +353,8 @@ class OutcomeService:
             observed_margin_percent_change=_str_or_none(result["observed_margin_percent_change"]),
             observed_refund_change=None,
             realized_value=_str_or_none(result["realized_value"]),
+            implementation_cost=row.implementation_cost,
+            net_realized_value=_str_or_none(result["net_realized_value"]),
             variance_from_base_estimate=_str_or_none(result["variance_from_base_estimate"]),
             result_classification=result["result_classification"],
             confidence_band=recommendation.confidence_band,

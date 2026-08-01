@@ -39,6 +39,7 @@ class OutcomeMeasurementPlan(Base):
     observation_start: Mapped[str] = mapped_column(String(10), nullable=False)
     observation_end: Mapped[str] = mapped_column(String(10), nullable=False)
     minimum_data_coverage: Mapped[float] = mapped_column(Float, nullable=False, default=0.8)
+    implementation_cost: Mapped[str | None] = mapped_column(String(64), nullable=True)
     assumptions_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="draft")
     content_hash: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
@@ -82,6 +83,8 @@ class RealizedOutcomeReport(Base):
     observed_margin_percent_change: Mapped[str | None] = mapped_column(String(64), nullable=True)
     observed_refund_change: Mapped[str | None] = mapped_column(String(64), nullable=True)
     realized_value: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    implementation_cost: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    net_realized_value: Mapped[str | None] = mapped_column(String(64), nullable=True)
     variance_from_base_estimate: Mapped[str | None] = mapped_column(String(64), nullable=True)
     result_classification: Mapped[str] = mapped_column(String(32), nullable=False)
     confidence_band: Mapped[str] = mapped_column(String(16), nullable=False)
@@ -107,6 +110,7 @@ _PLAN_IMMUTABLE_ATTRS = (
     "observation_start",
     "observation_end",
     "minimum_data_coverage",
+    "implementation_cost",
     "content_hash",
 )
 _PLAN_TERMINAL_STATUSES = {"evaluated", "blocked", "inconclusive"}

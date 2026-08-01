@@ -272,6 +272,10 @@ def test_dashboard_reports_real_cumulative_amount_and_unexpected_side_effects(mo
     dashboard = dashboard_resp.json()
     assert dashboard["cumulative_amount"] == 250.0
     assert dashboard["unexpected_side_effects"] == 1
+    # These runs used sales.order.read directly (no GovernedActionDraft/
+    # GovernedRecommendation chain), so there is nothing to trace an
+    # opportunity value back through -- stays null, never guessed.
+    assert dashboard["estimated_opportunity_value"] is None
 
 
 def test_two_active_policies_for_same_process_rejected(monkeypatch):

@@ -50,6 +50,7 @@ def create_measurement_plan(
             minimum_data_coverage=request.minimum_data_coverage,
             target_metrics=request.target_metrics or None,
             assumptions=request.assumptions or None,
+            implementation_cost=request.implementation_cost,
         )
     except OutcomeValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -171,6 +172,7 @@ def _plan_response(row) -> MeasurementPlanResponse:
         observation_start=row.observation_start,
         observation_end=row.observation_end,
         minimum_data_coverage=row.minimum_data_coverage,
+        implementation_cost=row.implementation_cost,
         status=row.status,
         content_hash=row.content_hash,
         approval_scope=OutcomeService.approval_scope(row),
@@ -209,6 +211,8 @@ def _report_response(row) -> RealizedOutcomeReportResponse:
         observed_margin_percent_change=row.observed_margin_percent_change,
         observed_refund_change=row.observed_refund_change,
         realized_value=row.realized_value,
+        implementation_cost=row.implementation_cost,
+        net_realized_value=row.net_realized_value,
         variance_from_base_estimate=row.variance_from_base_estimate,
         result_classification=row.result_classification,
         confidence_band=row.confidence_band,
