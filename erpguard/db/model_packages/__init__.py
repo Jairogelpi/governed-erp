@@ -19,9 +19,12 @@ from erpguard.db.model_packages.recommendations import GovernedActionDraft, Gove
 from erpguard.db.model_packages.canary import CanaryPolicy, CanaryRoutingDecision, CanarySafetyIncident
 from erpguard.db.model_packages.outcomes import OutcomeMeasurementPlan, OutcomeObservation, RealizedOutcomeReport
 from erpguard.db.model_packages.decision_outcome_evidence import DecisionOutcomeEvidenceBundle
+from erpguard.db.model_packages.benchmark import BenchmarkRun, BenchmarkCaseResult
 
 __all__ = [
     "DecisionOutcomeEvidenceBundle",
+    "BenchmarkRun",
+    "BenchmarkCaseResult",
     "GovernedActionDraft",
     "GovernedRecommendation",
     "CanaryPolicy",

@@ -14,6 +14,7 @@ from . import recommendations
 from . import canary
 from . import outcomes
 from . import decision_outcome_evidence
+from . import benchmark
 
 
 PUBLIC_ROUTERS = (
@@ -47,6 +48,7 @@ PUBLIC_ROUTERS = (
     outcomes.outcome_reports_router,
     decision_outcome_evidence.recommendation_evidence_router,
     decision_outcome_evidence.evidence_router,
+    benchmark.router,
 )
 
 __all__ = ["PUBLIC_ROUTERS"]
