@@ -91,8 +91,7 @@ reproducible demo surfaces.
   and `fixture`/`manual_import`-sourced outcome observations.
 - `staging_only`: real Odoo read-only transport paths, live smoke checks,
   `sales.order.confirm`, and `sales.quote.create_pricing_scenario_draft`
-  (both false-by-default and unverified against a live instance in this
-  delivery — see
+  (both false-by-default; the latter was verified live 2026-07-31 — see
   [docs/demo/backend_rc_live_pricing_scenario_evidence.json](docs/demo/backend_rc_live_pricing_scenario_evidence.json)).
 - `advisory`: canary eligibility recommendations, opportunity/ROI sizing,
   realized-outcome classification (never a causal claim).
@@ -408,8 +407,11 @@ sealed-immutable record with a reality label on every reference.
 
 Net ROI with implementation cost (Spec 92 Sec 10.6) is not implemented —
 `MarginOpportunity.implementation_cost` exists as a column but nothing
-populates or reads it. No live Odoo staging run of the pricing-scenario
-capability has been performed in this delivery; see
+populates or reads it. A live Odoo 19 staging test of the pricing-scenario
+capability was performed against a real, authorized staging instance: one
+draft `sale.order` created, independently re-read to confirm `state=draft`
+with zero invoices/pickings, and a retry proven idempotent (same run, no
+duplicate). See
 [docs/demo/backend_rc_live_pricing_scenario_evidence.json](docs/demo/backend_rc_live_pricing_scenario_evidence.json).
 A generated (fixture-backed, not live-Odoo) full lifecycle evidence bundle
 is in

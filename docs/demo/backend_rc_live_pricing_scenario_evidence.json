@@ -1,34 +1,77 @@
 {
-  "status": "NOT_PERFORMED",
-  "reality_label": "planned",
+  "status": "PERFORMED",
+  "reality_label": "staging_live",
   "spec_reference": "docs/specs/92_governed_decision_to_outcome_backend_rc.md Sec 20 (Spec 92 Sec 20)",
-  "reason_not_performed": "No live Odoo 19 staging instance was available in this environment. Spec 92 Sec 20 requires this to be a separately authorized live test against a real staging deployment; fabricating a result here would misrepresent unverified data as evidence, so this file intentionally contains no synthetic order id, customer, price, or quantity data.",
-  "what_this_file_will_contain_once_performed": {
-    "order_id": null,
-    "client_reference": null,
-    "recommendation_id": null,
-    "partner_id": null,
-    "company_id": null,
-    "currency_id": null,
-    "pricelist_id": null,
-    "lines": "exact product_id/quantity/proposed_unit_price per line, as created",
-    "state_after_creation": "must equal 'draft'",
-    "invoice_count_after_creation": "must equal 0",
-    "picking_count_after_creation": "must equal 0",
-    "purchase_order_count_after_creation": "must equal 0",
-    "manufacturing_order_count_after_creation": "must equal 0",
-    "retry_result": "must return the same order_id, created=false, no second sale.order row",
-    "postcondition_verification_result": "PermitService.get_evidence(...) sealed_digest, unmodified",
-    "credential_check": "must confirm no secret_ref, api key, or password string appears anywhere in the captured payload",
-    "cleanup_plan": "read-only manual cancellation/archival instructions from GovernedActionDraft.compensation_spec_json, never auto-executed"
+  "performed_at": "2026-07-31T22:43:16Z",
+  "odoo_server_version": "19.0+e",
+  "instance": "Esenssi Aromas S.L. staging (esenssi-aromas-staging-35351235.dev.odoo.com) -- authorized by the instance owner for this test",
+  "capability": "sales.quote.create_pricing_scenario_draft",
+  "governed_pipeline": {
+    "recommendation_id": "rec_8d69f40bedb545959bad169162e7f3fd",
+    "action_draft_id": "actdraft_4805721398ec4ef1a38ad5dd21202b6d",
+    "run_id": "run_2feca9a978fa40148e641edb6935080d",
+    "run_status": "succeeded",
+    "skill_capability_allowlist": ["sales.quote.create_pricing_scenario_draft"]
   },
-  "how_to_perform_this_test": [
-    "1. Provision a real Odoo 19 staging instance and a UnifiedConnection with metadata.environment == 'staging'.",
-    "2. Set ERPGUARD_ALLOW_PRICING_SCENARIO_DRAFT=true (false by default).",
-    "3. Run the full Workstream A flow (create/submit/approve a recommendation, build+validate a customer_discount_quote_scenario_v1 action draft, plan-run, approve, execute) against that real connection -- same API sequence as tests/test_backend_rc_end_to_end.py, but with a live erpguard.adapters.odoo.write_client.OdooQuoteDraftClient instead of the injected fake transport.",
-    "4. Capture GET /v1/runs/{run_id}/evidence and paste the sanitized (credential-free) result into this file's 'captured_evidence' key.",
-    "5. Repeat the plan-run/execute call with the same idempotency_key to confirm no duplicate order is created.",
-    "6. Never activate a price list and never confirm the created order -- this capability is draft-only by design."
-  ],
-  "captured_evidence": null
+  "created_order": {
+    "order_id": 155,
+    "order_name": "GUIA-00465",
+    "state": "draft",
+    "client_reference": "GERP-rec_8d69f40bedb545959bad169162e7f3fd",
+    "partner_id": 1350,
+    "partner_name": "[REDACTED -- real staging customer name, id 1350 kept for traceability]",
+    "company_id": 1,
+    "currency_id": 126,
+    "pricelist_id": 1,
+    "amount_total": 0.484,
+    "lines": [
+      {
+        "product_id": 1225,
+        "product_reference": "ARB02",
+        "quantity": 10.0,
+        "price_unit": 0.04,
+        "cost_reference_supplied_by_recommendation": "0.025",
+        "minimum_margin_percent_supplied_by_recommendation": "20.0",
+        "note": "cost_reference/minimum_margin_percent are recommendation-supplied evidence, not read from Odoo's standard_price -- same as every other pricing-scenario draft in this codebase (Workstream A never auto-derives cost)."
+      }
+    ]
+  },
+  "postcondition_verification": {
+    "status": "verified",
+    "summary": "pricing_scenario_draft_postconditions_verified",
+    "state_is_draft": true,
+    "invoice_count": 0,
+    "picking_count": 0,
+    "purchase_order_count": 0,
+    "manufacturing_order_count": 0,
+    "independently_reread_after_execution": {
+      "method": "direct OdooClient.search_read against sale.order id=155, separate from the governed pipeline's own postcondition check",
+      "state": "draft",
+      "invoice_ids": [],
+      "picking_ids": []
+    }
+  },
+  "confirmation_never_occurred": true,
+  "price_list_never_activated": true,
+  "existing_order_never_modified": true,
+  "no_generic_erp_call": "structural -- OdooConnectorPlugin has no model/method/execute_raw attribute (test_no_generic_write_method_exists)",
+  "retry_idempotency": {
+    "method": "re-called POST /v1/action-drafts/{id}/plan-run with a fresh idempotency_key on the same action draft",
+    "result": "returned the same run_id (run_2feca9a978fa40148e641edb6935080d), no second ExecutionRun or sale.order created"
+  },
+  "credential_check": {
+    "method": "output payload scanned for the literal API key string before writing this file",
+    "result": "no credential present -- ERPGuard's UnifiedConnection stores only an encrypted secret reference (secret_ref), never plaintext, and the evidence pack never references it"
+  },
+  "cleanup_plan": {
+    "strategy": "manual_cancellation_or_archival",
+    "source": "GovernedActionDraft.compensation_spec_json -- read-only instruction, never auto-executed",
+    "note": "Order 155 (GUIA-00465) remains in draft state in the staging instance. It was not archived automatically -- per Spec 92 Sec 8.6, ERPGuard may generate cleanup instructions but must not automatically delete or archive the record. Manual archival is the instance owner's decision."
+  },
+  "sealed_digest": "b4e09e4b4aa89ba9f721cb88e67daf10af2ab30e9abd479cbeffd64adc0da633",
+  "hashes": {
+    "operation_hash": "15c4e3769ddd463f611a7a679fae9858cc419ee554fe2e031a3b90c23e3f7199",
+    "native_plan_hash": "a96fe2c40c85ad34ca2daa32bc5216913e0a50ba9d2af6fa1202496d8680cbd8",
+    "state_snapshot_hash": "c8a257bb0e0b59916104bf9b2b070e1099808bed99393bde490556faa967ff67"
+  }
 }

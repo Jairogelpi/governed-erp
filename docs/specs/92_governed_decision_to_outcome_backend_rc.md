@@ -211,13 +211,17 @@ Verification).
 ## Known gaps and deferred work
 
 - Net ROI with implementation cost (Sec 10.6) — not implemented (Workstream C, above).
-- **Live Odoo staging test (Sec 20) — not performed.** No live Odoo 19
-  staging instance was available in this environment. This delivery's
-  entire pricing-scenario write path is exercised only against the
-  injected fake transport in `test_backend_rc_end_to_end.py` and
-  `test_phase16_7_pricing_scenario_draft.py`. `docs/demo/backend_rc_live_pricing_scenario_evidence.json`
-  documents this explicitly rather than fabricating a result — it is a
-  template of what that evidence must contain, not a completed run.
+- **Live Odoo staging test (Sec 20) — performed 2026-07-31** against a
+  real Odoo 19 staging instance (server version `19.0+e`), authorized by
+  the instance owner. Full governed pipeline (recommendation → approval →
+  action draft → validated → planned → approved → executed) against the
+  real `LegacyXmlRpcWriteTransport`, not the fake transport the automated
+  suite uses. Created exactly one draft `sale.order` (id 155,
+  `GUIA-00465`), independently re-read after execution to confirm
+  `state=draft` with zero invoices/pickings; retry via a fresh
+  `plan-run` call returned the same `ExecutionRun` rather than creating a
+  duplicate. Full evidence:
+  `docs/demo/backend_rc_live_pricing_scenario_evidence.json`.
 - Canary dashboard's `estimated_opportunity_value` is always `null` — no
   code path ties a canary policy back to the `MarginOpportunity.impact_base`
   it was meant to validate.
@@ -246,6 +250,11 @@ Verification).
   SQLite for `0025_decision_outcome_evidence`. Not verified locally against
   PostgreSQL (no local Postgres in this environment); runs in CI on every
   push per the existing workflow.
+- CI (`postgres-migrations`, `docker`, `quality` 3.11/3.13) green on this
+  branch's PR after two pre-existing repo-wide lint/type issues (unrelated
+  to this delivery, predating it) were cleared.
+- Live Odoo staging test (Sec 20) performed and verified — see "Known gaps
+  and deferred work" above.
 
 ## Out of scope
 

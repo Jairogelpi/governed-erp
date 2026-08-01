@@ -42,8 +42,10 @@
 
 - `sales.quote.create_pricing_scenario_draft` remains false by default
   (`ERPGUARD_ALLOW_PRICING_SCENARIO_DRAFT=false`) and staging-only.
-- No live Odoo staging run of the pricing-scenario capability has been
-  performed — see
+- Live Odoo 19 staging test performed against a real, authorized staging
+  instance: one draft `sale.order` created, independently re-read to
+  confirm `state=draft` with zero invoices/pickings, retry proven
+  idempotent — see
   `docs/demo/backend_rc_live_pricing_scenario_evidence.json`.
 - Net ROI with implementation cost (Sec 10.6) is not implemented; the
   field stays unset rather than guessed.

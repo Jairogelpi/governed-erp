@@ -28,10 +28,10 @@ videos, a security/release review, and the `v1.0.0-tfm` freeze — see Spec
 92 Sec 30.
 
 **Known backend gaps carried forward:** net ROI with implementation cost
-(Spec 92 Sec 10.6), the canary dashboard's `estimated_opportunity_value`
-(always `null`), and a live Odoo staging run of the pricing-scenario
-capability (never performed in this environment — see
-`docs/demo/backend_rc_live_pricing_scenario_evidence.json`).
+(Spec 92 Sec 10.6) and the canary dashboard's `estimated_opportunity_value`
+(always `null`). The Sec 20 live Odoo staging run of the pricing-scenario
+capability has been performed and verified — see
+`docs/demo/backend_rc_live_pricing_scenario_evidence.json`.
 
 Real ERP writes, autonomous promotion, and generic raw ERP capabilities
 remain outside scope for every phase above — see each spec's "Out of
