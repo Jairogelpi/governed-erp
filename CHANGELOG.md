@@ -43,6 +43,20 @@
   `docs/specs/18_mvp_demo_report.md` (root-relative paths that don't
   resolve from the file's own directory) -- found by the new docs link
   check before it ever ran in CI.
+- `POST /v1/events/fake-generate`'s event vocabulary
+  (`erpguard.domain.events.fake_generator.build_fake_ocel`) emitted
+  `sales.order.created`/`sales.order.reviewed`, which do not match
+  `quote_to_order_v1.yaml`'s declared vocabulary
+  (`sales.quote.created`/`sales.quote.reviewed`) -- variant discovery
+  never matched the canonical happy-path variant. Fixed in a follow-up
+  pass to this phase (found by reading the generator against the process
+  YAML, not just a surface review); verified with a test that runs
+  `VariantDiscoveryService.discover(...)` against freshly generated
+  events and checks the exact happy-path sequence, and manually via a
+  real browser walkthrough of the merged Phase 21 web app. The same pass
+  also ran `docker compose -f docker-compose.demo.yml up --build` for
+  real (not just `uvicorn` locally) and `validate_demo_install.py`
+  against that live container: 22/22 checks passed.
 
 ### Found, not fixed (documented as a known gap)
 
@@ -53,12 +67,6 @@
   through execution) but explicitly skips recommendations, canary,
   outcomes and evidence for this reason -- resolving it is product work
   for a future phase, not packaging work for this one.
-- `POST /v1/events/fake-generate`'s event vocabulary
-  (`sales.order.created`/`sales.order.reviewed`) does not match
-  `quote_to_order_v1.yaml`'s declared vocabulary
-  (`sales.quote.created`/`sales.quote.reviewed`) -- worked around in
-  `validate_demo_install.py` by seeding via `POST /v1/events/ocel/import`
-  with the correct fixture builder instead; not fixed in product code.
 
 ## Unreleased — Spec 94 (Phase 21: Product Web Application)
 
