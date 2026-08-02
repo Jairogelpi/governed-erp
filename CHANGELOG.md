@@ -1,5 +1,65 @@
 # Changelog
 
+## Unreleased — Spec 95 (Phase 22: TFM Delivery and Release Freeze)
+
+### Added
+
+- `scripts/validate_demo_install.py` + `docker-compose.demo.yml` --
+  clean-install acceptance against Fake ERP data, driven purely over
+  HTTP against a running server. Explicitly does not exercise the
+  decision-to-outcome pillar (see "Fixed"/"Found" below).
+- `scripts/export_benchmark_report.py` -- runs a real `BenchmarkRun`
+  against a scratch database and exports its report + raw results, so
+  the TFM memory can cite a real artifact instead of hand-restating
+  numbers.
+- `.github/workflows/ci.yml` `release-checks` job: dependency scan
+  (`pip-audit`, advisory/non-blocking), SBOM generation (CycloneDX,
+  uploaded as a CI artifact), a benchmark smoke test
+  (`tests/test_phase22_benchmark_smoke.py`, `erpguard_candidate` only,
+  8 cases), and a local-links-only docs link check (lychee `--offline`).
+- `docs/tfm/annexes/` -- the Sec 39.2 annex set (OpenAPI export, the
+  `direct_tool_agent` prompt verbatim, data rights/GDPR analysis,
+  installation notes, code/repository pointers, test reports).
+- `docs/tfm/memoria_draft.md` -- a first, explicitly-a-draft TFM memory
+  in Spanish, every factual claim grounded in a real repository
+  artifact.
+- `docs/demo/five_minute_demo_script.md`, `docs/release/versions.md`.
+- `tests/test_phase22_docs_contract.py`, `tests/test_phase22_definition_of_done.py`.
+- README restructured (Sec 38): the top now leads with a Definition of
+  Done section instead of the chronological phase narrative, which
+  moved to `docs/architecture/phase_narrative.md`.
+
+### Fixed
+
+- `erpguard.db.session.init_db()` was missing four model-package imports
+  (`replay`, `proof`, `skill_package`, `execution`) -- a database built
+  via `init_db()` alone (used by `scripts/start_release_candidate.sh`/
+  `.ps1`) silently never created `process_replays`, `process_replay_cases`,
+  `process_proofs`, `skill_packages`, `execution_runs` or `approvals`,
+  crashing the first time any of those were used. `alembic upgrade head`
+  was never affected. Found only by actually running
+  `validate_demo_install.py` against a live server.
+- Broken relative links in `docs/legacy/releases.md` and
+  `docs/specs/18_mvp_demo_report.md` (root-relative paths that don't
+  resolve from the file's own directory) -- found by the new docs link
+  check before it ever ran in CI.
+
+### Found, not fixed (documented as a known gap)
+
+- The decision-to-outcome pillar (Spec 92) has no Fake-ERP/fixture entry
+  point: every `MarginOpportunity` requires a real Odoo-derived
+  analytical snapshot (`POST /v1/decision-intelligence/snapshots`).
+  `validate_demo_install.py` exercises the full existing pillar (connect
+  through execution) but explicitly skips recommendations, canary,
+  outcomes and evidence for this reason -- resolving it is product work
+  for a future phase, not packaging work for this one.
+- `POST /v1/events/fake-generate`'s event vocabulary
+  (`sales.order.created`/`sales.order.reviewed`) does not match
+  `quote_to_order_v1.yaml`'s declared vocabulary
+  (`sales.quote.created`/`sales.quote.reviewed`) -- worked around in
+  `validate_demo_install.py` by seeding via `POST /v1/events/ocel/import`
+  with the correct fixture builder instead; not fixed in product code.
+
 ## Unreleased — Spec 94 (Phase 21: Product Web Application)
 
 ### Added

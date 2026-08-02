@@ -3,9 +3,10 @@
 The active sequence is defined by
 `docs/specs/84_erpguard_evolution_master_spec.md`, extended by
 `docs/specs/92_governed_decision_to_outcome_backend_rc.md`,
-`docs/specs/93_phase20_erpriskbench_and_experiments.md` and
-`docs/specs/94_phase21_product_web_application.md` for the current
-delivery.
+`docs/specs/93_phase20_erpriskbench_and_experiments.md`,
+`docs/specs/94_phase21_product_web_application.md` and
+`docs/specs/95_phase22_tfm_delivery_and_release_freeze.md` for the
+current delivery.
 
 **Completed:** Phases 0–19 (baseline freeze through identity, migrations,
 connector SDK, canonical events, variant discovery, process candidates,
@@ -33,9 +34,23 @@ Product Web Application):
   `ERPGUARD_SERVE_FRONTEND=true`; the old `/demo` engineering dashboard
   stays internal-only and now banners to the new app.
 
-**Next (not started):** TFM statistical results, the final public
-README/demo videos, a security/release review, and the `v1.0.0-tfm`
-freeze — see Spec 92 Sec 30.
+- **Phase 22 (TFM Delivery and Release Freeze, Spec 95)** — packaging and
+  evidence only, no new product capability: `scripts/validate_demo_install.py`
+  + `docker-compose.demo.yml` (clean-install acceptance against Fake
+  ERP), `scripts/export_benchmark_report.py` (a real, citable
+  `BenchmarkRun` for the TFM memory), the `release-checks` CI job
+  (dependency scan, SBOM, benchmark smoke test, docs link check),
+  `docs/tfm/annexes/` (the Sec 39.2 annex set), and a first
+  `docs/tfm/memoria_draft.md` draft. Found and fixed one real
+  installability bug in the process (`erpguard.db.session.init_db()` was
+  missing four model-package imports) -- see
+  `docs/tfm/annexes/installation.md`.
+
+**Next (not started):** the thesis author's own review of
+`docs/tfm/memoria_draft.md` and the five-minute demo video (script at
+`docs/demo/five_minute_demo_script.md`), and cutting the `v1.0.0-tfm` tag
+once both are actually ready — a deliberate manual step, not automated
+by this phase.
 
 **Backend RC status:** no known gaps remain in Spec 92's backend scope. Net
 ROI with implementation cost (Sec 10.6) and the canary dashboard's
