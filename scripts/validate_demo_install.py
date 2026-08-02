@@ -120,18 +120,19 @@ def run_validation(base_url: str) -> int:
     check("POST /v1/processes returns 201 or 409 (already registered)", code in (201, 409), f"status={code}")
 
     # Step 4 -- seed a Fake ERP case matching the Quote-to-Order fixture
-    # vocabulary. NOTE: `POST /v1/events/fake-generate`
-    # (`erpguard.domain.events.fake_generator.build_fake_ocel`) emits
-    # `sales.order.created`/`sales.order.reviewed`, which do NOT match
-    # `quote_to_order_v1.yaml`'s declared event vocabulary
-    # (`sales.quote.created`/`sales.quote.reviewed`) -- a real, previously
-    # undocumented mismatch this validation script surfaced. Using it here
-    # makes every candidate-evidence check downstream fail with
-    # `candidate_evidence_not_related_to_base`. Importing a hand-built OCEL
-    # document with the correct vocabulary sidesteps it without touching
-    # product code (out of scope for this packaging phase) -- see the
-    # capability reality matrix / memory draft "Known gaps" for the
-    # `fake-generate` fixture-mismatch entry.
+    # vocabulary. `POST /v1/events/fake-generate`
+    # (`erpguard.domain.events.fake_generator.build_fake_ocel`) used to emit
+    # `sales.order.created`/`sales.order.reviewed`, which did not match
+    # `quote_to_order_v1.yaml`'s declared event vocabulary -- that has since
+    # been fixed (see CHANGELOG.md). This script still uses
+    # `build_fake_quote_to_order_ocel` rather than the `fake-generate`
+    # endpoint for an independent reason: only the former attaches a real
+    # `SalesOrder` object payload (`ocel:ovmap`) with formula/margin data,
+    # which the candidate-evidence and Proof-of-Improvement policy checks
+    # further down (`evaluate_formula_guard_policy`) need. `fake-generate`'s
+    # fixture is intentionally minimal (just enough to make variant
+    # discovery find the happy-path variant for the web app's "Ingerir
+    # eventos de ejemplo" button) and does not carry that payload.
     print("\nStep 4: POST /v1/events/ocel/import (Quote-to-Order vocabulary)")
     object_key = f"so-demo-install-{run_id}"
     ocel_document = build_fake_quote_to_order_ocel(tenant_id=tenant_id, object_key=object_key, formula_valid=True)
