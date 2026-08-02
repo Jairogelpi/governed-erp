@@ -108,3 +108,47 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-checks:
+    # Spec 95 (Phase 22) Sec 32 -- the four CI gates the master spec's
+    # PR-pipeline list (Sec 32.1) still needed: dependency scan, SBOM,
+    # a fast benchmark smoke check, and a docs link check. None of these
+    # four are listed in Sec 32.3's release-gate blocking criteria (only
+    # "no SBOM" is), so `pip-audit` runs as an advisory, non-blocking
+    # report rather than a hard gate -- see the step's own comment.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install package and release-check tools
+        run: python -m pip install -e ".[dev]" pip-audit cyclonedx-bom
+      - name: Dependency scan (pip-audit, advisory)
+        # Non-blocking: pip-audit audits the whole resolved environment,
+        # including build tooling (pip/setuptools) that pyproject.toml
+        # does not declare as a dependency and this project does not
+        # control the version of in CI. Sec 32.3's release-gate list does
+        # not include "dependency vulnerability found" as a blocker
+        # (only "no SBOM" is) -- this step reports findings visibly in
+        # the CI log without failing the job on them.
+        run: python -m pip_audit || true
+      - name: Generate SBOM (CycloneDX)
+        run: python -m cyclonedx_py environment --of JSON -o sbom.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+      - name: Benchmark smoke test (erpguard_candidate, handful of cases)
+        run: python -m pytest tests/test_phase22_benchmark_smoke.py -q
+      - name: Docs link check (local links only)
+        # --offline: checks relative/local file links (cross-references
+        # between docs, README anchors) but skips external http(s) URLs.
+        # Validating outbound links is genuinely flaky on shared CI
+        # runners (rate limits, bot-blocking, transient outages) and
+        # isn't what actually breaks when someone renames or moves a doc
+        # in this repo -- local links are.
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --offline "docs/**/*.md" "README.md" "CHANGELOG.md" "ROADMAP.md"
+          fail: true

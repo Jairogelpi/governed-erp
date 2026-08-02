@@ -1,0 +1,252 @@
+{
+  "dataset_version": "quote_to_order_v1_seed92",
+  "disclaimer": "Synthetic Quote-to-Order dataset (Spec 92/93 Sec 29.3): these results validate governance logic against a controlled, reproducible case set. They do not prove real commercial conversion outcomes.",
+  "configurations": {
+    "fixed_workflow": {
+      "case_count": 120,
+      "not_run_count": 0,
+      "not_run_rate": 0.0,
+      "metrics": {
+        "task_success_rate": 0.5416666666666666,
+        "unsafe_side_effect_rate": 0.25,
+        "correct_block_rate": 0.5,
+        "false_block_rate": 0.0,
+        "entity_resolution_accuracy": 0.0,
+        "duplicate_prevention_rate": 0.0,
+        "postcondition_coverage": 0.0,
+        "evidence_completeness": 0.0,
+        "human_review_load": 0.0,
+        "mean_latency_ms": 0.0017608343720591317,
+        "mean_token_cost": null,
+        "regressions_introduced": null,
+        "regressions_prevented": null
+      },
+      "confidence_intervals_95": {
+        "task_success_rate": {
+          "lower": 0.4526096906236998,
+          "upper": 0.6281387121747415
+        },
+        "unsafe_side_effect_rate": {
+          "lower": 0.18109821656809566,
+          "upper": 0.33441136664125615
+        },
+        "correct_block_rate": {
+          "lower": 0.41193870541108385,
+          "upper": 0.5880612945889161
+        },
+        "false_block_rate": {
+          "lower": 0.0,
+          "upper": 0.031019166418703486
+        },
+        "entity_resolution_accuracy": {
+          "lower": 0.0,
+          "upper": 0.031019166418703486
+        },
+        "duplicate_prevention_rate": {
+          "lower": 0.0,
+          "upper": 0.031019166418703486
+        },
+        "postcondition_coverage": {
+          "lower": 0.0,
+          "upper": 0.031019166418703486
+        },
+        "evidence_completeness": {
+          "lower": 0.0,
+          "upper": 0.031019166418703486
+        },
+        "human_review_load": {
+          "lower": 0.0,
+          "upper": 0.031019166418703486
+        }
+      },
+      "by_category": {
+        "ambiguous": {
+          "case_count": 15,
+          "task_success_rate": 0.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "duplicate_retry": {
+          "case_count": 10,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "high_risk_actions": {
+          "case_count": 10,
+          "task_success_rate": 0.0,
+          "unsafe_side_effect_rate": 1.0
+        },
+        "identity_cross_tenant": {
+          "case_count": 5,
+          "task_success_rate": 0.0,
+          "unsafe_side_effect_rate": 1.0
+        },
+        "incomplete": {
+          "case_count": 15,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "indirect_prompt_injection": {
+          "case_count": 10,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "missing_entities": {
+          "case_count": 10,
+          "task_success_rate": 0.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "policy_violations": {
+          "case_count": 10,
+          "task_success_rate": 0.0,
+          "unsafe_side_effect_rate": 1.0
+        },
+        "state_drift": {
+          "case_count": 5,
+          "task_success_rate": 0.0,
+          "unsafe_side_effect_rate": 1.0
+        },
+        "valid_complete": {
+          "case_count": 30,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        }
+      }
+    },
+    "erpguard_candidate": {
+      "case_count": 120,
+      "not_run_count": 0,
+      "not_run_rate": 0.0,
+      "metrics": {
+        "task_success_rate": 1.0,
+        "unsafe_side_effect_rate": 0.0,
+        "correct_block_rate": 1.0,
+        "false_block_rate": 0.16666666666666666,
+        "entity_resolution_accuracy": 1.0,
+        "duplicate_prevention_rate": 1.0,
+        "postcondition_coverage": 0.4166666666666667,
+        "evidence_completeness": 0.4166666666666667,
+        "human_review_load": 0.08333333333333333,
+        "mean_latency_ms": 0.015626665845047683,
+        "mean_token_cost": null,
+        "regressions_introduced": null,
+        "regressions_prevented": null
+      },
+      "confidence_intervals_95": {
+        "task_success_rate": {
+          "lower": 0.9689808335812966,
+          "upper": 1.0
+        },
+        "unsafe_side_effect_rate": {
+          "lower": 0.0,
+          "upper": 0.031019166418703486
+        },
+        "correct_block_rate": {
+          "lower": 0.9689808335812966,
+          "upper": 1.0
+        },
+        "false_block_rate": {
+          "lower": 0.11055996367984616,
+          "upper": 0.24345281393262286
+        },
+        "entity_resolution_accuracy": {
+          "lower": 0.9689808335812966,
+          "upper": 1.0
+        },
+        "duplicate_prevention_rate": {
+          "lower": 0.9689808335812966,
+          "upper": 1.0
+        },
+        "postcondition_coverage": {
+          "lower": 0.3323835214047597,
+          "upper": 0.5061196729983577
+        },
+        "evidence_completeness": {
+          "lower": 0.3323835214047597,
+          "upper": 0.5061196729983577
+        },
+        "human_review_load": {
+          "lower": 0.045893650374929706,
+          "upper": 0.14662232164065653
+        }
+      },
+      "by_category": {
+        "ambiguous": {
+          "case_count": 15,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "duplicate_retry": {
+          "case_count": 10,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "high_risk_actions": {
+          "case_count": 10,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "identity_cross_tenant": {
+          "case_count": 5,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "incomplete": {
+          "case_count": 15,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "indirect_prompt_injection": {
+          "case_count": 10,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "missing_entities": {
+          "case_count": 10,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "policy_violations": {
+          "case_count": 10,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "state_drift": {
+          "case_count": 5,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        },
+        "valid_complete": {
+          "case_count": 30,
+          "task_success_rate": 1.0,
+          "unsafe_side_effect_rate": 0.0
+        }
+      }
+    }
+  },
+  "comparison": {
+    "task_success_rate": {
+      "fixed_workflow": 0.5416666666666666,
+      "erpguard_candidate": 1.0
+    },
+    "unsafe_side_effect_rate": {
+      "fixed_workflow": 0.25,
+      "erpguard_candidate": 0.0
+    },
+    "correct_block_rate": {
+      "fixed_workflow": 0.5,
+      "erpguard_candidate": 1.0
+    },
+    "false_block_rate": {
+      "fixed_workflow": 0.0,
+      "erpguard_candidate": 0.16666666666666666
+    },
+    "mean_latency_ms": {
+      "fixed_workflow": 0.0017608343720591317,
+      "erpguard_candidate": 0.015626665845047683
+    },
+    "mean_token_cost": {
+      "fixed_workflow": null,
+      "erpguard_candidate": null
+    }
+  }
+}
