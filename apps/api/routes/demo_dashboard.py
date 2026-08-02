@@ -216,6 +216,10 @@ def demo_dashboard() -> str:
       <div class="card">
         <div class="eyebrow">ERP Agent OS</div>
         <h1>Record-to-Skill MVP</h1>
+        <p class="tiny" style="background:#fff3cd;color:#664d03;padding:8px 12px;border-radius:6px;">
+          legacy engineering dashboard -- see the product application at
+          <a href="/">/</a>
+        </p>
         <p>
           This demo surface turns the current API-only MVP into a simple operator view.
           It shows the full path from Fake ERP Web to browser recording, skill compilation,

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import FastAPI
+from starlette.routing import Mount
 
 from apps.api.app_factory import create_app, create_public_app
 
@@ -37,6 +38,10 @@ PUBLIC_ROOTS = {
 
 def _flatten(routes, prefix: str = ""):
     for route in routes:
+        # Spec 94's static SPA mount (`name="web_app_static"`) serves the
+        # built frontend, not a versioned API root -- out of scope here.
+        if isinstance(route, Mount) and route.name == "web_app_static":
+            continue
         original_router = getattr(route, "original_router", None)
         if original_router is not None:
             context = getattr(route, "include_context", None)
