@@ -10,3 +10,11 @@ __pycache__/
 .claude/
 # Local Pi runtime state
 .atl/
+
+# Spec 94 frontend (web/) build/tooling artifacts
+web/node_modules/
+web/dist/
+web/tsconfig.tsbuildinfo
+web/test-results/
+web/playwright-report/
+web/openapi.json

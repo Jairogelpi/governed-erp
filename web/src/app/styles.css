@@ -1,0 +1,111 @@
+:root {
+  color-scheme: light;
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --border: #e2e5ea;
+  --text: #1c2230;
+  --muted: #667085;
+  --accent: #2b5fd9;
+  --danger: #c0392b;
+  --warn: #b8860b;
+  --ok: #1e7e34;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 100vh;
+}
+
+.app-nav {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  padding: 1rem 0;
+}
+
+.app-nav h1 {
+  font-size: 1.1rem;
+  padding: 0 1rem 1rem;
+  margin: 0;
+}
+
+.app-nav a {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.app-nav a.active,
+.app-nav a:hover {
+  background: #eef2fb;
+  color: var(--accent);
+}
+
+.app-main {
+  padding: 1.5rem 2rem;
+  max-width: 1100px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.badge-ok { background: #e6f4ea; color: var(--ok); }
+.badge-warn { background: #fdf3d8; color: var(--warn); }
+.badge-danger { background: #fbe7e5; color: var(--danger); }
+.badge-muted { background: #eef0f3; color: var(--muted); }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); }
+
+.disclaimer {
+  font-size: 0.85rem;
+  color: var(--muted);
+  border-left: 3px solid var(--warn);
+  padding: 0.4rem 0.75rem;
+  background: #fffaf0;
+}
+
+button, input, select {
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+button.primary {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+}
+
+.error-box {
+  background: #fbe7e5;
+  color: var(--danger);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+}
