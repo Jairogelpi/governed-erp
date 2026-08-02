@@ -61,9 +61,20 @@ python -m alembic upgrade head
 uvicorn apps.api.main:app --reload
 ```
 
-Set `ERPGUARD_INTERNAL_SURFACES=true` before starting the API and open
-[http://127.0.0.1:8000/demo](http://127.0.0.1:8000/demo) for the existing
-operator dashboard. The current public API surfaces are:
+Build and serve the product web application (Spec 94, Phase 21) with:
+
+```bash
+cd web && npm ci && npm run build && cd ..
+ERPGUARD_SERVE_FRONTEND=true uvicorn apps.api.main:app --reload
+```
+
+then open [http://127.0.0.1:8000/](http://127.0.0.1:8000/). The old
+engineering dashboard is still available for internal debugging: set
+`ERPGUARD_INTERNAL_SURFACES=true` before starting the API and open
+[http://127.0.0.1:8000/demo](http://127.0.0.1:8000/demo) -- it now carries
+a banner pointing back at the product application and is excluded from
+new README/demo screenshots from Phase 21 onward. The current public API
+surfaces are:
 
 ```text
 GET  /v1/variants?object_type=sales_order

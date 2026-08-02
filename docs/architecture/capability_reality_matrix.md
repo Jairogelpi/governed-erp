@@ -2,9 +2,9 @@
 
 **Phase 0 baseline:** `e483f5c5f272139c65a02ebc32ab11f5e323b6a4`
 
-**Inventory date:** 2026-07-31
+**Inventory date:** 2026-08-02
 
-**Current implementation reference:** Spec 92 Governed Decision-to-Outcome Backend RC (Workstreams A/B/C/D)
+**Current implementation reference:** Spec 92 Governed Decision-to-Outcome Backend RC (Workstreams A/B/C/D); Spec 93 (ERPRiskBench); Spec 94 (Product Web Application)
 
 The labels below are evidence labels, not marketing claims:
 
@@ -56,6 +56,9 @@ The labels below are evidence labels, not marketing claims:
 | Operational canary router | `real` | Spec 92 Workstream B (`erpguard/domain/canary/routing.py`): deterministic `sha256`-bucket lane selection, append-only routing decisions, safety-threshold auto-pause. No RNG, no LLM. |
 | Outcome measurement / realized ROI | `real` / `advisory` | Spec 92 Workstream C (`erpguard/domain/outcomes/`): gated comparison (metric version, currency, coverage), explicit `live_odoo_read` / `fixture` / `manual_import` labeling, no causal-claim language. Net ROI with a supplied, evidenced implementation cost is computed (`net_realized_value`); missing cost leaves the field `null`, never guessed. |
 | Decision-to-outcome evidence bundle | `real` | Spec 92 Workstream D (`erpguard/domain/evidence/`, `erpguard/application/evidence/`): hash-chained manifest over the full lifecycle, sealed-immutable, tamper-detected on every read. |
+| ERPRiskBench governed-vs-ungoverned benchmark | `real` / `fixture` | Spec 93 (`erpguard/benchmark/`): deterministic 120-case synthetic dataset, 3 configurations (`fixed_workflow`/`direct_tool_agent`/`erpguard_candidate`), Sec 28.3's 14 metrics as pure functions, append-only case results. `direct_tool_agent` is itself only `simulated` unless a real `ANTHROPIC_API_KEY` and `allow_benchmark_direct_agent=true` are configured. |
+| Product web application | `real` | Spec 94 (`web/`): React/TypeScript SPA consuming the existing API surface only (no new backend capability); served by `create_public_app` behind `ERPGUARD_SERVE_FRONTEND=true`. Canary's `recommend` field and the outcome causal-confidence disclaimer are rendered as explicit, non-actionable advisory copy, never a button. |
+| Development-only token bootstrap (`POST /internal/dev-tokens`) | `real` / `blocked_by_default` | Spec 94: issues a real, verifiable bearer token for the web app to authenticate against; gated behind `ERPGUARD_INTERNAL_SURFACES` exactly like `/demo`, explicitly documented as non-production auth, not a login/identity-provider capability. |
 | Identity and tenant enforcement | `planned` | Master spec Phase 3; incomplete at baseline. |
 | PostgreSQL/Alembic migration foundation | `planned` | Master spec Phase 2; absent from Phase 0 baseline. |
 | Autonomous promotion, marketplace, second ERP connector, generic MCP | `blocked` | Explicit non-goals for the TFM path. |

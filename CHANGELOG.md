@@ -1,5 +1,40 @@
 # Changelog
 
+## Unreleased — Spec 94 (Phase 21: Product Web Application)
+
+### Added
+
+- `web/` — React + TypeScript + Vite SPA, typed API client generated from
+  the backend's own OpenAPI schema (`openapi-typescript` + `openapi-fetch`),
+  no hand-maintained request/response types.
+- Screens for the existing pillar (Overview, Connections/onboarding,
+  Processes with variant explorer and candidate builder, Replays with
+  Proof of Improvement, Deployments with skill-package promotion/rollback,
+  Runs) and the decision-to-outcome pillar (Opportunities, Recommendations
+  with the pricing-scenario Action Draft editor and a canary-routing
+  toggle, Canary with the `recommend` field rendered as an explicit
+  advisory banner — never an auto-acting button, Outcomes with the
+  measurement-plan stepper and the literal `observed_change_is_not_a_causal_claim`
+  disclaimer next to every realized-value number, Evidence with the
+  Decision-to-Outcome bundle viewer/verify/export), plus Benchmarks
+  (ERPRiskBench report viewer) and Settings (session token, dev-token
+  bootstrap).
+- `POST /internal/dev-tokens` — scoped, internal-only, non-production
+  bearer-token bootstrap (gated behind `ERPGUARD_INTERNAL_SURFACES`, same
+  as `/demo`); the backend previously had no route capable of issuing a
+  session token to a browser at all.
+- `create_public_app(..., serve_frontend=...)` mounts `web/dist` at `/`
+  with SPA deep-link fallback, opt-in via `ERPGUARD_SERVE_FRONTEND=true`
+  (off by default so existing tests are unaffected by incidental local
+  build artifacts).
+- `/demo` now carries a banner pointing at the product application and is
+  excluded from new README/demo screenshots.
+- CI: a `frontend` job (Vitest component tests, `tsc -b`, production
+  build) and `tests/test_phase21_web_build.py`.
+- `web/e2e/` — two Playwright specs covering both exit-criteria paths
+  against a real backend (Fake connector only); documented as a manual
+  local verification path, not wired into CI (see `web/e2e/README.md`).
+
 ## Unreleased — Spec 92 (Governed Decision-to-Outcome Backend RC)
 
 ### Added
