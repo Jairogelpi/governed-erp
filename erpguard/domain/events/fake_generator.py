@@ -88,21 +88,40 @@ def build_fake_quote_to_order_ocel(
 
 
 def build_fake_ocel(*, tenant_id: str) -> dict:
+    """Seed fixture for the `/v1/events/fake-generate` clean-install demo path.
+
+    Emits the exact `quote_to_order_v1.yaml` `happy_path` fixture sequence
+    (`sales.quote.created`, `sales.quote.reviewed`, `sales.order.created`),
+    all linked to a single object typed `sale_order` (aliased to the
+    canonical `sales_order` object type by `OcelEventService`), so that
+    `VariantDiscoveryService.discover(object_type="sales_order")` -- the
+    default used by the variants API -- actually finds the canonical
+    happy-path variant. Earlier revisions emitted
+    `sales.order.created`/`sales.order.reviewed`, neither of which is the
+    process definition's review event (`sales.quote.reviewed`), so
+    variant discovery never matched any known variant.
+    """
     seed = uuid5(NAMESPACE_URL, f"erpguard.fake:{tenant_id}").hex[:10]
+    order_key = f"fake-order-{seed}"
+    customer_key = f"fake-customer-{seed}"
     return {
         "ocel:global-event": {"ocel:activity": "erpguard.fake", "ocel:version": "2.0"},
         "ocel:objects": {
-            f"fake-order-{seed}": {"ocel:type": "sale_order", "ocel:ovmap": {"name": "SO-FAKE"}},
-            f"fake-customer-{seed}": {"ocel:type": "customer", "ocel:ovmap": {"name": "Fake Customer"}},
+            order_key: {"ocel:type": "sale_order", "ocel:ovmap": {"name": "SO-FAKE"}},
+            customer_key: {"ocel:type": "customer", "ocel:ovmap": {"name": "Fake Customer"}},
         },
         "ocel:events": {
-            f"fake-created-{seed}": {
-                "ocel:activity": "sales.order.created", "ocel:timestamp": "2026-01-01T00:00:00Z",
-                "ocel:omap": [f"fake-order-{seed}", f"fake-customer-{seed}"], "ocel:vmap": {},
+            f"fake-quote-created-{seed}": {
+                "ocel:activity": "sales.quote.created", "ocel:timestamp": "2026-01-01T00:00:00Z",
+                "ocel:omap": [order_key, customer_key], "ocel:vmap": {},
             },
-            f"fake-reviewed-{seed}": {
-                "ocel:activity": "sales.order.reviewed", "ocel:timestamp": "2026-01-01T00:01:00Z",
-                "ocel:omap": [f"fake-order-{seed}"], "ocel:vmap": {},
+            f"fake-quote-reviewed-{seed}": {
+                "ocel:activity": "sales.quote.reviewed", "ocel:timestamp": "2026-01-01T00:01:00Z",
+                "ocel:omap": [order_key], "ocel:vmap": {},
+            },
+            f"fake-order-created-{seed}": {
+                "ocel:activity": "sales.order.created", "ocel:timestamp": "2026-01-01T00:02:00Z",
+                "ocel:omap": [order_key], "ocel:vmap": {},
             },
         },
     }
