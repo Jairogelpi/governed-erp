@@ -74,21 +74,53 @@ la propuesta de TFM si difieren):
 
 ## 2.0 Estado del arte
 
-TODO (autor): situar este trabajo frente a (a) sistemas de agentes con
-uso de herramientas (tool-use) sobre software empresarial, (b) marcos de
-gobernanza de agentes de IA / "AI agent guardrails", (c) sistemas de
-control de cambios canary en ingeniería de software aplicados a
-decisiones de negocio en lugar de despliegues de código, (d) medición de
-resultados (uplift/causal inference) y por qué este proyecto
-deliberadamente NO reivindica una medición causal (ver interpretation.py
-y la Sección 9 de la Especificación 92). Citar bibliografía real —
-placeholders abajo.
+TODO (autor): esta sección tiene ya una base bibliográfica real (ver
+`0.5 Bibliografía`); falta la argumentación propia situando el trabajo
+frente a cada línea. Puntos de partida:
 
-- TODO: cita sobre agentic tool-use / function calling.
-- TODO: cita sobre seguridad de agentes de IA / guardrails.
-- TODO: cita sobre canary releases / progressive delivery.
-- TODO: cita sobre medición de causalidad vs. correlación en sistemas de
-  producción.
+- **(a) Agentes con uso de herramientas sobre software empresarial.**
+  El patrón `reasoning + acting` intercalado de Yao et al. (2023,
+  *ReAct*) es la base conceptual de cualquier agente que decide qué
+  herramienta invocar y cuándo; este proyecto se distingue de ese
+  patrón deliberadamente: `direct_tool_agent` (Sección 2.0 de este
+  documento) *es* un agente ReAct-like sin gobernanza adicional, usado
+  como línea base de comparación, no como el sistema propuesto — el
+  sistema propuesto (`erpguard_candidate`) reemplaza la decisión del
+  LLM sobre "ejecutar o no" por una cadena de gates deterministas
+  (aprobación independiente, verificación de postcondiciones, permiso
+  de un solo uso) que no dependen de que el LLM "decida bien".
+- **(b) Gobernanza y guardrails de agentes de IA.** Dos líneas
+  relevantes: guardrails programables a nivel de framework (p. ej.
+  NeMo Guardrails, Rebedea et al., 2023) frente al enfoque de este
+  proyecto, que no filtra la salida de un LLM sino que estructura la
+  propia capacidad de escritura del sistema como una `allowlist` de
+  código — el LLM (si existe, solo en `direct_tool_agent`) nunca tiene
+  acceso a una superficie de escritura genérica que un guardrail deba
+  interceptar después. La categoría `indirect_prompt_injection` del
+  banco de pruebas (Sec 2.0, Especificación 93) está motivada
+  directamente por el hallazgo de Wu et al. (2024, *InjecAgent*) de que
+  los agentes con herramientas son vulnerables a instrucciones
+  inyectadas en datos de terceros, no solo en el prompt del usuario.
+- **(c) Canary releases aplicados a decisiones de negocio.** El
+  enrutamiento canary de este proyecto (Especificación 92, Workstream
+  B) traslada un patrón de ingeniería de despliegues — exponer un
+  cambio a una fracción determinista y limitada antes de una promoción
+  completa (Google SRE Workbook, cap. "Canarying Releases", Beyer et
+  al., 2018) — de "versión de código" a "recomendación de negocio
+  ejecutada sobre un ERP", con la diferencia de que el "despliegue" no
+  es un binario sino una decisión individual por caso de negocio,
+  enrutada por una función hash pura y determinista
+  (`sha256(tenant_id, canary_policy_id, process_key,
+  business_object_key) mod 10000`), no un generador aleatorio.
+- **(d) Medición de resultados sin reivindicar causalidad.** La
+  distinción central entre correlación y causalidad (Pearl y Mackenzie,
+  2018, *The Book of Why*) es la razón de diseño detrás de
+  `observed_change_is_not_a_causal_claim`
+  (`erpguard/domain/outcomes/interpretation.py`): este proyecto mide un
+  resultado observado frente a una estimación, sin diseño experimental
+  (ni grupo de control aleatorizado ni ajuste por confusores) que
+  permita reivindicar que la recomendación *causó* el cambio medido —
+  una limitación de diseño reconocida explícitamente, no una omisión.
 
 ## 2.0 Diseño de investigación
 
@@ -122,8 +154,9 @@ precisión de resolución de entidad, tasa de prevención de duplicados,
 cobertura de postcondiciones, completitud de evidencia, repetibilidad
 determinista, latencia media, coste medio de tokens, carga de revisión
 humana, regresiones introducidas/prevenidas. Intervalos de confianza al
-95% vía Wilson (`erpguard/domain/canary/metrics.py::wilson_interval`,
-reutilizado, no reimplementado).
+95% vía el método de Wilson (Wilson, 1927;
+`erpguard/domain/canary/metrics.py::wilson_interval`, reutilizado, no
+reimplementado).
 
 **Limitación de diseño reconocida**: el conjunto de datos es sintético.
 Los resultados validan la lógica de gobernanza frente a un conjunto de
@@ -137,7 +170,12 @@ Arquitectura en capas dominio/aplicación por área
 (`erpguard/domain/<area>/`, `erpguard/application/<area>/service.py`,
 `erpguard/db/model_packages/<area>.py`), FastAPI + SQLAlchemy + Alembic,
 SQLite para tests y PostgreSQL en CI (con ciclo de downgrade/upgrade
-verificado en cada push).
+verificado en cada push). Los eventos canónicos se ingieren en formato
+OCEL (Object-Centric Event Log; Ghahfarokhi et al., 2021), elegido
+frente a un log de eventos plano precisamente porque cada evento de este
+dominio (una línea de factura, una confirmación de pedido) suele estar
+ligado a varios objetos de negocio a la vez (cliente, producto, pedido),
+que es el problema que OCEL modela explícitamente.
 
 Cadena de gobernanza de decisión-a-resultado (Especificación 92):
 
@@ -318,6 +356,21 @@ Consolidado honesto de huecos conocidos, sin suavizar:
 10. **El escaneo de dependencias (`pip-audit`) es informativo, no
     bloqueante**, en el pipeline de CI — ver la nota en
     `.github/workflows/ci.yml`.
+11. **`POST /v1/events/fake-generate` emitía eventos que no
+    correspondían al proceso canónico** (`sales.order.reviewed` en
+    lugar de `sales.quote.reviewed`, entre otros), por lo que la
+    ruta de instalación limpia nunca descubría la variante esperada.
+    Corregido y verificado con un test que ejecuta de verdad
+    `VariantDiscoveryService.discover(...)` sobre los eventos
+    generados y comprueba la secuencia exacta del `happy_path` del
+    proceso. Como el punto 8, se encontró leyendo el generador junto
+    con la definición YAML del proceso, no solo con una revisión
+    superficial. Adicionalmente, en esta misma pasada se ejecutó
+    `docker compose -f docker-compose.demo.yml up --build` de verdad
+    (no solo `uvicorn` local) y `scripts/validate_demo_install.py`
+    contra ese contenedor real: 22/22 comprobaciones en verde —
+    la ruta de instalación limpia vía Docker queda así verificada en
+    ejecución, no solo revisada estáticamente.
 
 **Conclusión**: el proyecto demuestra, con evidencia real y reproducible
 (no solo diseño de intenciones), que una capa de gobernanza sobre
@@ -331,11 +384,51 @@ aparte que nadie lee.
 
 ## 0.5 Bibliografía
 
-TODO (autor): sustituir por citas reales. Placeholders por tema:
+Formato APA. Todas las entradas son fuentes reales, localizadas y
+verificadas por búsqueda durante la Fase 22 (título, autoría y venue
+contrastados contra la fuente primaria cuando fue posible — no citas
+generadas de memoria). Dos entradas quedan marcadas
+`[CITA PENDIENTE]` por un detalle secundario sin verificar (una
+sentencia judicial citada de pasada, el venue final de un preprint);
+ninguna cita de esta lista es inventada, pero el autor debe revisar cada
+una antes de la entrega, ya que ninguna fue verificada por un segundo
+revisor humano.
 
-- TODO: agentic tool-use / function-calling LLMs.
-- TODO: AI agent safety / guardrails.
-- TODO: canary releases / progressive delivery en ingeniería de
-  software.
-- TODO: inferencia causal vs. correlación en sistemas de producción.
-- TODO: gobierno de datos / GDPR aplicado a sistemas de IA.
+- Beyer, B., Murphy, N. R., Rensin, D. K., Kawahara, K., & Thorne, S.
+  (Eds.). (2018). *The Site Reliability Workbook: Practical Ways to
+  Implement SRE*. O'Reilly Media. Capítulo "Canarying Releases".
+  https://sre.google/workbook/canarying-releases/
+- Ghahfarokhi, A. F., Park, G., Berti, A., & van der Aalst, W. M. P.
+  (2021). OCEL: A standard for object-centric event logs. En
+  *New Trends in Database and Information Systems (ADBIS 2021,
+  Short Papers)*, Communications in Computer and Information Science,
+  vol. 1450, pp. 169–175. Springer.
+  https://link.springer.com/chapter/10.1007/978-3-030-85082-1_16
+- Pearl, J., & Mackenzie, D. (2018). *The Book of Why: The New Science
+  of Cause and Effect*. Basic Books.
+- Rebedea, T., Dinu, R., Sreedhar, M., Parisien, C., & Cohen, J.
+  (2023). NeMo Guardrails: A toolkit for controllable and safe LLM
+  applications with programmable rails. *arXiv preprint
+  arXiv:2310.10501*. https://arxiv.org/abs/2310.10501
+- Regulation (EU) 2016/679 of the European Parliament and of the
+  Council of 27 April 2016 (General Data Protection Regulation),
+  Article 22 (automated individual decision-making, including
+  profiling). *Official Journal of the European Union*, L 119,
+  4.5.2016. [CITA PENDIENTE (autor): añadir, si se cita perfilado
+  automatizado en el cuerpo del texto, Tribunal de Justicia de la
+  Unión Europea, asunto C-634/21, *SCHUFA Holding AG*, sentencia de 7
+  de diciembre de 2023 — no verificada en detalle por esta fase, solo
+  localizada por búsqueda].
+- Wilson, E. B. (1927). Probable inference, the law of succession, and
+  statistical inference. *Journal of the American Statistical
+  Association*, 22(158), 209–212.
+  https://doi.org/10.1080/01621459.1927.10502953
+- Zhan, Q., Liang, Z., Ying, Z., & Kang, D. (2024). InjecAgent:
+  Benchmarking indirect prompt injections in tool-integrated large
+  language model agents. En *Findings of the Association for
+  Computational Linguistics: ACL 2024*.
+  https://aclanthology.org/2024.findings-acl.624/
+- Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., &
+  Cao, Y. (2023). ReAct: Synergizing reasoning and acting in language
+  models. *International Conference on Learning Representations
+  (ICLR) 2023*. https://arxiv.org/abs/2210.03629

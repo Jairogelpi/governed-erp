@@ -90,9 +90,32 @@ def test_event_api_is_tenant_scoped_and_fake_generation_is_deterministic(monkeyp
 
     response = client.post("/v1/events/fake-generate", headers=headers_a)
     assert response.status_code == 201
-    assert response.json()["created_events"] == 2
+    assert response.json()["created_events"] == 3
     assert client.get("/v1/events/ocel/export", headers=headers_a).json()["ocel:events"]
     assert client.get("/v1/events/ocel/export", headers=headers_b).json()["ocel:events"] == {}
 
     generated = build_fake_ocel(tenant_id=tenant_a)
     assert generated["ocel:global-event"]["ocel:activity"] == "erpguard.fake"
+
+
+def test_fake_generated_events_are_discovered_as_the_canonical_happy_path_variant():
+    """Regression test: `build_fake_ocel` must emit the exact
+    `quote_to_order_v1.yaml` `happy_path` fixture sequence
+    (`sales.quote.created`, `sales.quote.reviewed`, `sales.order.created`),
+    not just any two events -- otherwise the clean-install demo path seeds
+    data that variant discovery can never resolve to a known variant."""
+    from erpguard.domain.variants.discovery import VariantDiscoveryService
+
+    init_db()
+    tenant_id = f"fake-variant-{uuid4().hex}"
+    db = SessionLocal()
+    OcelEventService(db).import_ocel(
+        tenant_id=tenant_id, document=build_fake_ocel(tenant_id=tenant_id), source="fake-generator"
+    )
+
+    summaries = VariantDiscoveryService(db).discover(tenant_id=tenant_id, object_type="sales_order")
+    db.close()
+
+    assert len(summaries) == 1
+    assert summaries[0].sequence == ("sales.quote.created", "sales.quote.reviewed", "sales.order.created")
+    assert summaries[0].case_count == 1
