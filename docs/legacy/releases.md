@@ -22,9 +22,9 @@ invariants enforced. 1162+ tests passing.
 
 RC validation docs:
 
-- [docs/release/07_rc_validation_rehearsal.md](docs/release/07_rc_validation_rehearsal.md)
-- [docs/release/08_rc_gap_log.md](docs/release/08_rc_gap_log.md)
-- [docs/release/09_rc_acceptance_report.md](docs/release/09_rc_acceptance_report.md)
+- [docs/release/07_rc_validation_rehearsal.md](../release/07_rc_validation_rehearsal.md)
+- [docs/release/08_rc_gap_log.md](../release/08_rc_gap_log.md)
+- [docs/release/09_rc_acceptance_report.md](../release/09_rc_acceptance_report.md)
 
 Standalone validation script:
 
@@ -48,13 +48,13 @@ Sprint 26 operator evidence endpoints:
 
 Demo docs:
 
-- [docs/demo/00_operator_demo_overview.md](docs/demo/00_operator_demo_overview.md)
-- [docs/demo/01_end_to_end_scenario.md](docs/demo/01_end_to_end_scenario.md)
-- [docs/demo/02_operator_runbook.md](docs/demo/02_operator_runbook.md)
-- [docs/demo/03_safety_boundaries.md](docs/demo/03_safety_boundaries.md)
-- [docs/demo/04_failure_modes.md](docs/demo/04_failure_modes.md)
-- [docs/demo/05_release_evidence_pack.md](docs/demo/05_release_evidence_pack.md)
-- [docs/demo/06_tfm_defense_script.md](docs/demo/06_tfm_defense_script.md)
+- [docs/demo/00_operator_demo_overview.md](../demo/00_operator_demo_overview.md)
+- [docs/demo/01_end_to_end_scenario.md](../demo/01_end_to_end_scenario.md)
+- [docs/demo/02_operator_runbook.md](../demo/02_operator_runbook.md)
+- [docs/demo/03_safety_boundaries.md](../demo/03_safety_boundaries.md)
+- [docs/demo/04_failure_modes.md](../demo/04_failure_modes.md)
+- [docs/demo/05_release_evidence_pack.md](../demo/05_release_evidence_pack.md)
+- [docs/demo/06_tfm_defense_script.md](../demo/06_tfm_defense_script.md)
 
 ## Release Candidate v0.12.0-rc1
 
@@ -70,9 +70,9 @@ Release validation endpoints:
 
 Clean install helpers:
 
-- [docs/release/01_install_and_run.md](docs/release/01_install_and_run.md)
-- [docs/release/05_clean_install_vps_validation.md](docs/release/05_clean_install_vps_validation.md)
-- [docs/release/06_release_fix_log.md](docs/release/06_release_fix_log.md)
+- [docs/release/01_install_and_run.md](../release/01_install_and_run.md)
+- [docs/release/05_clean_install_vps_validation.md](../release/05_clean_install_vps_validation.md)
+- [docs/release/06_release_fix_log.md](../release/06_release_fix_log.md)
 - `.env.example`
 - `scripts/check_release_install.py`
 - `scripts/start_release_candidate.sh`
@@ -107,12 +107,12 @@ Sprint 14 adds deployment and operations hardening for running the release candi
 
 Deployment docs:
 
-- [docs/deployment/00_vps_deployment.md](docs/deployment/00_vps_deployment.md)
-- [docs/deployment/01_systemd_service.md](docs/deployment/01_systemd_service.md)
-- [docs/deployment/02_operations_runbook.md](docs/deployment/02_operations_runbook.md)
-- [docs/deployment/03_backup_and_restore.md](docs/deployment/03_backup_and_restore.md)
-- [docs/deployment/04_update_procedure.md](docs/deployment/04_update_procedure.md)
-- [docs/deployment/05_deployment_validation_report.md](docs/deployment/05_deployment_validation_report.md)
+- [docs/deployment/00_vps_deployment.md](../deployment/00_vps_deployment.md)
+- [docs/deployment/01_systemd_service.md](../deployment/01_systemd_service.md)
+- [docs/deployment/02_operations_runbook.md](../deployment/02_operations_runbook.md)
+- [docs/deployment/03_backup_and_restore.md](../deployment/03_backup_and_restore.md)
+- [docs/deployment/04_update_procedure.md](../deployment/04_update_procedure.md)
+- [docs/deployment/05_deployment_validation_report.md](../deployment/05_deployment_validation_report.md)
 
 Deployment assets:
 
@@ -1255,7 +1255,7 @@ curl -X POST http://127.0.0.1:8000/v1/demo/full-record-to-skill-flow ^
 
 ## Full MVP Demo Evidence
 
-The known-good end-to-end response is stored at [docs/demo/full_record_to_skill_success_response.json](docs/demo/full_record_to_skill_success_response.json).
+The known-good end-to-end response is stored at [docs/demo/full_record_to_skill_success_response.json](../demo/full_record_to_skill_success_response.json).
 
 ## Demo Dashboard
 
@@ -1321,7 +1321,7 @@ The recording-to-skill compiler also validates the minimum controlled Fake ERP s
 
 ## Human Recording v0.2.1 Evidence
 
-The frozen v0.2.1 evidence response is stored at [docs/demo/human_recording_v0_2_1_success_response.json](docs/demo/human_recording_v0_2_1_success_response.json).
+The frozen v0.2.1 evidence response is stored at [docs/demo/human_recording_v0_2_1_success_response.json](../demo/human_recording_v0_2_1_success_response.json).
 
 It was generated from a FastAPI `TestClient` flow that creates a controlled recording, posts the five required Fake ERP events, compiles the recording, and runs the compiled skill for `SO-VALID` and `SO-FORMULA-MISMATCH`.
 
@@ -1360,7 +1360,7 @@ This is still a controlled Fake ERP demo path. It is not real Odoo UI automation
 
 ## Teach Mode v0.3 Evidence
 
-The frozen Teach Mode v0.3 evidence response is stored at [docs/demo/teach_mode_v0_3_success_response.json](docs/demo/teach_mode_v0_3_success_response.json).
+The frozen Teach Mode v0.3 evidence response is stored at [docs/demo/teach_mode_v0_3_success_response.json](../demo/teach_mode_v0_3_success_response.json).
 
 It was generated from a FastAPI `TestClient` flow that creates a controlled recording, adds the five required events, checks readiness, finishes the recording, compiles the skill, and runs `SO-VALID -> allow` plus `SO-FORMULA-MISMATCH -> block`.
 
@@ -1388,7 +1388,7 @@ The inspector shows the skill name, version, runtime type, inputs, guards, workf
 
 ## Skill Inspector v0.4 Evidence
 
-The frozen Skill Inspector v0.4 evidence response is stored at [docs/demo/skill_inspector_v0_4_success_response.json](docs/demo/skill_inspector_v0_4_success_response.json).
+The frozen Skill Inspector v0.4 evidence response is stored at [docs/demo/skill_inspector_v0_4_success_response.json](../demo/skill_inspector_v0_4_success_response.json).
 
 It was generated from a FastAPI `TestClient` flow that creates a controlled recording, posts the five required Fake ERP events, checks readiness, finishes the recording, compiles the skill, inspects the compiled skill, and runs `SO-VALID -> allow` plus `SO-FORMULA-MISMATCH -> block`.
 
@@ -1423,7 +1423,7 @@ The v0.5 evidence freeze captures the live FastAPI `TestClient` proof for the ru
 
 Artifact:
 
-- [docs/demo/run_history_audit_timeline_v0_5_success_response.json](docs/demo/run_history_audit_timeline_v0_5_success_response.json)
+- [docs/demo/run_history_audit_timeline_v0_5_success_response.json](../demo/run_history_audit_timeline_v0_5_success_response.json)
 
 It records:
 
@@ -1476,7 +1476,7 @@ The v0.6 evidence freeze captures the live FastAPI `TestClient` proof for the ap
 
 Artifact:
 
-- [docs/demo/approval_gate_safe_action_plan_v0_6_success_response.json](docs/demo/approval_gate_safe_action_plan_v0_6_success_response.json)
+- [docs/demo/approval_gate_safe_action_plan_v0_6_success_response.json](../demo/approval_gate_safe_action_plan_v0_6_success_response.json)
 
 It records:
 

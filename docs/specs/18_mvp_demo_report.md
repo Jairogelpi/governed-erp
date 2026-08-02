@@ -165,4 +165,4 @@ Do not implement it yet in this documentation block.
 - Endpoint used: `POST /v1/demo/full-record-to-skill-flow`
 - Expected valid decision: allow
 - Expected invalid decision: block
-- Evidence file path: [docs/demo/full_record_to_skill_success_response.json](docs/demo/full_record_to_skill_success_response.json)
+- Evidence file path: [docs/demo/full_record_to_skill_success_response.json](../demo/full_record_to_skill_success_response.json)
