@@ -65,10 +65,24 @@ export function Benchmarks() {
     setReport(data as BenchmarkReport);
   }
 
-  const metricNames = report
+  const allMetricNames = report
     ? Array.from(
         new Set(Object.values(report.configurations).flatMap((metrics) => Object.keys(metrics))),
       )
+    : [];
+
+  function isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+  }
+
+  const scalarMetricNames = report
+    ? allMetricNames.filter(
+        (metric) => !Object.values(report.configurations).some((cfg) => isPlainObject(cfg[metric])),
+      )
+    : [];
+
+  const structuredMetricNames = report
+    ? allMetricNames.filter((metric) => !scalarMetricNames.includes(metric))
     : [];
 
   return (
@@ -146,7 +160,7 @@ export function Benchmarks() {
                 </tr>
               </thead>
               <tbody>
-                {metricNames.map((metric) => (
+                {scalarMetricNames.map((metric) => (
                   <tr key={metric}>
                     <td>{metric}</td>
                     {Object.keys(report.configurations).map((name) => (
@@ -156,6 +170,19 @@ export function Benchmarks() {
                 ))}
               </tbody>
             </table>
+            {structuredMetricNames.map((metric) => (
+              <div key={metric}>
+                <h4>{metric}</h4>
+                <JsonBlock
+                  value={Object.fromEntries(
+                    Object.keys(report.configurations).map((name) => [
+                      name,
+                      report.configurations[name][metric],
+                    ]),
+                  )}
+                />
+              </div>
+            ))}
             <h4>Comparación</h4>
             <JsonBlock value={report.comparison} />
           </div>
