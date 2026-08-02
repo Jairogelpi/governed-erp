@@ -14,6 +14,11 @@ false-by-default, and structurally incapable of a generic "raw ERP write."
 > permit → controlled Odoo draft → postcondition verification → measured
 > outcome → sealed, hash-chained evidence bundle. See
 > [docs/specs/92_governed_decision_to_outcome_backend_rc.md](docs/specs/92_governed_decision_to_outcome_backend_rc.md).
+> ERPRiskBench (Spec 93) and the product web application (Spec 94) are
+> also complete and merged; **Spec 95 (Phase 22 — TFM delivery and
+> release freeze)** is the current work: packaging, clean-install
+> validation, and TFM submission evidence, no new product capability.
+> See [docs/specs/95_phase22_tfm_delivery_and_release_freeze.md](docs/specs/95_phase22_tfm_delivery_and_release_freeze.md).
 
 ## What exists now
 
@@ -106,8 +111,14 @@ reproducible demo surfaces.
   [docs/demo/backend_rc_live_pricing_scenario_evidence.json](docs/demo/backend_rc_live_pricing_scenario_evidence.json)).
 - `advisory`: canary eligibility recommendations, opportunity/ROI sizing,
   realized-outcome classification (never a causal claim).
-- `planned`: net ROI with implementation cost (Spec 92 Sec 10.6), the
-  product web experience, and ERPRiskBench.
+- `planned`: a Fake-ERP/fixture path into the decision-to-outcome pillar
+  (every `MarginOpportunity` today requires a real Odoo-derived
+  analytical snapshot -- see
+  [docs/tfm/annexes/installation.md](docs/tfm/annexes/installation.md));
+  production-grade authentication (`POST /internal/dev-tokens` is an
+  explicitly non-production bootstrap); `v1.0.0-tfm`/`v1.0.0-beta.1`
+  tagging (Spec 95, deliberately a manual step -- see
+  [docs/release/versions.md](docs/release/versions.md)).
 
 Full label-by-capability detail lives in the
 [capability reality matrix](docs/architecture/capability_reality_matrix.md).
@@ -131,318 +142,72 @@ dependent tests may be skipped when Chromium is unavailable.
 
 ## Roadmap
 
-Completed: Phases 0–19 plus Spec 92 (Workstreams A/B/C/D — governed
-recommendations, the operational canary router, outcome measurement, and
-the decision-to-outcome evidence bundle), from baseline freeze through the
-candidate integrity gate, controlled API composition, connector
-convergence, the full product consolidation (Phase 11.5 C0–C8), historical
-replay, the regression engine / Proof of Improvement, the skill compiler,
-the execution permit runtime, governed confirmation, shadow mode, decision
-intelligence, and the first real business writes:
+`ROADMAP.md` tracks what's completed vs. next in one place; the detailed,
+phase-by-phase engineering narrative that used to live here moved to
+[docs/architecture/phase_narrative.md](docs/architecture/phase_narrative.md)
+(current-system detail, not historical material -- see that file's own
+note). The exact phase gates and no-goals are defined in the
+[master implementation specification](docs/specs/84_erpguard_evolution_master_spec.md).
 
-- C0 inventory
-- C1 composition root
-- C2 connector convergence
-- C2.5 quality gate (mypy clean)
-- C3 evolution routes moved to their final `public_v1` location
-- C4 skills/identity routes finalized; recording/replay pipeline extracted
-  out of `erpguard/product`
-- C5 dead repository function pruning (`erpguard/db/repositories.py`
-  6699 → 1631 lines)
-- C6 legacy composition root and unreachable code deleted
-- C7 migration-scaffolding retirement
-- C8 final consolidation gate (ruff, mypy, pytest, alembic all green)
-- C8.1 read-only ORM/schema audit of `erpguard/db/models.py` (see
-  [docs/architecture/c8_1_orm_schema_audit.md](docs/architecture/c8_1_orm_schema_audit.md))
-- C8.2 retired-schema migration: manually skimmed the 40 live tables'
-  `*_id`/`*_ref`/`*_key` columns for by-convention references the audit's
-  FK-only check couldn't see (found 4: `write_impact_previews`,
-  `write_rollback_plans`, `write_pilot_requests`,
-  `r2_write_pilot_requests` are still referenced and were kept); dropped
-  the remaining 95 tables and their ORM classes in
-  `migrations/versions/0009_drop_retired_tables.py`
-  (`erpguard/db/models.py` 2831 → 900 lines); `erpguard/product` deleted
-  entirely, everything now lives in `erpguard/release_ops`
+## Definition of Done (Spec 95, TFM)
 
-The 0009 migration is destructive for data: `downgrade()` recreates the
-95 tables empty (schema only) but cannot restore dropped rows. Verified
-locally: fresh-empty-db upgrade path, existing-db-with-data upgrade path
-(rows in two sample tables confirmed gone after upgrade), and downgrade
-path (tables recreated, zero rows) — all against SQLite. Not verified
-locally against PostgreSQL or via `docker build` (no local Postgres/Docker
-in this environment); both run in CI on every push.
+Phase 22 (Spec 95) restructures this section around the actual TFM
+Definition of Done rather than a chronological narrative. Full checklist,
+including the items that need human judgment and are deliberately **not**
+claimed here as done: [docs/specs/95_phase22_tfm_delivery_and_release_freeze.md](docs/specs/95_phase22_tfm_delivery_and_release_freeze.md).
+Mechanically-checkable status: `tests/test_phase22_definition_of_done.py`.
 
-Phase 12 — Historical replay (master spec section 15): `erpguard/domain/replays/`
-executes a registered process version over already-ingested canonical events
-for a given object_type and evaluates the process's declared decisions
-against them (`formula_guard` is the only decision with a real evaluator
-today; others declared in a process definition are skipped, not faked). No
-LLM is invoked anywhere in the replay path and no connector plugin is ever
-called, so "no source ERP write" holds by construction rather than needing a
-dedicated simulator. `deterministic_trace_hash` is verified deterministic
-by a repeatability test (same dataset/version/policy twice → identical hash
-per case). API: `POST /v1/processes/{key}/versions/{version}/replays`,
-`GET /v1/replays/{id}`, `GET /v1/replays/{id}/cases`,
-`GET /v1/replays/{id}/comparison?baseline_replay_id=...`,
-`POST /v1/replays/{id}/freeze` (immutable once frozen, same pattern as
-process candidates). The comparison endpoint is a minimal hash/status diff
-between two replay runs, not the regression taxonomy from master spec
-section 16 — that's Phase 13's job. No UI in this pass.
+- [x] Baseline frozen, full tests reproducible (990 tests, CI green on
+      every push -- Python 3.11 + 3.13, PostgreSQL with a downgrade/upgrade
+      cycle, Docker build, secret scan, frontend build, dependency scan +
+      SBOM + benchmark smoke + docs link check).
+- [x] Authentication and tenant enforcement exist (bearer tokens,
+      tenant-scoped queries everywhere) -- **but no production-grade
+      login/identity-provider exists**; `POST /internal/dev-tokens` is an
+      explicit, non-production bootstrap (Spec 94).
+- [x] Connector SDK v2, Fake/OCEL/Odoo plugins, OCEL import/export, Odoo
+      read path, Quote-to-Order process package, variant discovery,
+      candidate v2, deterministic historical replay, regression
+      detection, Proof of Improvement, Process-to-Skill compiler v2,
+      signed single-use permits.
+- [x] Real Odoo quotation draft works in staging; retry creates no
+      duplicate; postconditions verified; confirmation safely executed
+      or correctly blocked; shadow mode demonstrated.
+- [x] Governed recommendation lifecycle, operational canary router,
+      non-causal outcome measurement, sealed decision-to-outcome
+      evidence bundle (Spec 92 Workstreams A-D).
+- [x] Benchmark compares three configurations and stores raw results
+      (Spec 93 -- see `docs/tfm/annexes/00_index.md`).
+- [x] New web journey works, including the decision-to-outcome pillar
+      (Spec 94).
+- [x] Clean install works against Fake ERP data
+      (`docker-compose.demo.yml` + `scripts/validate_demo_install.py`)
+      -- **except the decision-to-outcome pillar**, which currently has
+      no Fake-ERP path (every `MarginOpportunity` requires a real
+      Odoo-derived analytical snapshot; see
+      [docs/tfm/annexes/installation.md](docs/tfm/annexes/installation.md)).
+- [ ] Memory within 20 pages, video within 5 minutes, bibliography and
+      annexes complete, repository permissions correct -- all pending
+      the thesis author's own review (`docs/tfm/memoria_draft.md` is an
+      explicit **draft**, not final).
+- [ ] `v1.0.0-tfm` tag -- **not created**, a deliberate manual step (see
+      `docs/tfm/annexes/code_and_repository.md`).
 
-Phase 13 — Regression engine and Proof of Improvement (master spec sections
-16/17): `erpguard/domain/proofs/` classifies regressions between two replay
-runs and generates an immutable Proof of Improvement. Given this codebase's
-single real policy evaluator (`formula_guard`, binary block/allow), only 4
-of the spec's 11 regression categories are genuinely detectable —
-`new_unsafe_effect` (critical: a decision the baseline blocked is now
-allowed), `false_block` (low: the reverse, surfaced for review not assumed
-an improvement — no ground truth to tell), `evidence_incompleteness`
-(medium), `postcondition_failure` (medium). The other 7 (duplicate
-detection, entity resolution, approval count, fingerprint, latency, token
-metrics) have no detector here and are never emitted — documented in
-`regression_classifier.py`'s module docstring. Eligibility (17.3): 2 of the
-7 criteria are structurally unmeasurable (duplicate-prevention rate,
-test-suite pass/fail) and there's no reviewer-decision field in the spec's
-own `ProofOfImprovement` model to invent an approval workflow around, so
-this implementation's ceiling is `eligible_for_shadow` — it never
-recommends `eligible_for_canary`/`eligible_for_promotion`. Any critical
-regression → `reject`. API: `POST /v1/replays/{id}/proofs`,
-`GET /v1/proofs/{id}` (spec 23.5). Proofs are permanently immutable from
-creation (17.4) — no freeze verb, updates are always rejected.
+## Known gaps (consolidated)
 
-Phase 13.1 — Replay and Proof integrity (review-driven hardening, not in
-the master spec's phase list): two gaps found after Phase 12/13 landed.
-(1) Declared process decisions with no evaluator were silently skipped, so
-a case could read "passed" having only evaluated part of the process. The
-replay engine now tracks `declared_decision_count`/
-`evaluated_decision_count`/`unsupported_decisions`/`decision_coverage_rate`
-per case and forces `needs_clarification` whenever coverage is incomplete;
-`ProofService` requires full coverage across every matched case before it
-will ever recommend `eligible_for_shadow`. (2) The immutable-after-freeze
-listener covered `ProcessReplay` but not `ProcessReplayCase` — freezing a
-replay's header didn't stop its case rows from changing underneath it.
-Added `before_update`/`before_delete` listeners on the case table that
-check the parent replay's frozen status via the connection (no ORM
-relationship exists between the two tables). `ProofService` also now
-requires both replays to be `status="frozen"`, not merely `"completed"`,
-before generating a proof. Migration `0012` adds the coverage columns.
-
-Phase 14 — Process-to-Skill compiler v2 (master spec section 18):
-`erpguard/domain/skills/` compiles a submitted `ProcessCandidate` with an
-acceptable `ProcessProof` into a versioned `SkillPackage`. Real, checkable
-validation for 4 of spec 18.3's items — capability existence / no raw
-native methods (every workflow-step capability must exist in the target
-connector's `capability_definitions()`), policy references resolve, proof
-acceptability (recommendation not `reject`/`needs_changes`), package hash
-reproducibility. Everything else (fingerprint requirements, postconditions,
-compensation, idempotency strategy, full JSON Schema validation) ships as
-documented structural placeholders, not fabricated passes — this
-codebase's connectors are all read-only, so "postconditions/idempotency
-for writes" is vacuously satisfied by construction, and compilation is
-rejected outright if a step ever claims write capability (nothing exists
-to check a postcondition against). Only `draft → compiled → approved` is
-implemented; `shadow`/`canary`/`active`/`rolled_back`/`deprecated` need a
-live execution/deployment runtime that doesn't exist yet (Phase 15+). API:
-`POST /v1/process-candidates/{id}/compile` (this repo's real candidate
-prefix, not the spec's literal `/v1/candidates`),
-`GET`/`POST /v1/skills/{skill_id}/versions/{version_id}[/approve]` (spec
-23.6) — the legacy v0 skills router (`apps/api/routes/public_v1/skills.py`)
-is untouched and has no `/versions/` path segment, so there's no collision.
-
-Phase 15 — Execution Permit runtime (master spec section 19): a "Run"
-(`ExecutionRun`) carries a permit through `planned → approved → executed`,
-or `revoked`. `plan()` builds the ActionPlan from an approved `SkillPackage`
-and computes reproducible operation/native-plan/state-snapshot hashes.
-`approve()` binds single-use `Approval` records and HMAC-signs the permit
-(same primitive `erpguard/domain/identity/auth.py` uses for bearer tokens).
-`execute()` re-verifies every spec 19.4 rejection reason against *current*
-state — not just trusting plan/approve-time validity — before calling the
-connector: signature/tamper detection, expiry, single-use (reused),
-revocation, tenant/connection/capability matching, and single-use approval
-binding are all real, enforced checks. `unsupported_fingerprint` is always
-`not_checked` — no connector-agnostic fingerprint-requirement schema
-exists anywhere in this codebase, same gap Phase 14 documented for
-compilation. The connector SDK's `ConnectorPlugin` protocol is untouched;
-`execute()` adapts the rich domain permit into the SDK's simple placeholder
-at the connector call boundary. Since Phase 17, terminal run status reports
-the actual outcome (`succeeded`, `blocked`, `failed`, or `unknown`) rather
-than calling every connector attempt `executed`. Kill switch: a real,
-tenant-scoped on/off flag checked at
-both plan and execute time, not a broader circuit-breaker system. API:
-spec 23.7's `POST /v1/runs/plan`, `GET /v1/runs/{id}`,
-`POST /v1/runs/{id}/approve`, `POST /v1/runs/{id}/execute`, plus two
-documented additions (`POST /v1/runs/{id}/revoke`,
-`POST /v1/runs/kill-switch`) and `POST /v1/approvals` (fills the
-previously-empty stub). `.../evidence` and `.../compensate` (also in 23.7)
-are out of scope — no live Evidence Pack or compensation-planning logic
-exists yet.
-
-Phase 16 — Real quotation draft (Odoo, master spec Phase 16): closes the
-first real business write. `erpguard/connectors/odoo/plugin.py` declares
-exactly one write-capable capability, `quote.create_draft`
-(`supports_execution=True`); at the Phase 16 baseline every other capability
-was read-only and no confirmation method existed, so that phase's
-"no invoice/picking/confirmation" boundary held by construction. Idempotency is
-real: `execute_capability` searches by `client_order_ref` before creating,
-so a retry with the same reference returns the existing order rather than
-a duplicate. Postconditions are real: `verify_execution` reads the order
-back and confirms `state == "draft"`. `ConnectorApplicationService
-.connection_context()` now wires up real credential resolution for the
-first time — it unseals a connection's secret via the existing
-`EncryptedLocalSecretProvider` vault and builds an Odoo transport factory
-from it; this infrastructure existed since the connections phase but had
-never been connected end-to-end for any connector before now. Verified
-live once against a real Odoo 19 staging instance (credentials supplied
-out-of-band, never committed): one real draft `sale.order` created and
-independently confirmed (`state=draft`, no invoice, no delivery); a retry
-with the same client reference correctly found the existing order and
-performed no write. Automated suite coverage uses injected fake
-transports, never a live call.
-
-Phase 17 — Governed confirmation: adds the bounded
-`sales.order.confirm` capability and no generic Odoo RPC execution. Planning
-reads and persists the live order/line/picking/invoice snapshot, enforces an
-R3 preflight (explicit feature flag, staging-only connection, configurable
-amount ceiling, allowed state, forbidden marker and no pre-existing
-invoices), predicts downstream effects conservatively, and binds the
-snapshot hash into the native plan and signed permit. Approval must be
-non-empty, single-use, issued by a different actor, bound by exact scope to
-the run/capability/snapshot, and no older than 900 seconds. Execution is
-restricted to the actor who planned the run. State is re-read before
-approval, by the runtime before execution, and by the connector
-immediately before `action_confirm`; any drift blocks without writing.
-Successful execution verifies the confirmed state, order identity,
-unexpected-invoice boundary and generated picking IDs. Terminal outcomes
-seal a tenant-scoped Evidence Pack available at
-`GET /v1/runs/{run_id}/evidence`; a read-only manual cleanup strategy is
-available at `GET /v1/runs/{run_id}/cleanup-plan`. Automatic rollback is
-deliberately not claimed because confirmation may launch logistics,
-procurement or manufacturing.
-
-The real capability is fail-closed by default:
-`ERPGUARD_ALLOW_ODOO_GOVERNED_CONFIRMATION=false`. Automated coverage uses
-an injected staging transport and proves both success and controlled block
-paths. One separately authorized live Odoo 19 staging experiment confirmed
-an isolated test order but also triggered an unexpected auto-posted invoice.
-ERPGuard detected that forbidden postcondition and marked the run `failed`.
-After separate operator authorization, the uncompleted picking was cancelled,
-the invoice was compensated with a posted linked credit note, and the order
-was cancelled; accounting residuals and net document total were verified at
-zero. This is compensation rather than rollback. The sanitized evidence is
-in
-[`docs/demo/phase17_governed_confirmation_live_staging_evidence.json`](docs/demo/phase17_governed_confirmation_live_staging_evidence.json).
-The feature flag remains disabled by default.
-
-Phase 17.1 hardens that incident into a permanent control contract. Every
-confirmation now carries a versioned side-effect budget, bounded read-only
-automation fingerprint and structured CompensationPlan. Approval and permit
-bind both the order snapshot and control-contract hash. Incomplete
-fingerprints or later fingerprint drift block before the write; observed
-invoice/payment/purchase/manufacturing effects or model creation ceilings
-reject success. The incident-derived posted-invoice regression remains in
-the automated suite. Phase 17.1 adds no compensation execution or other ERP
-write.
-
-Phase 18 — Shadow Mode is now implemented as an effects-free evaluation
-surface. A submitted valid candidate backed by an `eligible_for_shadow`
-Proof of Improvement can be deployed in status `shadow`. Incoming staged or
-replayed cases are evaluated by the same deterministic Replay Engine against
-the active and candidate definitions; both decisions, normalized
-differences, optional observed outcome and append-only reviewer labels are
-stored. The dashboard applies a deployment-specific agreement threshold but
-cannot promote or activate a version. The Shadow Service has no connector,
-Odoo, permit or execution-runtime dependency and creates no `ExecutionRun`.
-The selected sanitized disagreement is in
-[`docs/demo/phase18_shadow_mode_selected_example.json`](docs/demo/phase18_shadow_mode_selected_example.json).
-
-Phase 18.1 — Operational Shadow Feed connects that comparison surface to the
-canonical event store. OCEL and bounded Odoo event ingestion automatically
-evaluate affected cases in matching shadow deployments using persisted event
-IDs, real timestamps, source, correlation, object links and canonical state.
-Trace-derived idempotency deduplicates identical ingestion while later events
-produce new immutable comparisons. Observed outcomes arrive separately with
-explicit provenance and verified same-case event links.
-
-Only latest `canonical_feed` cases can contribute to the advisory
-`eligible_for_canary` recommendation. It requires minimum volume, agreement,
-decision coverage, review coverage, outcome reconciliation, a completed
-observation window and no unresolved `unsafe_candidate`. Manual cases cannot
-qualify a candidate. The recommendation cannot activate, promote or route
-anything. Evidence is frozen in
-[`docs/demo/phase18_1_operational_shadow_feed_evidence.json`](docs/demo/phase18_1_operational_shadow_feed_evidence.json).
-
-Phase 16.5 — Decision Intelligence Foundation adds a separate analytical
-truth layer instead of extending the legacy opportunity scanner. It performs
-bounded Odoo reads for posted invoices, refunds, lines, sales context,
-products, customers, companies, currencies and available valuation data;
-then seals an immutable, tenant-scoped snapshot and Data Quality Report.
-
-Metrics use the versioned `margin-truth/1.0.0` definitions. Historical stock
-valuation is preferred; current standard price is disclosed as a
-low-reliability fallback. Insufficient cost coverage, mixed currencies,
-missing required fields or truncated extraction block margin claims while
-reliable revenue remains visible. The period comparison returns product and
-customer drivers plus a price/volume/mix/discount/cost/refund bridge that
-must balance within tolerance. Repeated analysis of the same snapshot returns
-the same evidence. The sanitized fixture is in
-[`docs/demo/phase16_5_decision_intelligence_evidence.json`](docs/demo/phase16_5_decision_intelligence_evidence.json).
-
-No recommendation, Odoo write, canary routing, activation, promotion or
-rollback is added by this phase.
-
-Spec 92 — Governed Decision-to-Outcome Backend Release Candidate connects
-Decision Intelligence to Governed Execution, which previously ran side by
-side without a caller ever turning analytical evidence into a governed
-action. `GovernedRecommendation` freezes its content at submit and requires
-independent approval bound to its exact content hash before it can produce
-a `GovernedActionDraft`. The one executable action template,
-`customer_discount_quote_scenario_v1`, targets a new, distinct Odoo
-capability — `sales.quote.create_pricing_scenario_draft`, deliberately
-separate from Phase 16's `quote.create_draft` because it carries
-recommendation/margin evidence and its own live precondition set (staging-
-only connection, active customer, active/saleable products, no forbidden
-marker) and postcondition set (state stays `draft`; lines, prices and
-margin match the recommendation exactly; zero invoice/picking/purchase/
-manufacturing side effects). The Phase 19 skill lifecycle's `canary` status
-now has a real runtime router behind it: deterministic `sha256`-bucket
-routing (no RNG, no LLM), append-only routing decisions, safety-threshold
-auto-pause, and promotion hardening that requires a completed policy, zero
-unresolved critical incidents and a real postcondition success rate — never
-"canary status alone." `OutcomeMeasurementPlan` compares a baseline against
-a follow-up observation under explicit gates (metric version, currency,
-cost coverage) and never emits a causal claim. Finally,
-`DecisionOutcomeEvidenceBundle` seals the entire chain — data, diagnosis,
-recommendation, approval, execution, postconditions, canary routing (when
-used), and observed outcome — into one hash-chained, tamper-evident,
-sealed-immutable record with a reality label on every reference.
-
-Net ROI with implementation cost (Spec 92 Sec 10.6) is implemented:
-`OutcomeMeasurementPlan.implementation_cost` is supplied and frozen at
-plan-creation time (before the outcome is known), and
-`net_realized_value = realized_value - implementation_cost` is computed
-only when a cost was actually supplied — missing cost leaves both fields
-`null`, never guessed or defaulted to a fixed rate. The canary dashboard's
-`estimated_opportunity_value` traces every routed run back through its
-action draft and recommendation to the `MarginOpportunity` that motivated
-it, summing `impact_base` across every distinct opportunity involved —
-`null` when nothing traces back, not fabricated. Two live Odoo 19 staging
-tests of the
-pricing-scenario capability were performed against a real, authorized
-staging instance — one planned direct-to-stable, one genuinely
-canary-routed (two real skill packages, an activated `CanaryPolicy`, and
-the run's persisted `deployment_lane` confirming the canary package was
-actually selected, not assumed). Each created one draft `sale.order`,
-independently re-read to confirm `state=draft` with zero
-invoices/pickings, and a retry proven idempotent (same run, no
-duplicate). See
-[docs/demo/backend_rc_live_pricing_scenario_evidence.json](docs/demo/backend_rc_live_pricing_scenario_evidence.json).
-A generated (fixture-backed, not live-Odoo) full lifecycle evidence bundle
-is in
-[docs/demo/backend_rc_decision_to_outcome_evidence.json](docs/demo/backend_rc_decision_to_outcome_evidence.json).
-Full detail: [docs/specs/92_governed_decision_to_outcome_backend_rc.md](docs/specs/92_governed_decision_to_outcome_backend_rc.md).
-
-The exact phase gates and no-goals are defined in the [master implementation
-specification](docs/specs/84_erpguard_evolution_master_spec.md).
+- The decision-to-outcome pillar has no Fake-ERP/fixture entry point
+  (above).
+- `false_block_rate` for the governed configuration is 16.7% in the Sec
+  93 benchmark (`docs/benchmark/reports/`) -- a real, measured cost of
+  the conservative design, not zero-cost safety.
+- Only `formula_guard` has a real decision evaluator; `approval_gate` and
+  7 of 11 Sec 16 regression categories have none.
+- `direct_tool_agent` (the ungoverned LLM baseline) requires a real
+  `ANTHROPIC_API_KEY` and was not run with one in the benchmark result
+  cited in `docs/tfm/memoria_draft.md`.
+- No data erasure/retention tooling exists (`docs/tfm/annexes/data_rights_and_gdpr.md`).
+- `web/e2e/` Playwright specs are unexecuted against a live backend this
+  session (syntax-verified only).
 
 ## Limitations
 
@@ -460,6 +225,14 @@ specification](docs/specs/84_erpguard_evolution_master_spec.md).
 - The public connection path resolves SDK v2 definitions and uses
   `credential_ref`; there is no separate connector setup/auth/credential
   compatibility surface anymore.
+- The decision-to-outcome pillar (Spec 92) has no Fake-ERP/fixture entry
+  point: every `MarginOpportunity` requires a real, Odoo-derived
+  analytical snapshot. `scripts/validate_demo_install.py` exercises the
+  full existing pillar against Fake ERP data but explicitly does not
+  exercise recommendations/canary/outcomes/evidence for this reason.
+- No production-grade authentication exists. `POST /internal/dev-tokens`
+  (Spec 94) is a scoped, internal-only bootstrap explicitly documented as
+  non-production, gated the same way `/demo` is.
 
 ## Legacy release history
 

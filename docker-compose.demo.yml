@@ -1,0 +1,42 @@
+# Spec 95 (Phase 22) Sec 31.3 -- clean-install acceptance path.
+#
+# Brings up a single ERPGuard container against a fresh SQLite database
+# with the internal/demo surface mounted (Fake ERP only, no live Odoo
+# credentials involved anywhere in this file). Pair with
+# scripts/validate_demo_install.py:
+#
+#   docker compose -f docker-compose.demo.yml up --build -d
+#   python scripts/validate_demo_install.py
+#   docker compose -f docker-compose.demo.yml down -v
+
+services:
+  erpguard-demo:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      ERPGUARD_DATABASE_URL: sqlite:////data/erpguard_demo.db
+      # Demo-only values -- never reused for a real deployment. A real
+      # install must generate its own (see .env.example / docs/release).
+      ERPGUARD_AUTH_SECRET: "erpguard-demo-only-auth-secret-do-not-reuse"
+      ERPGUARD_LOCAL_SECRET_KEY: "RW16U6aabLIqnRVAXWGDhX6njui0SSl6p1yjZlAw_Qc="
+      ERPGUARD_INTERNAL_SURFACES: "true"
+      ERPGUARD_LEGACY_API_ENABLED: "false"
+      ERPGUARD_SERVE_FRONTEND: "false"
+      ALLOW_GENERIC_REAL_ODOO_WRITES: "false"
+      ALLOW_R3_R4_REAL_WRITES: "false"
+      ERPGUARD_ALLOW_ODOO_GOVERNED_CONFIRMATION: "false"
+      ERPGUARD_ALLOW_PRICING_SCENARIO_DRAFT: "false"
+    volumes:
+      - erpguard-demo-data:/data
+    command: >
+      sh -c "python -c 'from erpguard.db.session import init_db; init_db()' &&
+             uvicorn apps.api.main:app --host 0.0.0.0 --port 8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/v1/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  erpguard-demo-data:

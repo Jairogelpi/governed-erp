@@ -50,6 +50,10 @@ def init_db() -> None:
     import erpguard.db.model_packages.events  # noqa: F401
     import erpguard.db.model_packages.candidate  # noqa: F401
     import erpguard.db.model_packages.event_links  # noqa: F401
+    import erpguard.db.model_packages.replay  # noqa: F401
+    import erpguard.db.model_packages.proof  # noqa: F401
+    import erpguard.db.model_packages.skill_package  # noqa: F401
+    import erpguard.db.model_packages.execution  # noqa: F401
     import erpguard.db.model_packages.shadow  # noqa: F401
     import erpguard.db.model_packages.decision_intelligence  # noqa: F401
     import erpguard.db.model_packages.skill_deployment  # noqa: F401
