@@ -266,6 +266,46 @@ class WriteReadinessAssessment(Base):
     )
 
 
+class WriteImpactPreview(Base):
+    __tablename__ = "write_impact_previews"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    assessment_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    impact_summary: Mapped[str] = mapped_column(Text, nullable=False)
+    affected_models_json: Mapped[str] = mapped_column(Text, nullable=False)
+    estimated_record_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )
+    reversible: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    rollback_strategy: Mapped[str] = mapped_column(Text, nullable=False)
+    can_execute_real_writes: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, nullable=False
+    )
+
+
+class WriteRollbackPlan(Base):
+    __tablename__ = "write_rollback_plans"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    assessment_id: Mapped[str] = mapped_column(Text, nullable=False)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    rollback_steps_json: Mapped[str] = mapped_column(Text, nullable=False)
+    backup_strategy: Mapped[str] = mapped_column(Text, nullable=False)
+    estimated_rollback_time_minutes: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=30
+    )
+    can_execute_real_writes: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, nullable=False
+    )
+
+
 class WriteReadinessCertification(Base):
     __tablename__ = "write_readiness_certifications"
 
@@ -298,6 +338,35 @@ class WriteReadinessCertification(Base):
 
 
 # Sprint 8 — First Real Write Pilot (mail.message.create only)
+
+
+class WritePilotRequest(Base):
+    __tablename__ = "write_pilot_requests"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    certification_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    requested_by_json: Mapped[str] = mapped_column(Text, nullable=False)
+    approver_1_json: Mapped[str] = mapped_column(Text, nullable=False)
+    approver_2_json: Mapped[str] = mapped_column(Text, nullable=False)
+    target_model: Mapped[str] = mapped_column(Text, nullable=False)
+    target_res_model: Mapped[str] = mapped_column(Text, nullable=False)
+    target_res_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    payload_json: Mapped[str] = mapped_column(Text, nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    allow_r1_real_write_pilot: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    allow_generic_real_odoo_writes: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    allow_r3_r4_real_writes: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, nullable=False
+    )
 
 
 class WritePilotRun(Base):
@@ -584,6 +653,36 @@ class AutomationDraft(Base):
 
 
 # Sprint 10B — First R2 Controlled Write Candidate (res.partner.write, staging only)
+
+
+class R2WritePilotRequest(Base):
+    __tablename__ = "r2_write_pilot_requests"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    skill_id: Mapped[str] = mapped_column(Text, nullable=False)
+    certification_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    requested_by_json: Mapped[str] = mapped_column(Text, nullable=False)
+    approver_1_json: Mapped[str] = mapped_column(Text, nullable=False)
+    approver_2_json: Mapped[str] = mapped_column(Text, nullable=False)
+    target_model: Mapped[str] = mapped_column(Text, nullable=False)
+    target_record_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    target_fields_json: Mapped[str] = mapped_column(Text, nullable=False)
+    vals_json: Mapped[str] = mapped_column(Text, nullable=False)
+    environment: Mapped[str] = mapped_column(Text, nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    allow_r2_real_write_pilot: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    allow_generic_real_odoo_writes: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    allow_r3_r4_real_writes: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, nullable=False
+    )
 
 
 class R2WritePilotRun(Base):
