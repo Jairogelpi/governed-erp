@@ -20,8 +20,10 @@ from erpguard.db.model_packages.canary import CanaryPolicy, CanaryRoutingDecisio
 from erpguard.db.model_packages.outcomes import OutcomeMeasurementPlan, OutcomeObservation, RealizedOutcomeReport
 from erpguard.db.model_packages.decision_outcome_evidence import DecisionOutcomeEvidenceBundle
 from erpguard.db.model_packages.benchmark import BenchmarkRun, BenchmarkCaseResult
+from erpguard.db.model_packages.declared_capabilities import DeclaredWriteCapability
 
 __all__ = [
+    "DeclaredWriteCapability",
     "DecisionOutcomeEvidenceBundle",
     "BenchmarkRun",
     "BenchmarkCaseResult",

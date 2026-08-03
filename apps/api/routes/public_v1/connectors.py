@@ -1,5 +1,7 @@
 """Public Connector SDK v2 definition and safe connection-test boundary."""
 
+import re
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -10,6 +12,8 @@ from apps.api.schemas.connectors import (
     ConnectorDefinitionResponse,
     ConnectorTestRequest,
     ConnectorTestResponse,
+    ModelFieldResponse,
+    ModelSchemaResponse,
 )
 from erpguard.application.connectors.service import (
     ConnectionNotFound,
@@ -75,6 +79,54 @@ async def test_connector(
         status=result.status,
         summary=result.summary,
         safety_flags=result.safety_flags.model_dump(mode="json"),
+    )
+
+
+_MODEL_IDENTIFIER = re.compile(r"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$")
+
+
+@router.get(
+    "/{connector_id}/connections/{connection_id}/schema/{model}",
+    response_model=ModelSchemaResponse,
+)
+async def get_model_schema(
+    connector_id: str,
+    connection_id: str,
+    model: str,
+    db: Session = Depends(get_db),
+    principal: Principal = Depends(require_role("operator")),
+) -> ModelSchemaResponse:
+    if not _MODEL_IDENTIFIER.match(model):
+        raise HTTPException(status_code=400, detail="invalid_model_identifier")
+    service = ConnectorApplicationService(db)
+    try:
+        fields = await service.discover_model_fields(
+            tenant_id=principal.tenant_id,
+            connection_id=connection_id,
+            connector_id=connector_id,
+            model=model,
+        )
+    except ConnectorNotFound as exc:
+        raise HTTPException(status_code=404, detail="connector_not_found") from exc
+    except ConnectionNotFound as exc:
+        raise HTTPException(status_code=404, detail="connection_not_found") from exc
+    except ConnectorConnectionMismatch as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except ConnectorOperationUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return ModelSchemaResponse(
+        connector_id=connector_id,
+        connection_id=connection_id,
+        model=model,
+        fields=[
+            ModelFieldResponse(
+                name=name,
+                type=str(definition.get("type", "")),
+                string=str(definition.get("string", "")),
+                readonly=bool(definition.get("readonly", False)),
+            )
+            for name, definition in sorted(fields.items())
+        ],
     )
 
 

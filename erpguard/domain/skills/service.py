@@ -97,6 +97,23 @@ class SkillCompilerService:
         )
         steps = [WorkflowStep.model_validate(item) for item in workflow_steps]
 
+        from erpguard.db.model_packages.declared_capabilities import DeclaredWriteCapability
+
+        active_declared_capability_names = frozenset(
+            row.id
+            for row in self.session.query(DeclaredWriteCapability.id)
+            .filter_by(tenant_id=tenant_id, status="active")
+            .all()
+        )
+        # capability names for declared capabilities are `declared.<id>` --
+        # the workflow step names them that way, so intersect on that shape.
+        active_declared_capability_names = frozenset(
+            step.capability
+            for step in steps
+            if step.capability.startswith("declared.")
+            and step.capability.removeprefix("declared.") in active_declared_capability_names
+        )
+
         try:
             content, validation_result, package_hash = compile_skill_package(
                 process_key=candidate.process_key,
@@ -106,6 +123,7 @@ class SkillCompilerService:
                 connector=connector,
                 proof_id=proof.id,
                 proof_recommendation=proof.recommendation,
+                active_declared_capability_names=active_declared_capability_names,
             )
         except SkillCompilationError as exc:
             raise SkillPackageValidationError(str(exc)) from exc

@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     pricing_scenario_max_total: float = 10000.0
     recommendation_approval_max_age_seconds: int = 86400
     allow_benchmark_direct_agent: bool = False
+    allow_declared_write_capabilities: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env",

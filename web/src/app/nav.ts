@@ -16,5 +16,6 @@ export const NAV_ITEMS: NavItem[] = [
   { path: "/outcomes", label: "Resultados" },
   { path: "/evidence", label: "Evidencia" },
   { path: "/benchmarks", label: "Benchmarks" },
+  { path: "/capabilities", label: "Capacidades" },
   { path: "/settings", label: "Ajustes" },
 ];

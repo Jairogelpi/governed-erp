@@ -92,6 +92,7 @@ class ConnectorApplicationService:
         if connector_id == "odoo":
             services["transport_factory"] = self._odoo_transport_factory(connection)
             services["write_transport_factory"] = self._odoo_write_transport_factory(connection)
+            services["declared_capability_lookup"] = self._declared_capability_lookup(tenant_id)
         context = ConnectorContext(
             tenant_id=tenant_id,
             connection_id=connection.id,
@@ -125,6 +126,26 @@ class ConnectorApplicationService:
         except (RuntimeError, ValueError) as exc:
             raise ConnectorOperationUnavailable("connector_operation_unavailable") from exc
 
+    async def discover_model_fields(
+        self,
+        *,
+        tenant_id: str,
+        connection_id: str,
+        connector_id: str,
+        model: str,
+    ) -> dict[str, dict]:
+        _, context = self.connection_context(
+            tenant_id=tenant_id, connection_id=connection_id, connector_id=connector_id
+        )
+        plugin = self.registry.get(connector_id)
+        discover = getattr(plugin, "discover_model_fields", None)
+        if discover is None:
+            raise ConnectorOperationUnavailable("connector_does_not_support_model_field_discovery")
+        try:
+            return await discover(context, model)
+        except (RuntimeError, ValueError) as exc:
+            raise ConnectorOperationUnavailable("connector_operation_unavailable") from exc
+
     def _odoo_config(self, connection: UnifiedConnection) -> OdooConfig:
         metadata = json.loads(connection.metadata_json or "{}")
         secret_row = (
@@ -153,3 +174,15 @@ class ConnectorApplicationService:
             return LegacyXmlRpcWriteTransport(OdooQuoteDraftClient(self._odoo_config(connection)))
 
         return factory
+
+    def _declared_capability_lookup(self, tenant_id: str):
+        from erpguard.db.model_packages.declared_capabilities import DeclaredWriteCapability
+
+        def lookup(capability_id: str) -> DeclaredWriteCapability | None:
+            return (
+                self.session.query(DeclaredWriteCapability)
+                .filter_by(tenant_id=tenant_id, id=capability_id, status="active")
+                .one_or_none()
+            )
+
+        return lookup

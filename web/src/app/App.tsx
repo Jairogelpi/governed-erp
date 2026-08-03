@@ -15,6 +15,7 @@ import { Runs } from "../screens/Runs";
 import { Outcomes } from "../screens/Outcomes";
 import { Evidence } from "../screens/Evidence";
 import { Benchmarks } from "../screens/Benchmarks";
+import { Capabilities } from "../screens/Capabilities";
 
 function protect(element: ReactElement) {
   return <RequireAuth>{element}</RequireAuth>;
@@ -36,6 +37,7 @@ export function App() {
         <Route path="/outcomes" element={protect(<Outcomes />)} />
         <Route path="/evidence" element={protect(<Evidence />)} />
         <Route path="/benchmarks" element={protect(<Benchmarks />)} />
+        <Route path="/capabilities" element={protect(<Capabilities />)} />
         <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>

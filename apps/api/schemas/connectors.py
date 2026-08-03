@@ -56,3 +56,17 @@ class ConnectorTestResponse(BaseModel):
     status: str
     summary: str
     safety_flags: dict[str, Any]
+
+
+class ModelFieldResponse(BaseModel):
+    name: str
+    type: str
+    string: str
+    readonly: bool
+
+
+class ModelSchemaResponse(BaseModel):
+    connector_id: str
+    connection_id: str
+    model: str
+    fields: list[ModelFieldResponse]

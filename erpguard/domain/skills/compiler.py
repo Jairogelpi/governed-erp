@@ -46,6 +46,7 @@ same tool Phase 12/13 use for their own hashes.
 
 from __future__ import annotations
 
+from erpguard.connectors.sdk.models import CapabilityDefinition
 from erpguard.connectors.sdk.plugin import ConnectorPlugin
 from erpguard.domain.processes.candidate_integrity import stable_digest
 from erpguard.domain.processes.models import ProcessDefinitionDocument
@@ -71,12 +72,22 @@ def compile_skill_package(
     connector: ConnectorPlugin,
     proof_id: str,
     proof_recommendation: str,
+    active_declared_capability_names: frozenset[str] = frozenset(),
 ) -> tuple[SkillPackageContent, CompilationValidationResult, str]:
     """Returns (package content, validation result, package_hash).
 
     Raises `SkillCompilationError` if any REAL check fails -- callers must
     not persist a partial/draft row on failure (spec exit criteria are
     about rejection, not storing rejected drafts).
+
+    `active_declared_capability_names` are `declared.<id>` capability
+    names (`erpguard/domain/declared_capabilities/`) the caller has
+    already confirmed are `active` for this tenant -- unlike the
+    connector's static `capability_definitions()`, these are per-tenant
+    DB rows the connector can't enumerate statically. Their postcondition
+    support is real by construction (generic read-after-write), so they
+    don't need a hardcoded entry in
+    `_CAPABILITIES_WITH_REAL_POSTCONDITION_SUPPORT` below.
     """
 
     checks: list[CheckResult] = []
@@ -94,8 +105,12 @@ def compile_skill_package(
     checks.append(CheckResult(name="proof_acceptable", status="passed"))
 
     # -- capability existence / no raw native methods --------------------
-    declared_capabilities = {item.name for item in connector.capability_definitions()}
+    declared_capabilities = {item.name for item in connector.capability_definitions()} | active_declared_capability_names
     capability_by_name = {item.name: item for item in connector.capability_definitions()}
+    for declared_name in active_declared_capability_names:
+        capability_by_name[declared_name] = CapabilityDefinition(
+            name=declared_name, version="1", safety_tier="declared_field_write_staging_only", supports_execution=True
+        )
     unknown_steps = [step for step in workflow_steps if step.capability not in declared_capabilities]
     if unknown_steps:
         names = ", ".join(sorted({step.capability for step in unknown_steps}))
@@ -124,7 +139,10 @@ def compile_skill_package(
         step for step in workflow_steps if capability_by_name[step.capability].supports_execution
     ]
     unsupported_write_capable = [
-        step for step in write_capable if step.capability not in _CAPABILITIES_WITH_REAL_POSTCONDITION_SUPPORT
+        step
+        for step in write_capable
+        if step.capability not in _CAPABILITIES_WITH_REAL_POSTCONDITION_SUPPORT
+        and step.capability not in active_declared_capability_names
     ]
     if unsupported_write_capable:
         names = ", ".join(sorted({step.capability for step in unsupported_write_capable}))
