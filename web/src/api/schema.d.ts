@@ -141,6 +141,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/connectors/{connector_id}/connections/{connection_id}/schema/{model}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Model Schema */
+        get: operations["get_model_schema_v1_connectors__connector_id__connections__connection_id__schema__model__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/events/odoo/webhook": {
         parameters: {
             query?: never;
@@ -2847,6 +2864,28 @@ export interface components {
             /** Actor Id */
             actor_id: string;
         };
+        /** ModelFieldResponse */
+        ModelFieldResponse: {
+            /** Name */
+            name: string;
+            /** Type */
+            type: string;
+            /** String */
+            string: string;
+            /** Readonly */
+            readonly: boolean;
+        };
+        /** ModelSchemaResponse */
+        ModelSchemaResponse: {
+            /** Connector Id */
+            connector_id: string;
+            /** Connection Id */
+            connection_id: string;
+            /** Model */
+            model: string;
+            /** Fields */
+            fields: components["schemas"]["ModelFieldResponse"][];
+        };
         /** ObservedMetricsRequest */
         ObservedMetricsRequest: {
             /** Net Revenue */
@@ -4626,6 +4665,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConnectorTestResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_model_schema_v1_connectors__connector_id__connections__connection_id__schema__model__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connector_id: string;
+                connection_id: string;
+                model: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelSchemaResponse"];
                 };
             };
             /** @description Validation Error */

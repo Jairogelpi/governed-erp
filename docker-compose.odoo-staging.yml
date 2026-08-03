@@ -1,0 +1,53 @@
+# Real Odoo 19 staging instance for `scripts/validate_against_real_odoo.py`.
+#
+# Everything up to now has been proven against a fake write transport in
+# the automated test suite. This brings up a real, running Odoo server so
+# the connector (OdooConnectorPlugin / OdooClient / OdooQuoteDraftClient)
+# can be exercised against real XML-RPC responses, not fixtures.
+#
+#   docker compose -f docker-compose.odoo-staging.yml up -d
+#   # wait for the healthcheck, then create a database via the Odoo web
+#   # UI at http://localhost:8069 (database name: erpguard_staging,
+#   # master password: erpguard-staging-only, load demo data: yes) --
+#   # Odoo does not support fully unattended first-database creation over
+#   # XML-RPC, this one manual step is unavoidable.
+#   python scripts/validate_against_real_odoo.py
+#   docker compose -f docker-compose.odoo-staging.yml down -v
+
+services:
+  odoo-db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo-staging-only
+      POSTGRES_DB: postgres
+    volumes:
+      - erpguard-odoo-staging-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  odoo:
+    image: odoo:19
+    depends_on:
+      odoo-db:
+        condition: service_healthy
+    ports:
+      - "8069:8069"
+    environment:
+      HOST: odoo-db
+      USER: odoo
+      PASSWORD: odoo-staging-only
+    volumes:
+      - erpguard-odoo-staging-data:/var/lib/odoo
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/login"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+volumes:
+  erpguard-odoo-staging-db:
+  erpguard-odoo-staging-data:

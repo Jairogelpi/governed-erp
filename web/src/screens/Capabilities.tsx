@@ -5,6 +5,7 @@ import { StatusBadge } from "../components/StatusBadge";
 
 export function Capabilities() {
   const [name, setName] = useState("");
+  const [connectionId, setConnectionId] = useState("");
   const [targetModel, setTargetModel] = useState("");
   const [targetField, setTargetField] = useState("");
   const [fieldType, setFieldType] = useState("string");
@@ -13,6 +14,27 @@ export function Capabilities() {
   const [allowedValues, setAllowedValues] = useState("");
   const [maxRecordsPerRun, setMaxRecordsPerRun] = useState("1");
   const [declareError, setDeclareError] = useState<string | null>(null);
+
+  const [modelFields, setModelFields] = useState<Array<{ name: string; type: string; readonly: boolean }>>([]);
+  const [schemaError, setSchemaError] = useState<string | null>(null);
+  const [schemaLoading, setSchemaLoading] = useState(false);
+
+  async function loadModelFields() {
+    if (!connectionId || !targetModel) return;
+    setSchemaError(null);
+    setSchemaLoading(true);
+    const { data, error } = await api.GET(
+      "/v1/connectors/{connector_id}/connections/{connection_id}/schema/{model}",
+      { params: { path: { connector_id: "odoo", connection_id: connectionId, model: targetModel } } },
+    );
+    setSchemaLoading(false);
+    if (error) {
+      setSchemaError("No se pudo consultar el esquema real de ese modelo (revisa la conexión y el nombre del modelo).");
+      setModelFields([]);
+      return;
+    }
+    setModelFields(data.fields.filter((field) => !field.readonly));
+  }
 
   const [items, setItems] = useState<
     Array<{
@@ -109,14 +131,36 @@ export function Capabilities() {
         </label>
         <br />
         <label>
+          Connection ID (para consultar el esquema real)
+          <br />
+          <input value={connectionId} onChange={(event) => setConnectionId(event.target.value)} style={{ width: "100%" }} />
+        </label>
+        <br />
+        <label>
           Modelo Odoo (técnico)
           <br />
           <input value={targetModel} onChange={(event) => setTargetModel(event.target.value)} placeholder="res.partner" />
         </label>{" "}
+        <button type="button" className="primary" onClick={loadModelFields} disabled={schemaLoading}>
+          Consultar campos reales
+        </button>
+        {schemaError && <ErrorState message={schemaError} />}
+        <br />
         <label>
           Campo (técnico)
           <br />
-          <input value={targetField} onChange={(event) => setTargetField(event.target.value)} placeholder="loyalty_discount_pct" />
+          {modelFields.length > 0 ? (
+            <select value={targetField} onChange={(event) => setTargetField(event.target.value)}>
+              <option value="">-- selecciona un campo --</option>
+              {modelFields.map((field) => (
+                <option key={field.name} value={field.name}>
+                  {field.name} ({field.type})
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input value={targetField} onChange={(event) => setTargetField(event.target.value)} placeholder="loyalty_discount_pct" />
+          )}
         </label>{" "}
         <label>
           Tipo

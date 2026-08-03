@@ -160,6 +160,15 @@ class OdooConnectorPlugin(ConnectorTemplate):
         transport.authenticate()
         return ConnectionTestResult(status="ok", summary=f"odoo_read_only:{version.get('server_version', 'unknown')}")
 
+    async def discover_model_fields(self, context: ConnectorContext, model: str) -> dict[str, dict]:
+        """Live field introspection for an arbitrary model, not limited to
+        `MODELS` -- backs the schema-driven capability declaration UI so a
+        user picks a real, currently-existing field instead of typing one
+        blind. Read-only; no write-capability implication."""
+
+        transport = self._transport(context)
+        return transport.fields_get(model, ["string", "type", "readonly"])
+
     async def discover_schema(self, context: ConnectorContext) -> DiscoveredSystemSchema:
         transport = self._transport(context)
         fields: dict[str, list[str]] = {}
