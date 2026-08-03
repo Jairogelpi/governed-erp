@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.0.0-tfm — TFM submission freeze
+
+- `pyproject.toml` version bumped `0.14.0` → `1.0.0` and the README title
+  updated to match the `v1.0.0-tfm` tag — both had been left pointing at
+  the migration-foundation baseline well after Spec 92-95 landed.
+- README's "Architecture and reality labels" section rewritten as a
+  `real`/`staging_only`/`fixture`/`advisory`/`planned` table for
+  scannability; the `v1.0.0-tfm` tag line in the Definition of Done
+  checklist and `docs/release/versions.md` corrected to reflect the tag
+  actually being cut.
+
 ## Unreleased — Spec 95 (Phase 22: TFM Delivery and Release Freeze)
 
 ### Added
