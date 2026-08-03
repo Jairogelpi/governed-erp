@@ -92,6 +92,7 @@ class ConnectorApplicationService:
         if connector_id == "odoo":
             services["transport_factory"] = self._odoo_transport_factory(connection)
             services["write_transport_factory"] = self._odoo_write_transport_factory(connection)
+            services["declared_capability_lookup"] = self._declared_capability_lookup(tenant_id)
         context = ConnectorContext(
             tenant_id=tenant_id,
             connection_id=connection.id,
@@ -153,3 +154,15 @@ class ConnectorApplicationService:
             return LegacyXmlRpcWriteTransport(OdooQuoteDraftClient(self._odoo_config(connection)))
 
         return factory
+
+    def _declared_capability_lookup(self, tenant_id: str):
+        from erpguard.db.model_packages.declared_capabilities import DeclaredWriteCapability
+
+        def lookup(capability_id: str) -> DeclaredWriteCapability | None:
+            return (
+                self.session.query(DeclaredWriteCapability)
+                .filter_by(tenant_id=tenant_id, id=capability_id, status="active")
+                .one_or_none()
+            )
+
+        return lookup

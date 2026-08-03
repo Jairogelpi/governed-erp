@@ -1794,6 +1794,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/declared-capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Capabilities */
+        get: operations["list_capabilities_v1_declared_capabilities_get"];
+        put?: never;
+        /** Declare Capability */
+        post: operations["declare_capability_v1_declared_capabilities_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/declared-capabilities/{capability_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Capability */
+        get: operations["get_capability_v1_declared_capabilities__capability_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/declared-capabilities/{capability_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Capability */
+        post: operations["approve_capability_v1_declared_capabilities__capability_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/declared-capabilities/{capability_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate Capability */
+        post: operations["activate_capability_v1_declared_capabilities__capability_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2405,6 +2474,77 @@ export interface components {
             blocking_issues: string[];
             /** Content Hash */
             content_hash: string;
+        };
+        /** DeclaredCapabilityApproveRequest */
+        DeclaredCapabilityApproveRequest: {
+            /** Approval Id */
+            approval_id: string;
+        };
+        /** DeclaredCapabilityCreateRequest */
+        DeclaredCapabilityCreateRequest: {
+            /** Name */
+            name: string;
+            /** Target Model */
+            target_model: string;
+            /** Target Field */
+            target_field: string;
+            /** Field Type */
+            field_type: string;
+            /** Minimum Value */
+            minimum_value?: string | null;
+            /** Maximum Value */
+            maximum_value?: string | null;
+            /** Allowed Values */
+            allowed_values?: string[] | null;
+            /**
+             * Max Records Per Run
+             * @default 1
+             */
+            max_records_per_run: number;
+        };
+        /** DeclaredCapabilityListResponse */
+        DeclaredCapabilityListResponse: {
+            /** Items */
+            items: components["schemas"]["DeclaredCapabilityResponse"][];
+        };
+        /** DeclaredCapabilityResponse */
+        DeclaredCapabilityResponse: {
+            /** Id */
+            id: string;
+            /** Tenant Id */
+            tenant_id: string;
+            /** Name */
+            name: string;
+            /** Target Model */
+            target_model: string;
+            /** Target Field */
+            target_field: string;
+            /** Field Type */
+            field_type: string;
+            /** Minimum Value */
+            minimum_value: string | null;
+            /** Maximum Value */
+            maximum_value: string | null;
+            /** Allowed Values */
+            allowed_values: string[];
+            /** Max Records Per Run */
+            max_records_per_run: number;
+            /** Status */
+            status: string;
+            /** Content Hash */
+            content_hash: string;
+            /** Approval Scope */
+            approval_scope: string;
+            /** Created By */
+            created_by: string;
+            /** Approved By */
+            approved_by: string | null;
+            /** Created At */
+            created_at: string;
+            /** Approved At */
+            approved_at: string | null;
+            /** Activated At */
+            activated_at: string | null;
         };
         /** EvidenceBundleCreateRequest */
         EvidenceBundleCreateRequest: {
@@ -7735,6 +7875,156 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BenchmarkReportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_capabilities_v1_declared_capabilities_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeclaredCapabilityListResponse"];
+                };
+            };
+        };
+    };
+    declare_capability_v1_declared_capabilities_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeclaredCapabilityCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeclaredCapabilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_capability_v1_declared_capabilities__capability_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                capability_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeclaredCapabilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_capability_v1_declared_capabilities__capability_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                capability_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeclaredCapabilityApproveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeclaredCapabilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    activate_capability_v1_declared_capabilities__capability_id__activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                capability_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeclaredCapabilityResponse"];
                 };
             };
             /** @description Validation Error */

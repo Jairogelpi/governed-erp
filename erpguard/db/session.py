@@ -63,5 +63,6 @@ def init_db() -> None:
     import erpguard.db.model_packages.outcomes  # noqa: F401
     import erpguard.db.model_packages.decision_outcome_evidence  # noqa: F401
     import erpguard.db.model_packages.benchmark  # noqa: F401
+    import erpguard.db.model_packages.declared_capabilities  # noqa: F401
 
     Base.metadata.create_all(bind=engine)

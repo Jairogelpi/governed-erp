@@ -1,9 +1,14 @@
 """Narrowly-scoped Odoo write client for the governed sales capabilities.
 
 Phase 16 introduced draft quotation creation. Phase 17 adds exactly one R3
-method, ``sale.order.action_confirm``, plus read-only snapshot helpers. This
-is intentionally not a generic RPC transport and exposes no invoice,
-picking validation, delete, cancel, or arbitrary model/method entry point.
+method, ``sale.order.action_confirm``, plus read-only snapshot helpers.
+User-declared write capabilities (`erpguard/domain/declared_capabilities/`)
+add exactly one more primitive, `write_field`/`read_field` -- a single
+`(model, record_id, field, value)` write, re-checked against the same
+denylist the declaration itself was checked against at declare-time, so
+a bug anywhere upstream still can't turn this into a generic write. This
+is still not a generic RPC transport: no `create`, no `unlink`, no method
+other than `write`/`read` on a single record, no arbitrary method name.
 """
 
 from __future__ import annotations
@@ -12,6 +17,7 @@ from typing import Any, cast
 
 from erpguard.adapters.odoo.client import OdooClient
 from erpguard.adapters.odoo.config import OdooConfig
+from erpguard.domain.declared_capabilities.denylist import is_denylisted
 
 _SALE_ORDER_MODEL = "sale.order"
 _EFFECT_MODELS = ("stock.picking", "account.move", "account.payment", "purchase.order", "mrp.production")
@@ -431,3 +437,25 @@ class OdooQuoteDraftClient:
             [[int(order_id)]],
             {},
         )
+
+    def write_field(self, *, model: str, record_id: int, field: str, value: Any) -> None:
+        """Write exactly one field on exactly one existing record.
+
+        Re-checks the denylist here, independently of whatever check ran
+        before this was called -- the last line of defense before the
+        actual RPC, not the only one."""
+
+        if is_denylisted(model=model, field=field):
+            raise ValueError(f"denylisted_write_target:{model}.{field}")
+        self._client._execute_kw(  # noqa: SLF001 -- intentional bounded bridge
+            model,
+            "write",
+            [[int(record_id)], {field: value}],
+            {},
+        )
+
+    def read_field(self, *, model: str, record_id: int, field: str) -> Any:
+        rows = self._client.read(model, [int(record_id)], [field])
+        if not rows:
+            raise LookupError(f"record_not_found:{model}:{record_id}")
+        return rows[0].get(field)

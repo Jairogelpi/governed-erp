@@ -38,6 +38,10 @@ class OdooWriteTransport(Protocol):
 
     def read_pricing_scenario_snapshot(self, order_id: int) -> dict[str, Any]: ...
 
+    def write_field(self, *, model: str, record_id: int, field: str, value: Any) -> None: ...
+
+    def read_field(self, *, model: str, record_id: int, field: str) -> Any: ...
+
 
 class LegacyXmlRpcWriteTransport:
     """SDK transport adapter around `OdooQuoteDraftClient`."""
@@ -85,3 +89,9 @@ class LegacyXmlRpcWriteTransport:
 
     def read_pricing_scenario_snapshot(self, order_id: int) -> dict[str, Any]:
         return self._client.read_pricing_scenario_snapshot(order_id)
+
+    def write_field(self, *, model: str, record_id: int, field: str, value: Any) -> None:
+        self._client.write_field(model=model, record_id=record_id, field=field, value=value)
+
+    def read_field(self, *, model: str, record_id: int, field: str) -> Any:
+        return self._client.read_field(model=model, record_id=record_id, field=field)

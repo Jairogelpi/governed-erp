@@ -29,6 +29,7 @@ from erpguard.connectors.sdk.models import (
     stable_digest,
 )
 from erpguard.connectors.sdk.template import ConnectorTemplate
+from erpguard.domain.declared_capabilities.denylist import is_denylisted
 from erpguard.domain.processes.candidate_integrity import stable_digest as stable_json_digest
 from erpguard.domain.execution.side_effects import (
     ConfirmationControlContract,
@@ -119,6 +120,40 @@ class OdooConnectorPlugin(ConnectorTemplate):
             raise RuntimeError("odoo_write_transport_factory_required")
         return factory(context)
 
+    def _declared_capability(self, context: ConnectorContext, capability: str):
+        lookup = context.services.get("declared_capability_lookup")
+        if lookup is None:
+            return None
+        return lookup(capability.removeprefix("declared."))
+
+    def _validate_declared_value(self, declared, value) -> str | None:
+        """Re-validate a runtime value against the stored declaration --
+        never trust the caller's declared type/range intent alone."""
+        try:
+            if declared.field_type == "integer":
+                value = int(value)
+            elif declared.field_type == "decimal":
+                value = float(value)
+            elif declared.field_type == "boolean":
+                value = bool(value)
+            else:
+                value = str(value)
+        except (TypeError, ValueError):
+            return f"declared_capability_value_wrong_type:{declared.field_type}"
+        if declared.allowed_values_json:
+            import json as _json
+
+            allowed_values = _json.loads(declared.allowed_values_json)
+            if allowed_values and value not in allowed_values:
+                return "declared_capability_value_not_allowed"
+        caster = int if declared.field_type == "integer" else float
+        if declared.field_type in {"integer", "decimal"}:
+            if declared.minimum_value is not None and value < caster(declared.minimum_value):
+                return "declared_capability_value_below_minimum"
+            if declared.maximum_value is not None and value > caster(declared.maximum_value):
+                return "declared_capability_value_above_maximum"
+        return None
+
     async def test_connection(self, context: ConnectorContext) -> ConnectionTestResult:
         transport = self._transport(context)
         version = transport.version()
@@ -159,6 +194,17 @@ class OdooConnectorPlugin(ConnectorTemplate):
     ) -> NativeExecutionPlan:
         capability = operation if isinstance(operation, str) else operation.capability
         arguments = {} if isinstance(operation, str) else operation.arguments
+        if capability.startswith("declared."):
+            declared = self._declared_capability(context, capability)
+            if declared is None:
+                return NativeExecutionPlan(capability=capability, status="blocked", steps=[], supports_execution=False)
+            return NativeExecutionPlan(
+                capability=capability,
+                status="planned",
+                steps=["odoo_read_field_before", "odoo_write_field", "odoo_read_field_after"],
+                supports_execution=True,
+                arguments=arguments,
+            )
         definitions = {item.name: item for item in self.capability_definitions()}
         definition = definitions.get(capability)
         if definition is None:
@@ -188,6 +234,8 @@ class OdooConnectorPlugin(ConnectorTemplate):
     async def execute_capability(
         self, context: ConnectorContext, plan: NativeExecutionPlan, permit: ExecutionPermit
     ) -> NativeExecutionResult:
+        if plan.capability.startswith("declared."):
+            return self._execute_declared_field_write(context, plan)
         if plan.capability == "sales.order.confirm":
             return self._execute_governed_confirmation(context, plan, permit)
         if plan.capability == "sales.quote.create_pricing_scenario_draft":
@@ -443,6 +491,55 @@ class OdooConnectorPlugin(ConnectorTemplate):
             safety_flags=ConnectorSafetyFlags(erp_touched=True, erp_write_performed=True),
         )
 
+    def _execute_declared_field_write(self, context: ConnectorContext, plan: NativeExecutionPlan) -> NativeExecutionResult:
+        declared = self._declared_capability(context, plan.capability)
+        if declared is None:
+            return NativeExecutionResult(
+                status="blocked", summary="declared_capability_not_active",
+                errors=["declared_capability_not_active"], safety_flags=ConnectorSafetyFlags(),
+            )
+        if not settings.allow_declared_write_capabilities:
+            return NativeExecutionResult(
+                status="blocked", summary="declared_write_capabilities_disabled",
+                errors=["declared_write_capabilities_disabled"], safety_flags=ConnectorSafetyFlags(),
+            )
+        if is_denylisted(model=declared.target_model, field=declared.target_field):
+            return NativeExecutionResult(
+                status="blocked", summary="declared_capability_denylisted",
+                errors=["declared_capability_denylisted"], safety_flags=ConnectorSafetyFlags(),
+            )
+        metadata = context.services.get("connection_metadata", {})
+        if str(metadata.get("environment", "")).lower() != "staging":
+            return NativeExecutionResult(
+                status="blocked", summary="declared_capability_requires_staging_connection",
+                errors=["declared_capability_requires_staging_connection"], safety_flags=ConnectorSafetyFlags(),
+            )
+        try:
+            record_id = int(plan.arguments["record_id"])
+            value = plan.arguments["value"]
+        except (KeyError, TypeError, ValueError) as exc:
+            return NativeExecutionResult(
+                status="blocked", summary="invalid_declared_capability_arguments",
+                errors=[str(exc)], safety_flags=ConnectorSafetyFlags(),
+            )
+        error = self._validate_declared_value(declared, value)
+        if error:
+            return NativeExecutionResult(
+                status="blocked", summary=error, errors=[error], safety_flags=ConnectorSafetyFlags(),
+            )
+
+        transport = self._write_transport(context)
+        before = transport.read_field(model=declared.target_model, record_id=record_id, field=declared.target_field)
+        transport.write_field(model=declared.target_model, record_id=record_id, field=declared.target_field, value=value)
+        return NativeExecutionResult(
+            status="ok", summary="declared_field_written",
+            payload={
+                "model": declared.target_model, "field": declared.target_field,
+                "record_id": record_id, "before": before, "written": value,
+            },
+            safety_flags=ConnectorSafetyFlags(erp_touched=True, erp_write_performed=True),
+        )
+
     def _execute_quote_create_draft(self, context: ConnectorContext, plan: NativeExecutionPlan) -> NativeExecutionResult:
         try:
             partner_id = int(plan.arguments["partner_id"])
@@ -513,6 +610,8 @@ class OdooConnectorPlugin(ConnectorTemplate):
         self, context: ConnectorContext, operation: CanonicalOperation | str, result: NativeExecutionResult
     ) -> VerificationResult:
         capability = operation if isinstance(operation, str) else operation.capability
+        if capability.startswith("declared."):
+            return self._verify_declared_field_write(context, result)
         if capability == "sales.order.confirm":
             if result.status not in {"ok", "unknown"} or "after" not in result.payload:
                 return VerificationResult(
@@ -634,6 +733,25 @@ class OdooConnectorPlugin(ConnectorTemplate):
             verified=not issues,
             summary=";".join(issues) if issues else "pricing_scenario_draft_postconditions_verified",
             evidence={"snapshot": snapshot},
+        )
+
+    def _verify_declared_field_write(self, context: ConnectorContext, result: NativeExecutionResult) -> VerificationResult:
+        if result.status != "ok":
+            return VerificationResult(status="not_executed", verified=False, summary="no_write_to_verify")
+        model = result.payload.get("model")
+        field = result.payload.get("field")
+        record_id = result.payload.get("record_id")
+        written = result.payload.get("written")
+        if model is None or field is None or record_id is None:
+            return VerificationResult(status="verification_failed", verified=False, summary="missing_write_target")
+        transport = self._write_transport(context)
+        current = transport.read_field(model=model, record_id=int(record_id), field=field)
+        verified = current == written
+        return VerificationResult(
+            status="verified" if verified else "verification_failed",
+            verified=verified,
+            summary="declared_field_write_confirmed" if verified else "postcondition_failed:read_back_mismatch",
+            evidence={"written": written, "read_back": current},
         )
 
     def execution_permit(self, permit_id: str, capability: str) -> ExecutionPermit:

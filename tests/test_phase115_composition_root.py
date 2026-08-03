@@ -33,6 +33,7 @@ PUBLIC_ROOTS = {
     "/v1/outcome-reports",
     "/v1/decision-outcome-evidence",
     "/v1/benchmarks",
+    "/v1/declared-capabilities",
 }
 
 

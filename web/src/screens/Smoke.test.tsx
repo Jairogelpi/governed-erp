@@ -10,6 +10,7 @@ import { Opportunities } from "./Opportunities";
 import { Recommendations } from "./Recommendations";
 import { Evidence } from "./Evidence";
 import { Benchmarks } from "./Benchmarks";
+import { Capabilities } from "./Capabilities";
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -41,6 +42,7 @@ describe("form-driven screens render without crashing", () => {
     ["Recommendations", Recommendations, "Recomendaciones"],
     ["Evidence", Evidence, "Evidencia"],
     ["Benchmarks", Benchmarks, "Benchmarks (ERPRiskBench)"],
+    ["Capabilities", Capabilities, "Capacidades de escritura declaradas"],
   ] as const)("%s renders its heading without a backend call", (_name, Component, heading) => {
     render(
       <MemoryRouter>
