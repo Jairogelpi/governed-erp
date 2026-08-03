@@ -7,20 +7,21 @@ rather than getting their own bump, for example.
 | Version | Scope | Git tag status |
 | --- | --- | --- |
 | `v0.13.0-rc1` | Historical ERPGuard candidate | Not tagged in this history (pre-dates this repo's tag record; see `docs/legacy/releases.md`) |
-| `v0.14.0` | Migration foundation | Current `pyproject.toml` `[project].version` -- not separately tagged |
+| `v0.14.0` | Migration foundation | Not separately tagged |
 | `v0.15.0` | Connector SDK + events | Not separately tagged |
 | `v0.16.0` | Process/version/mining | Not separately tagged |
 | `v0.17.0` | Replay/proof | Not separately tagged |
 | `v0.18.0` | Compiler/runtime v2 | Not separately tagged |
 | `v0.19.0` | Odoo quote vertical + Spec 92 decision-to-outcome backend | Not separately tagged |
 | `v0.20.0` | Shadow/canary + benchmark (Phase 20) | Not separately tagged |
-| `v1.0.0-tfm` | **Immutable TFM release** | **Not yet created** -- see `docs/tfm/annexes/code_and_repository.md`; this is a deliberate manual step, not automated by this phase |
+| `v1.0.0-tfm` | **Immutable TFM release** | **Created** -- see `docs/tfm/annexes/code_and_repository.md` |
 | `v1.0.0-beta.1` | Public beta presentation | Not yet created; explicitly a separate, later release per Sec 40 -- this phase only proves `v1.0.0-tfm` is submittable, not that the beta has shipped |
 
 ## Tags that actually exist in this repository today
 
 ```text
 erpguard-evolution-phase0-baseline  (e483f5c5f272139c65a02ebc32ab11f5e323b6a4)
+v1.0.0-tfm                          (f9974ec5672096e814b47346f94b10c5483f8a45)
 ```
 
 This project has, in practice, tracked progress through this session's
@@ -28,7 +29,19 @@ Git history and `docs/architecture/capability_reality_matrix.md` rather
 than a tag per intermediate version above -- the version numbers in the
 table are the master spec's naming scheme for what shipped in each
 window, not a claim that a corresponding Git tag exists for each one.
-Only `v1.0.0-tfm` and `v1.0.0-beta.1` are real, expected future tags.
+
+**Known gap, being resolved:** `v1.0.0-tfm` was cut at `f9974ec` before
+the `docs/version-header-and-reality-table` fixes (stale `v0.14.0`
+header, this file's own self-contradiction) landed -- so the tagged
+commit disagreed with the corrected docs about what version it was. The
+tag had not been shared/cited anywhere at the time this was caught, so
+the fix is to move it: after that branch merges to `main`, delete
+`v1.0.0-tfm` and recreate it pointing at the merge commit, so the tag,
+the README header, and this file describe the same artifact. If the tag
+is ever cited or shared before that move happens, the correct fix
+becomes cutting `v1.0.0-tfm.1` instead of moving the original -- see
+Git history for whichever actually happened.
+`v1.0.0-beta.1` remains a real, expected future tag not yet created.
 
 ## Cutting `v1.0.0-tfm`
 

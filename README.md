@@ -1,4 +1,4 @@
-# ERPGuard Evolution v0.14.0
+# ERPGuard Evolution v1.0.0-tfm
 
 ERPGuard Evolution is a versioned, testable and governed platform for
 understanding and improving ERP business processes. It keeps ERP effects behind
@@ -8,17 +8,18 @@ Real ERP writes remain a small, permit-gated, allowlisted set —
 `sales.quote.create_pricing_scenario_draft` (Spec 92) — each staging-only,
 false-by-default, and structurally incapable of a generic "raw ERP write."
 
-> Current project state: **Spec 92 — Governed Decision-to-Outcome Backend
-> Release Candidate**: opportunity → governed recommendation → independent
-> approval → bounded action draft → operational canary routing → signed
-> permit → controlled Odoo draft → postcondition verification → measured
-> outcome → sealed, hash-chained evidence bundle. See
-> [docs/specs/92_governed_decision_to_outcome_backend_rc.md](docs/specs/92_governed_decision_to_outcome_backend_rc.md).
-> ERPRiskBench (Spec 93) and the product web application (Spec 94) are
-> also complete and merged; **Spec 95 (Phase 22 — TFM delivery and
-> release freeze)** is the current work: packaging, clean-install
-> validation, and TFM submission evidence, no new product capability.
-> See [docs/specs/95_phase22_tfm_delivery_and_release_freeze.md](docs/specs/95_phase22_tfm_delivery_and_release_freeze.md).
+> Current project state: **`v1.0.0-tfm`, TFM submission freeze.** The full
+> path — data → process mining → economic diagnosis → opportunity →
+> governed recommendation → independent approval → bounded action draft →
+> operational canary routing → signed permit → controlled Odoo draft →
+> postcondition verification → measured outcome → sealed, hash-chained
+> evidence bundle — is implemented and tested end to end (Spec 92
+> Workstreams A–D). ERPRiskBench (Spec 93) and the product web application
+> (Spec 94) are complete and merged. Packaging and clean-install
+> validation (Spec 95 / Phase 22) are done; the remaining Definition of
+> Done items are human-judgment sign-off on the thesis memory/video, not
+> code — see the checklist below and
+> [docs/specs/95_phase22_tfm_delivery_and_release_freeze.md](docs/specs/95_phase22_tfm_delivery_and_release_freeze.md).
 
 ## What exists now
 
@@ -95,30 +96,15 @@ POST /v1/process-candidates/{candidate_id}/submit
 There is no bundled GIF asset yet; the dashboard and JSON API are the current
 reproducible demo surfaces.
 
-## Architecture and reality labels
+## What is real / What is simulated
 
-- `real`: identity boundaries, migrations, encrypted local secrets, canonical
-  storage, validation, connector registry/runtime convergence, variant
-  projection, candidate immutability, public/internal app composition
-  boundaries, the governed recommendation/action-draft lifecycle, the
-  operational canary router, outcome measurement gating, and the sealed
-  decision-to-outcome evidence bundle.
-- `fixture`: FakeConnector, Fake ERP data, local process/variant fixtures,
-  and `fixture`/`manual_import`-sourced outcome observations.
-- `staging_only`: real Odoo read-only transport paths, live smoke checks,
-  `sales.order.confirm`, and `sales.quote.create_pricing_scenario_draft`
-  (both false-by-default; the latter was verified live 2026-07-31 — see
-  [docs/demo/backend_rc_live_pricing_scenario_evidence.json](docs/demo/backend_rc_live_pricing_scenario_evidence.json)).
-- `advisory`: canary eligibility recommendations, opportunity/ROI sizing,
-  realized-outcome classification (never a causal claim).
-- `planned`: a Fake-ERP/fixture path into the decision-to-outcome pillar
-  (every `MarginOpportunity` today requires a real Odoo-derived
-  analytical snapshot -- see
-  [docs/tfm/annexes/installation.md](docs/tfm/annexes/installation.md));
-  production-grade authentication (`POST /internal/dev-tokens` is an
-  explicitly non-production bootstrap); `v1.0.0-tfm`/`v1.0.0-beta.1`
-  tagging (Spec 95, deliberately a manual step -- see
-  [docs/release/versions.md](docs/release/versions.md)).
+| Label | Meaning | Examples |
+| --- | --- | --- |
+| `real` | Runs for real, no simulation, on every request. | Identity boundaries, migrations, encrypted local secrets, canonical storage, validation, connector registry/runtime convergence, variant projection, candidate immutability, public/internal app composition boundaries, the governed recommendation/action-draft lifecycle, the operational canary router, outcome measurement gating, the sealed decision-to-outcome evidence bundle. |
+| `staging_only` | Real code path, real Odoo call, gated to non-production by default. | Odoo read-only transport, live smoke checks, `sales.order.confirm`, `sales.quote.create_pricing_scenario_draft` (both false-by-default; the latter verified live 2026-07-31 — see [evidence](docs/demo/backend_rc_live_pricing_scenario_evidence.json)). |
+| `fixture` | Deterministic local data, not a live system. | FakeConnector, Fake ERP data, local process/variant fixtures, `fixture`/`manual_import`-sourced outcome observations. |
+| `advisory` | A computed recommendation, never auto-applied, never a causal claim. | Canary eligibility recommendations, opportunity/ROI sizing, realized-outcome classification. |
+| `planned` | Not implemented yet. | A Fake-ERP/fixture path into the decision-to-outcome pillar (every `MarginOpportunity` requires a real Odoo-derived analytical snapshot — see [installation notes](docs/tfm/annexes/installation.md)); production-grade authentication (`POST /internal/dev-tokens` is an explicitly non-production bootstrap); the `v1.0.0-beta.1` public-beta tag (see [docs/release/versions.md](docs/release/versions.md)). |
 
 Full label-by-capability detail lives in the
 [capability reality matrix](docs/architecture/capability_reality_matrix.md).
@@ -190,7 +176,7 @@ Mechanically-checkable status: `tests/test_phase22_definition_of_done.py`.
       annexes complete, repository permissions correct -- all pending
       the thesis author's own review (`docs/tfm/memoria_draft.md` is an
       explicit **draft**, not final).
-- [ ] `v1.0.0-tfm` tag -- **not created**, a deliberate manual step (see
+- [x] `v1.0.0-tfm` tag created (see
       `docs/tfm/annexes/code_and_repository.md`).
 
 ## Known gaps (consolidated)

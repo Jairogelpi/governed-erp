@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "erpguard"
-version = "0.14.0"
+version = "1.0.0"
 description = "Semantic safety layer for ERP operations."
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
