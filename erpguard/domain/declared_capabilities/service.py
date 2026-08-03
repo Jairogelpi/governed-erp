@@ -21,6 +21,7 @@ from erpguard.domain.declared_capabilities.denylist import is_denylisted
 from erpguard.domain.processes.candidate_integrity import stable_digest
 
 _SUPPORTED_FIELD_TYPES = {"string", "integer", "decimal", "boolean"}
+_SUPPORTED_OPERATIONS = {"update_field", "create_record", "archive_record"}
 _TRANSITIONS: dict[str, set[str]] = {
     "draft": {"approved", "rejected"},
     "approved": {"active", "rejected"},
@@ -105,40 +106,73 @@ class DeclaredCapabilityService:
         tenant_id: str,
         name: str,
         target_model: str,
-        target_field: str,
-        field_type: str,
         created_by: str,
+        operation: str = "update_field",
+        target_field: str | None = None,
+        field_type: str | None = None,
         minimum_value: str | None = None,
         maximum_value: str | None = None,
         allowed_values: List[str] | None = None,
+        required_fields: dict[str, str] | None = None,
+        idempotency_field: str | None = None,
         max_records_per_run: int = 1,
     ) -> DeclaredWriteCapability:
-        if field_type not in _SUPPORTED_FIELD_TYPES:
-            raise DeclaredCapabilityValidationError(f"unsupported_field_type:{field_type}")
-        if is_denylisted(model=target_model, field=target_field):
-            raise DeclaredCapabilityDenied(f"denylisted_target:{target_model}.{target_field}")
+        if operation not in _SUPPORTED_OPERATIONS:
+            raise DeclaredCapabilityValidationError(f"unsupported_operation:{operation}")
         if max_records_per_run < 1:
             raise DeclaredCapabilityValidationError("max_records_per_run_must_be_positive")
 
+        if operation == "archive_record":
+            target_field = "active"
+            field_type = "boolean"
+        elif operation == "update_field":
+            if not target_field or not field_type:
+                raise DeclaredCapabilityValidationError("update_field_requires_target_field_and_field_type")
+        elif operation == "create_record":
+            if not required_fields:
+                raise DeclaredCapabilityValidationError("create_record_requires_required_fields")
+            if not idempotency_field:
+                raise DeclaredCapabilityValidationError("create_record_requires_idempotency_field")
+            if idempotency_field not in required_fields:
+                raise DeclaredCapabilityValidationError("idempotency_field_must_be_one_of_required_fields")
+            for field_name, declared_type in required_fields.items():
+                if declared_type not in _SUPPORTED_FIELD_TYPES:
+                    raise DeclaredCapabilityValidationError(f"unsupported_field_type:{declared_type}")
+                if is_denylisted(model=target_model, field=field_name):
+                    raise DeclaredCapabilityDenied(f"denylisted_target:{target_model}.{field_name}")
+
+        if target_field is not None:
+            if field_type not in _SUPPORTED_FIELD_TYPES:
+                raise DeclaredCapabilityValidationError(f"unsupported_field_type:{field_type}")
+            if is_denylisted(model=target_model, field=target_field):
+                raise DeclaredCapabilityDenied(f"denylisted_target:{target_model}.{target_field}")
+
+        required_fields = dict(required_fields or {})
         content: dict[str, Any] = {
+            "operation": operation,
             "target_model": target_model,
             "target_field": target_field,
             "field_type": field_type,
             "minimum_value": minimum_value,
             "maximum_value": maximum_value,
             "allowed_values": sorted(allowed_values or []),
+            "required_fields": dict(sorted(required_fields.items())),
+            "idempotency_field": idempotency_field,
             "max_records_per_run": max_records_per_run,
         }
         row = DeclaredWriteCapability(
             id=f"declaredcap_{uuid4().hex}",
             tenant_id=tenant_id,
             name=name,
+            operation=operation,
             target_model=target_model,
             target_field=target_field,
             field_type=field_type,
             minimum_value=minimum_value,
             maximum_value=maximum_value,
             allowed_values_json=_dump(sorted(allowed_values or [])),
+            required_fields_json=_dump(dict(sorted(required_fields.items()))),
+            idempotency_field=idempotency_field,
             max_records_per_run=max_records_per_run,
             status="draft",
             content_hash=stable_digest(content),

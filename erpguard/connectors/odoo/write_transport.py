@@ -42,6 +42,10 @@ class OdooWriteTransport(Protocol):
 
     def read_field(self, *, model: str, record_id: int, field: str) -> Any: ...
 
+    def create_record(
+        self, *, model: str, values: dict[str, Any], idempotency_field: str, idempotency_key: str
+    ) -> tuple[int, bool]: ...
+
 
 class LegacyXmlRpcWriteTransport:
     """SDK transport adapter around `OdooQuoteDraftClient`."""
@@ -95,3 +99,10 @@ class LegacyXmlRpcWriteTransport:
 
     def read_field(self, *, model: str, record_id: int, field: str) -> Any:
         return self._client.read_field(model=model, record_id=record_id, field=field)
+
+    def create_record(
+        self, *, model: str, values: dict[str, Any], idempotency_field: str, idempotency_key: str
+    ) -> tuple[int, bool]:
+        return self._client.create_record(
+            model=model, values=values, idempotency_field=idempotency_field, idempotency_key=idempotency_key
+        )
