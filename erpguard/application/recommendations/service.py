@@ -383,12 +383,15 @@ class RecommendationService:
             )
         row.status = "converted"
         row.converted_run_id = run.id
-        self.session.commit()
-        self.session.refresh(row)
 
+        # One commit for both status flips -- a crash between them used to
+        # leave a real ExecutionRun with the draft "converted" but the
+        # recommendation still "approved", which a retry (new idempotency
+        # key) could plan a second run against.
         recommendation = self._get(tenant_id=tenant_id, recommendation_id=row.recommendation_id)
         if recommendation.status == "approved":
             recommendation.status = "converted"
             recommendation.converted_at = _utc_now()
-            self.session.commit()
+        self.session.commit()
+        self.session.refresh(row)
         return row

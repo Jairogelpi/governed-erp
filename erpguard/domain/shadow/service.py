@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from collections import Counter
 from datetime import datetime, timezone
-from math import sqrt
 from typing import Any
 from uuid import uuid4
 
@@ -13,6 +12,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from erpguard.db.model_packages.candidate import ProcessCandidate
+from erpguard.domain.canary.metrics import wilson_interval
 from erpguard.db.model_packages.event_links import CanonicalEventObject
 from erpguard.db.model_packages.events import CanonicalEvent
 from erpguard.db.model_packages.proof import ProcessProof
@@ -525,24 +525,6 @@ class ShadowService:
             .all()
         )
 
-    @staticmethod
-    def _wilson(successes: int, total: int) -> dict[str, float] | None:
-        if not total:
-            return None
-        z = 1.959963984540054
-        proportion = successes / total
-        denominator = 1 + z * z / total
-        centre = (proportion + z * z / (2 * total)) / denominator
-        margin = (
-            z
-            * sqrt((proportion * (1 - proportion) + z * z / (4 * total)) / total)
-            / denominator
-        )
-        return {
-            "lower": max(0.0, centre - margin),
-            "upper": min(1.0, centre + margin),
-        }
-
     def dashboard(
         self,
         *,
@@ -703,11 +685,11 @@ class ShadowService:
             ),
             "outcome_accuracy": outcome_accuracy,
             "variant_distribution": dict(sorted(variant_counts.items())),
-            "agreement_confidence_interval_95": self._wilson(
+            "agreement_confidence_interval_95": wilson_interval(
                 operational_agreements,
                 operational_count,
             ),
-            "outcome_accuracy_confidence_interval_95": self._wilson(
+            "outcome_accuracy_confidence_interval_95": wilson_interval(
                 accurate_outcomes,
                 len(comparable_outcomes),
             ),

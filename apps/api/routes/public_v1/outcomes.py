@@ -17,6 +17,7 @@ from apps.api.schemas.outcomes import (
 from erpguard.application.outcomes.service import (
     OutcomeApprovalRejected,
     OutcomePlanNotFound,
+    OutcomeReportNotFound,
     OutcomeService,
     OutcomeTransitionError,
     OutcomeValidationError,
@@ -148,11 +149,10 @@ def evaluate_measurement_plan(
 def get_outcome_report(
     report_id: str, db: Session = Depends(get_db), principal: Principal = Depends(require_role("viewer"))
 ) -> RealizedOutcomeReportResponse:
-    from erpguard.db.model_packages.outcomes import RealizedOutcomeReport
-
-    row = db.query(RealizedOutcomeReport).filter_by(tenant_id=principal.tenant_id, id=report_id).one_or_none()
-    if row is None:
-        raise HTTPException(status_code=404, detail="outcome_report_not_found")
+    try:
+        row = OutcomeService(db).get_report(tenant_id=principal.tenant_id, report_id=report_id)
+    except OutcomeReportNotFound as exc:
+        raise HTTPException(status_code=404, detail="outcome_report_not_found") from exc
     return _report_response(row)
 
 

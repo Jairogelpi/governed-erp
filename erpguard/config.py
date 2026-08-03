@@ -2,10 +2,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    environment: str = "development"
     database_url: str = "sqlite:///./erpguard.db"
     auth_secret: str | None = None
-    auth_token_ttl_seconds: int = 900
     local_secret_key: str | None = None
     odoo_confirmation_amount_ceiling: float = 1000.0
     odoo_confirmation_forbidden_marker: str = "ERPGUARD-NO-CONFIRM"

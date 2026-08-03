@@ -1,9 +1,8 @@
 """Spec 92 Sec 9.8 -- canary dashboard aggregation.
 
-`wilson_interval` is the same formula `ShadowService._wilson`
-(`erpguard/domain/shadow/service.py:529-544`) already uses -- duplicated
-as a small pure function rather than reaching into a private method on an
-unrelated service.
+`wilson_interval` is the shared Wilson-score confidence-interval helper --
+`ShadowService.dashboard` (`erpguard/domain/shadow/service.py`) imports and
+calls this same function rather than keeping its own copy.
 """
 
 from __future__ import annotations
