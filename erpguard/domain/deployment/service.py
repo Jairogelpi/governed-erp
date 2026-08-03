@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from uuid import uuid4
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from erpguard.db.model_packages.skill_deployment import SkillDeploymentEvent
@@ -36,6 +37,13 @@ class NoActiveSkillPackage(ValueError):
 
 class CanaryPromotionNotEligible(InvalidStatusTransition):
     pass
+
+
+class ConcurrentPromotionConflict(InvalidStatusTransition):
+    """Raised when the database's partial-unique index (PostgreSQL --
+    see migration 0028) rejects a second concurrent promotion to `active`
+    for the same process. The check-then-insert query above can't see a
+    same-instant concurrent writer; this is the real backstop."""
 
 
 class SkillDeploymentService:
@@ -202,7 +210,13 @@ class SkillDeploymentService:
             actor=actor,
             reason=reason,
         )
-        self.session.commit()
+        try:
+            self.session.commit()
+        except IntegrityError as exc:
+            self.session.rollback()
+            raise ConcurrentPromotionConflict(
+                f"concurrent_promotion_for_process:{row.process_key}"
+            ) from exc
         self.session.refresh(row)
         return row
 

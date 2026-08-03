@@ -37,6 +37,10 @@ class OutcomePlanNotFound(KeyError):
     pass
 
 
+class OutcomeReportNotFound(KeyError):
+    pass
+
+
 class OutcomeValidationError(ValueError):
     pass
 
@@ -72,6 +76,12 @@ class OutcomeService:
 
     def get(self, *, tenant_id: str, plan_id: str) -> OutcomeMeasurementPlan:
         return self._get(tenant_id=tenant_id, plan_id=plan_id)
+
+    def get_report(self, *, tenant_id: str, report_id: str) -> RealizedOutcomeReport:
+        row = self.session.query(RealizedOutcomeReport).filter_by(tenant_id=tenant_id, id=report_id).one_or_none()
+        if row is None:
+            raise OutcomeReportNotFound(report_id)
+        return row
 
     @staticmethod
     def approval_scope(plan: OutcomeMeasurementPlan) -> str:
