@@ -3,12 +3,18 @@
 Phase 16 introduced draft quotation creation. Phase 17 adds exactly one R3
 method, ``sale.order.action_confirm``, plus read-only snapshot helpers.
 User-declared write capabilities (`erpguard/domain/declared_capabilities/`)
-add exactly one more primitive, `write_field`/`read_field` -- a single
-`(model, record_id, field, value)` write, re-checked against the same
-denylist the declaration itself was checked against at declare-time, so
-a bug anywhere upstream still can't turn this into a generic write. This
-is still not a generic RPC transport: no `create`, no `unlink`, no method
-other than `write`/`read` on a single record, no arbitrary method name.
+add two bounded primitives: `write_field`/`read_field` (a single
+`(model, record_id, field, value)` write) and `create_record` (a single
+`create` call restricted to a declared, denylist-checked field set, with
+built-in idempotency via a caller-supplied dedup field -- same idiom as
+`create_draft`/`find_by_client_reference` below). Every field written by
+either primitive is re-checked against the same denylist the declaration
+itself was checked against at declare-time, so a bug anywhere upstream
+still can't turn this into a generic write. There is deliberately no
+`unlink` anywhere in this file -- "delete" is always `write_field(...,
+field="active", value=False)`, a reversible archive, never a physical
+delete. This is still not a generic RPC transport: no arbitrary method
+name, no relation/many2one fields, no bulk `create`.
 """
 
 from __future__ import annotations
@@ -459,3 +465,31 @@ class OdooQuoteDraftClient:
         if not rows:
             raise LookupError(f"record_not_found:{model}:{record_id}")
         return rows[0].get(field)
+
+    def create_record(
+        self,
+        *,
+        model: str,
+        values: dict[str, Any],
+        idempotency_field: str,
+        idempotency_key: str,
+    ) -> tuple[int, bool]:
+        """Create exactly one record on `model` with exactly the declared
+        `values`. Returns `(record_id, created)` -- `created=False` means an
+        existing record already carried `idempotency_key` in
+        `idempotency_field` and was returned unchanged, no second record
+        created (same idempotency idiom as `create_draft`/
+        `find_by_client_reference` above)."""
+
+        for field in values:
+            if is_denylisted(model=model, field=field):
+                raise ValueError(f"denylisted_write_target:{model}.{field}")
+
+        existing = self._client.search_read(model, [[idempotency_field, "=", idempotency_key]], ["id"], limit=1)
+        if existing:
+            return int(existing[0]["id"]), False
+
+        record_id = self._client._execute_kw(  # noqa: SLF001 -- intentional bounded bridge
+            model, "create", [values], {},
+        )
+        return int(cast(int, record_id)), True

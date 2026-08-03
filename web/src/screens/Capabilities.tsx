@@ -3,9 +3,17 @@ import { api } from "../api/client";
 import { ErrorState } from "../components/ErrorState";
 import { StatusBadge } from "../components/StatusBadge";
 
+interface RequiredFieldRow {
+  fieldName: string;
+  fieldType: string;
+}
+
+const EMPTY_REQUIRED_FIELD: RequiredFieldRow = { fieldName: "", fieldType: "string" };
+
 export function Capabilities() {
   const [name, setName] = useState("");
   const [connectionId, setConnectionId] = useState("");
+  const [operation, setOperation] = useState<"update_field" | "create_record" | "archive_record">("update_field");
   const [targetModel, setTargetModel] = useState("");
   const [targetField, setTargetField] = useState("");
   const [fieldType, setFieldType] = useState("string");
@@ -13,6 +21,8 @@ export function Capabilities() {
   const [maximumValue, setMaximumValue] = useState("");
   const [allowedValues, setAllowedValues] = useState("");
   const [maxRecordsPerRun, setMaxRecordsPerRun] = useState("1");
+  const [requiredFields, setRequiredFields] = useState<RequiredFieldRow[]>([{ ...EMPTY_REQUIRED_FIELD }]);
+  const [idempotencyField, setIdempotencyField] = useState("");
   const [declareError, setDeclareError] = useState<string | null>(null);
 
   const [modelFields, setModelFields] = useState<Array<{ name: string; type: string; readonly: boolean }>>([]);
@@ -40,8 +50,9 @@ export function Capabilities() {
     Array<{
       id: string;
       name: string;
+      operation: string;
       target_model: string;
-      target_field: string;
+      target_field: string | null;
       status: string;
       approval_scope: string;
       created_by: string;
@@ -64,17 +75,27 @@ export function Capabilities() {
 
   async function declareCapability() {
     setDeclareError(null);
+    const requiredFieldsPayload =
+      operation === "create_record"
+        ? Object.fromEntries(
+            requiredFields.filter((row) => row.fieldName.trim()).map((row) => [row.fieldName.trim(), row.fieldType]),
+          )
+        : undefined;
     const { error } = await api.POST("/v1/declared-capabilities", {
       body: {
         name,
         target_model: targetModel,
-        target_field: targetField,
-        field_type: fieldType,
-        minimum_value: minimumValue || undefined,
-        maximum_value: maximumValue || undefined,
-        allowed_values: allowedValues
-          ? allowedValues.split(",").map((value) => value.trim())
-          : undefined,
+        operation,
+        target_field: operation === "update_field" ? targetField : undefined,
+        field_type: operation === "update_field" ? fieldType : undefined,
+        minimum_value: operation === "update_field" ? minimumValue || undefined : undefined,
+        maximum_value: operation === "update_field" ? maximumValue || undefined : undefined,
+        allowed_values:
+          operation === "update_field" && allowedValues
+            ? allowedValues.split(",").map((value) => value.trim())
+            : undefined,
+        required_fields: requiredFieldsPayload,
+        idempotency_field: operation === "create_record" ? idempotencyField || undefined : undefined,
         max_records_per_run: Number(maxRecordsPerRun),
       },
     });
@@ -85,7 +106,13 @@ export function Capabilities() {
     setName("");
     setTargetModel("");
     setTargetField("");
+    setRequiredFields([{ ...EMPTY_REQUIRED_FIELD }]);
+    setIdempotencyField("");
     await loadCapabilities();
+  }
+
+  function updateRequiredField(index: number, patch: Partial<RequiredFieldRow>) {
+    setRequiredFields((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
   }
 
   async function approveCapability(capabilityId: string) {
@@ -137,63 +164,132 @@ export function Capabilities() {
         </label>
         <br />
         <label>
-          Modelo Odoo (técnico)
+          Operación
           <br />
-          <input value={targetModel} onChange={(event) => setTargetModel(event.target.value)} placeholder="res.partner" />
-        </label>{" "}
-        <button type="button" className="primary" onClick={loadModelFields} disabled={schemaLoading}>
-          Consultar campos reales
-        </button>
-        {schemaError && <ErrorState message={schemaError} />}
-        <br />
-        <label>
-          Campo (técnico)
-          <br />
-          {modelFields.length > 0 ? (
-            <select value={targetField} onChange={(event) => setTargetField(event.target.value)}>
-              <option value="">-- selecciona un campo --</option>
-              {modelFields.map((field) => (
-                <option key={field.name} value={field.name}>
-                  {field.name} ({field.type})
-                </option>
-              ))}
-            </select>
-          ) : (
-            <input value={targetField} onChange={(event) => setTargetField(event.target.value)} placeholder="loyalty_discount_pct" />
-          )}
-        </label>{" "}
-        <label>
-          Tipo
-          <br />
-          <select value={fieldType} onChange={(event) => setFieldType(event.target.value)}>
-            <option value="string">string</option>
-            <option value="integer">integer</option>
-            <option value="decimal">decimal</option>
-            <option value="boolean">boolean</option>
+          <select value={operation} onChange={(event) => setOperation(event.target.value as typeof operation)}>
+            <option value="update_field">Actualizar campo (uno o varios registros)</option>
+            <option value="create_record">Crear registro (idempotente)</option>
+            <option value="archive_record">
+              Archivar registro (active=False, siempre reversible -- nunca borrado físico)
+            </option>
           </select>
         </label>
         <br />
         <label>
-          Mínimo
+          Modelo Odoo (técnico)
           <br />
-          <input value={minimumValue} onChange={(event) => setMinimumValue(event.target.value)} />
+          <input value={targetModel} onChange={(event) => setTargetModel(event.target.value)} placeholder="res.partner" />
         </label>{" "}
-        <label>
-          Máximo
-          <br />
-          <input value={maximumValue} onChange={(event) => setMaximumValue(event.target.value)} />
-        </label>{" "}
-        <label>
-          Valores permitidos (separados por comas)
-          <br />
-          <input value={allowedValues} onChange={(event) => setAllowedValues(event.target.value)} style={{ width: "100%" }} />
-        </label>
+        {operation !== "archive_record" && (
+          <>
+            <button type="button" className="primary" onClick={loadModelFields} disabled={schemaLoading}>
+              Consultar campos reales
+            </button>
+            {schemaError && <ErrorState message={schemaError} />}
+          </>
+        )}
         <br />
-        <label>
-          Máx. registros por ejecución
-          <br />
-          <input value={maxRecordsPerRun} onChange={(event) => setMaxRecordsPerRun(event.target.value)} />
-        </label>
+
+        {operation === "update_field" && (
+          <>
+            <label>
+              Campo (técnico)
+              <br />
+              {modelFields.length > 0 ? (
+                <select value={targetField} onChange={(event) => setTargetField(event.target.value)}>
+                  <option value="">-- selecciona un campo --</option>
+                  {modelFields.map((field) => (
+                    <option key={field.name} value={field.name}>
+                      {field.name} ({field.type})
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input value={targetField} onChange={(event) => setTargetField(event.target.value)} placeholder="loyalty_discount_pct" />
+              )}
+            </label>{" "}
+            <label>
+              Tipo
+              <br />
+              <select value={fieldType} onChange={(event) => setFieldType(event.target.value)}>
+                <option value="string">string</option>
+                <option value="integer">integer</option>
+                <option value="decimal">decimal</option>
+                <option value="boolean">boolean</option>
+              </select>
+            </label>
+            <br />
+            <label>
+              Mínimo
+              <br />
+              <input value={minimumValue} onChange={(event) => setMinimumValue(event.target.value)} />
+            </label>{" "}
+            <label>
+              Máximo
+              <br />
+              <input value={maximumValue} onChange={(event) => setMaximumValue(event.target.value)} />
+            </label>{" "}
+            <label>
+              Valores permitidos (separados por comas)
+              <br />
+              <input value={allowedValues} onChange={(event) => setAllowedValues(event.target.value)} style={{ width: "100%" }} />
+            </label>
+            <br />
+            <label>
+              Máx. registros por ejecución (permite operar en lote)
+              <br />
+              <input value={maxRecordsPerRun} onChange={(event) => setMaxRecordsPerRun(event.target.value)} />
+            </label>
+          </>
+        )}
+
+        {operation === "create_record" && (
+          <>
+            <h4>Campos requeridos (se deben enviar exactamente estos, ni más ni menos)</h4>
+            {requiredFields.map((row, index) => (
+              <div key={index}>
+                <label>
+                  Campo
+                  <input
+                    value={row.fieldName}
+                    onChange={(event) => updateRequiredField(index, { fieldName: event.target.value })}
+                    placeholder="name"
+                  />
+                </label>{" "}
+                <label>
+                  Tipo
+                  <select
+                    value={row.fieldType}
+                    onChange={(event) => updateRequiredField(index, { fieldType: event.target.value })}
+                  >
+                    <option value="string">string</option>
+                    <option value="integer">integer</option>
+                    <option value="decimal">decimal</option>
+                    <option value="boolean">boolean</option>
+                  </select>
+                </label>
+              </div>
+            ))}
+            <p>
+              <button
+                type="button"
+                className="primary"
+                onClick={() => setRequiredFields((prev) => [...prev, { ...EMPTY_REQUIRED_FIELD }])}
+              >
+                Añadir campo
+              </button>
+            </p>
+            <label>
+              Campo de idempotencia (debe ser uno de los campos requeridos -- evita duplicados en reintentos)
+              <br />
+              <input value={idempotencyField} onChange={(event) => setIdempotencyField(event.target.value)} placeholder="name" />
+            </label>
+          </>
+        )}
+
+        {operation === "archive_record" && (
+          <p>Esta capacidad siempre archiva (`active=False`); nunca ejecuta un borrado físico.</p>
+        )}
         <p>
           <button className="primary" onClick={declareCapability}>
             Declarar
@@ -220,6 +316,7 @@ export function Capabilities() {
           <thead>
             <tr>
               <th>Nombre</th>
+              <th>Operación</th>
               <th>Objetivo</th>
               <th>Estado</th>
               <th>Creado por</th>
@@ -230,8 +327,10 @@ export function Capabilities() {
             {items.map((item) => (
               <tr key={item.id}>
                 <td>{item.name}</td>
+                <td>{item.operation}</td>
                 <td>
-                  {item.target_model}.{item.target_field}
+                  {item.target_model}
+                  {item.target_field ? `.${item.target_field}` : ""}
                 </td>
                 <td>
                   <StatusBadge status={item.status} />

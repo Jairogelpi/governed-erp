@@ -1,7 +1,13 @@
-"""User-declared field-write capabilities.
+"""User-declared write capabilities.
 
-A declared capability names one `(model, field)` pair on Odoo, a value
-type/range, and nothing else -- it is never a generic write. Same
+A declared capability names one bounded write shape on Odoo -- update
+one field on up to `max_records_per_run` existing records
+(`operation="update_field"`), create one record with a fixed, declared
+field set (`operation="create_record"`), or archive records by setting
+`active=False` (`operation="archive_record"`, always reversible: the
+same declaration re-run with `value=True`, or a second `update_field`
+capability, restores it -- there is deliberately no real `unlink` path
+anywhere in this codebase). It is never a generic write. Same
 content-freeze/terminal-status idiom as `SkillPackage`: content locks
 once `approved_at is not None`, only `rejected`/`deprecated` are
 terminal (an `active` capability can be `deprecate`d but never revived,
@@ -30,12 +36,15 @@ class DeclaredWriteCapability(Base):
     id: Mapped[str] = mapped_column(String(128), primary_key=True)
     tenant_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(128), nullable=False)
+    operation: Mapped[str] = mapped_column(String(32), nullable=False, default="update_field")
     target_model: Mapped[str] = mapped_column(String(128), nullable=False)
-    target_field: Mapped[str] = mapped_column(String(128), nullable=False)
-    field_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    target_field: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    field_type: Mapped[str | None] = mapped_column(String(16), nullable=True)
     minimum_value: Mapped[str | None] = mapped_column(String(64), nullable=True)
     maximum_value: Mapped[str | None] = mapped_column(String(64), nullable=True)
     allowed_values_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    required_fields_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    idempotency_field: Mapped[str | None] = mapped_column(String(128), nullable=True)
     max_records_per_run: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="draft")
     content_hash: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
@@ -48,12 +57,15 @@ class DeclaredWriteCapability(Base):
 
 _TERMINAL_STATUSES = {"rejected", "deprecated"}
 _IMMUTABLE_CONTENT_ATTRS = (
+    "operation",
     "target_model",
     "target_field",
     "field_type",
     "minimum_value",
     "maximum_value",
     "allowed_values_json",
+    "required_fields_json",
+    "idempotency_field",
     "max_records_per_run",
     "content_hash",
 )

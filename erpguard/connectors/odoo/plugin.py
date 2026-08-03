@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from decimal import Decimal
 
@@ -126,24 +127,40 @@ class OdooConnectorPlugin(ConnectorTemplate):
             return None
         return lookup(capability.removeprefix("declared."))
 
+    @staticmethod
+    def _validate_declared_field_value(field_type: str, value) -> str | None:
+        """Type-only check, reused by both the single-field range check
+        (`_validate_declared_value`) and `create_record`'s per-field check
+        (which has no min/max, only a declared type)."""
+        try:
+            if field_type == "integer":
+                int(value)
+            elif field_type == "decimal":
+                float(value)
+            elif field_type == "boolean":
+                bool(value)
+            else:
+                str(value)
+        except (TypeError, ValueError):
+            return f"declared_capability_value_wrong_type:{field_type}"
+        return None
+
     def _validate_declared_value(self, declared, value) -> str | None:
         """Re-validate a runtime value against the stored declaration --
         never trust the caller's declared type/range intent alone."""
-        try:
-            if declared.field_type == "integer":
-                value = int(value)
-            elif declared.field_type == "decimal":
-                value = float(value)
-            elif declared.field_type == "boolean":
-                value = bool(value)
-            else:
-                value = str(value)
-        except (TypeError, ValueError):
-            return f"declared_capability_value_wrong_type:{declared.field_type}"
+        type_error = self._validate_declared_field_value(declared.field_type, value)
+        if type_error:
+            return type_error
+        if declared.field_type == "integer":
+            value = int(value)
+        elif declared.field_type == "decimal":
+            value = float(value)
+        elif declared.field_type == "boolean":
+            value = bool(value)
+        else:
+            value = str(value)
         if declared.allowed_values_json:
-            import json as _json
-
-            allowed_values = _json.loads(declared.allowed_values_json)
+            allowed_values = json.loads(declared.allowed_values_json)
             if allowed_values and value not in allowed_values:
                 return "declared_capability_value_not_allowed"
         caster = int if declared.field_type == "integer" else float
@@ -500,6 +517,17 @@ class OdooConnectorPlugin(ConnectorTemplate):
             safety_flags=ConnectorSafetyFlags(erp_touched=True, erp_write_performed=True),
         )
 
+    def _declared_capability_common_blocks(self, context: ConnectorContext, declared) -> str | None:
+        """Shared preflight for every declared-capability operation. Returns
+        an error code if blocked, None if clear to proceed."""
+
+        if not settings.allow_declared_write_capabilities:
+            return "declared_write_capabilities_disabled"
+        metadata = context.services.get("connection_metadata", {})
+        if str(metadata.get("environment", "")).lower() != "staging":
+            return "declared_capability_requires_staging_connection"
+        return None
+
     def _execute_declared_field_write(self, context: ConnectorContext, plan: NativeExecutionPlan) -> NativeExecutionResult:
         declared = self._declared_capability(context, plan.capability)
         if declared is None:
@@ -507,46 +535,106 @@ class OdooConnectorPlugin(ConnectorTemplate):
                 status="blocked", summary="declared_capability_not_active",
                 errors=["declared_capability_not_active"], safety_flags=ConnectorSafetyFlags(),
             )
-        if not settings.allow_declared_write_capabilities:
+        blocked = self._declared_capability_common_blocks(context, declared)
+        if blocked:
             return NativeExecutionResult(
-                status="blocked", summary="declared_write_capabilities_disabled",
-                errors=["declared_write_capabilities_disabled"], safety_flags=ConnectorSafetyFlags(),
+                status="blocked", summary=blocked, errors=[blocked], safety_flags=ConnectorSafetyFlags(),
             )
+
+        if declared.operation == "create_record":
+            return self._execute_declared_create_record(context, declared, plan)
+        return self._execute_declared_field_write_or_archive(context, declared, plan)
+
+    def _execute_declared_field_write_or_archive(
+        self, context: ConnectorContext, declared, plan: NativeExecutionPlan
+    ) -> NativeExecutionResult:
         if is_denylisted(model=declared.target_model, field=declared.target_field):
             return NativeExecutionResult(
                 status="blocked", summary="declared_capability_denylisted",
                 errors=["declared_capability_denylisted"], safety_flags=ConnectorSafetyFlags(),
             )
-        metadata = context.services.get("connection_metadata", {})
-        if str(metadata.get("environment", "")).lower() != "staging":
-            return NativeExecutionResult(
-                status="blocked", summary="declared_capability_requires_staging_connection",
-                errors=["declared_capability_requires_staging_connection"], safety_flags=ConnectorSafetyFlags(),
-            )
         try:
-            record_id = int(plan.arguments["record_id"])
+            raw_record_ids = plan.arguments.get("record_ids")
+            if raw_record_ids is None:
+                raw_record_ids = [plan.arguments["record_id"]]
+            record_ids = [int(item) for item in raw_record_ids]
             value = plan.arguments["value"]
         except (KeyError, TypeError, ValueError) as exc:
             return NativeExecutionResult(
                 status="blocked", summary="invalid_declared_capability_arguments",
                 errors=[str(exc)], safety_flags=ConnectorSafetyFlags(),
             )
-        error = self._validate_declared_value(declared, value)
-        if error:
+        if not record_ids:
+            return NativeExecutionResult(
+                status="blocked", summary="declared_capability_requires_at_least_one_record",
+                errors=["declared_capability_requires_at_least_one_record"], safety_flags=ConnectorSafetyFlags(),
+            )
+        if len(record_ids) > declared.max_records_per_run:
+            error = f"declared_capability_exceeds_max_records_per_run:{declared.max_records_per_run}"
             return NativeExecutionResult(
                 status="blocked", summary=error, errors=[error], safety_flags=ConnectorSafetyFlags(),
             )
+        value_error = self._validate_declared_value(declared, value)
+        if value_error:
+            return NativeExecutionResult(
+                status="blocked", summary=value_error, errors=[value_error], safety_flags=ConnectorSafetyFlags(),
+            )
 
         transport = self._write_transport(context)
-        before = transport.read_field(model=declared.target_model, record_id=record_id, field=declared.target_field)
-        transport.write_field(model=declared.target_model, record_id=record_id, field=declared.target_field, value=value)
+        records = []
+        for record_id in record_ids:
+            before = transport.read_field(model=declared.target_model, record_id=record_id, field=declared.target_field)
+            transport.write_field(model=declared.target_model, record_id=record_id, field=declared.target_field, value=value)
+            records.append({"record_id": record_id, "before": before, "written": value})
         return NativeExecutionResult(
-            status="ok", summary="declared_field_written",
-            payload={
-                "model": declared.target_model, "field": declared.target_field,
-                "record_id": record_id, "before": before, "written": value,
-            },
+            status="ok",
+            summary="declared_field_archived" if declared.operation == "archive_record" else "declared_field_written",
+            payload={"model": declared.target_model, "field": declared.target_field, "records": records},
             safety_flags=ConnectorSafetyFlags(erp_touched=True, erp_write_performed=True),
+        )
+
+    def _execute_declared_create_record(
+        self, context: ConnectorContext, declared, plan: NativeExecutionPlan
+    ) -> NativeExecutionResult:
+        required_fields: dict[str, str] = json.loads(declared.required_fields_json or "{}")
+        try:
+            values = dict(plan.arguments["values"])
+            idempotency_key = str(plan.arguments["idempotency_key"])
+        except (KeyError, TypeError, ValueError) as exc:
+            return NativeExecutionResult(
+                status="blocked", summary="invalid_declared_capability_arguments",
+                errors=[str(exc)], safety_flags=ConnectorSafetyFlags(),
+            )
+        if set(values.keys()) != set(required_fields.keys()):
+            error = "declared_capability_values_do_not_match_declared_field_set"
+            return NativeExecutionResult(
+                status="blocked", summary=error, errors=[error], safety_flags=ConnectorSafetyFlags(),
+            )
+        for field_name, declared_type in required_fields.items():
+            type_error = self._validate_declared_field_value(declared_type, values[field_name])
+            if type_error:
+                return NativeExecutionResult(
+                    status="blocked", summary=f"{field_name}:{type_error}", errors=[f"{field_name}:{type_error}"],
+                    safety_flags=ConnectorSafetyFlags(),
+                )
+            if is_denylisted(model=declared.target_model, field=field_name):
+                denylist_error = "declared_capability_denylisted"
+                return NativeExecutionResult(
+                    status="blocked", summary=denylist_error, errors=[denylist_error], safety_flags=ConnectorSafetyFlags(),
+                )
+
+        transport = self._write_transport(context)
+        record_id, created = transport.create_record(
+            model=declared.target_model,
+            values=values,
+            idempotency_field=declared.idempotency_field,
+            idempotency_key=idempotency_key,
+        )
+        return NativeExecutionResult(
+            status="ok",
+            summary="declared_record_created" if created else "declared_record_already_exists_for_idempotency_key",
+            payload={"model": declared.target_model, "record_id": record_id, "created": created, "values": values},
+            safety_flags=ConnectorSafetyFlags(erp_touched=True, erp_write_performed=created),
         )
 
     def _execute_quote_create_draft(self, context: ConnectorContext, plan: NativeExecutionPlan) -> NativeExecutionResult:
@@ -747,20 +835,66 @@ class OdooConnectorPlugin(ConnectorTemplate):
     def _verify_declared_field_write(self, context: ConnectorContext, result: NativeExecutionResult) -> VerificationResult:
         if result.status != "ok":
             return VerificationResult(status="not_executed", verified=False, summary="no_write_to_verify")
+        if "records" in result.payload:
+            return self._verify_declared_field_write_or_archive(context, result)
+        return self._verify_declared_create_record(context, result)
+
+    def _verify_declared_field_write_or_archive(
+        self, context: ConnectorContext, result: NativeExecutionResult
+    ) -> VerificationResult:
         model = result.payload.get("model")
         field = result.payload.get("field")
-        record_id = result.payload.get("record_id")
-        written = result.payload.get("written")
-        if model is None or field is None or record_id is None:
+        records = result.payload.get("records") or []
+        if model is None or field is None or not records:
             return VerificationResult(status="verification_failed", verified=False, summary="missing_write_target")
         transport = self._write_transport(context)
-        current = transport.read_field(model=model, record_id=int(record_id), field=field)
-        verified = current == written
+        mismatches: list[int] = []
+        evidence = []
+        for entry in records:
+            record_id = int(entry["record_id"])
+            written = entry["written"]
+            current = transport.read_field(model=model, record_id=record_id, field=field)
+            if current != written:
+                mismatches.append(record_id)
+            evidence.append({"record_id": record_id, "written": written, "read_back": current})
+        verified = not mismatches
         return VerificationResult(
             status="verified" if verified else "verification_failed",
             verified=verified,
-            summary="declared_field_write_confirmed" if verified else "postcondition_failed:read_back_mismatch",
-            evidence={"written": written, "read_back": current},
+            summary=(
+                "declared_field_write_confirmed"
+                if verified
+                else f"postcondition_failed:read_back_mismatch:{mismatches}"
+            ),
+            evidence={"records": evidence},
+        )
+
+    def _verify_declared_create_record(
+        self, context: ConnectorContext, result: NativeExecutionResult
+    ) -> VerificationResult:
+        model = result.payload.get("model")
+        record_id = result.payload.get("record_id")
+        values = result.payload.get("values") or {}
+        if model is None or record_id is None:
+            return VerificationResult(status="verification_failed", verified=False, summary="missing_write_target")
+        transport = self._write_transport(context)
+        mismatches: dict[str, object] = {}
+        read_back: dict[str, object] = {}
+        for field_name, expected in values.items():
+            current = transport.read_field(model=model, record_id=int(record_id), field=field_name)
+            read_back[field_name] = current
+            if current != expected:
+                mismatches[field_name] = current
+        verified = not mismatches
+        return VerificationResult(
+            status="verified" if verified else "verification_failed",
+            verified=verified,
+            summary=(
+                "declared_record_create_confirmed"
+                if verified
+                else f"postcondition_failed:field_mismatch:{sorted(mismatches)}"
+            ),
+            evidence={"expected": values, "read_back": read_back},
         )
 
     def execution_permit(self, permit_id: str, capability: str) -> ExecutionPermit:

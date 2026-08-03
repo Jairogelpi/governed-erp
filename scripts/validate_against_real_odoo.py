@@ -13,11 +13,12 @@ never against a fake transport. Pair with `docker-compose.odoo-staging.yml`:
 Exercises, in order, against the real server:
   1. read-only schema discovery + fingerprint (OdooConnectorPlugin)
   2. one real quote.create_draft against a real demo partner/product
-  3. a full declared-write-capability round trip: declare -> approve ->
-     activate -> plan -> execute -> verify against res.partner.comment
-     (a harmless demo text field), proving the generic write_field/
-     read_field primitive and its postcondition against real XML-RPC
-     responses, not `_FakeWriteTransport`.
+  3. three declared-write-capability round trips against real XML-RPC
+     responses, not `_FakeWriteTransport`: update_field on
+     res.partner.comment, archive_record (archives then restores
+     res.partner.active, proving delete is really reversible), and
+     create_record on crm.lead (idempotent -- the same idempotency_key
+     retried creates no second record).
 
 Not part of the pytest suite (needs a live server) and not wired into
 CI (no Odoo instance available there) -- same category as
@@ -190,6 +191,88 @@ async def main() -> int:
                 exec_result.status == "ok" and verification.verified,
                 f"exec_status={exec_result.status} verified={verification.verified}",
             )
+            archive_row = service.declare(
+                tenant_id="staging-validation",
+                name="validation_archive",
+                target_model="res.partner",
+                operation="archive_record",
+                created_by="validation-script",
+            )
+            archive_approval = Approval(
+                id=f"approval_{uuid4().hex}",
+                tenant_id="staging-validation",
+                scope=DeclaredCapabilityService.approval_scope(archive_row),
+                actor_id="validation-script-approver",
+            )
+            db.add(archive_approval)
+            db.commit()
+            archive_row = service.approve(
+                tenant_id="staging-validation",
+                capability_id=archive_row.id,
+                approval_id=archive_approval.id,
+                approver_actor_id="validation-script-approver",
+            )
+            archive_row = service.activate(tenant_id="staging-validation", capability_id=archive_row.id)
+            archive_capability_name = f"declared.{archive_row.id}"
+            archive_plan = NativeExecutionPlan(
+                capability=archive_capability_name,
+                arguments={"record_id": partner_id, "value": False},
+                supports_execution=True,
+            )
+            archive_permit = ExecutionPermit(permit_id="validation", capability=archive_capability_name, approved=True)
+            archive_result = await plugin.execute_capability(declared_context, archive_plan, archive_permit)
+            restore_plan = NativeExecutionPlan(
+                capability=archive_capability_name,
+                arguments={"record_id": partner_id, "value": True},
+                supports_execution=True,
+            )
+            restore_result = await plugin.execute_capability(declared_context, restore_plan, archive_permit)
+            record(
+                "archive_record round trip (reversible)",
+                archive_result.status == "ok" and restore_result.status == "ok",
+                f"archive_status={archive_result.status} restore_status={restore_result.status}",
+            )
+
+            create_row = service.declare(
+                tenant_id="staging-validation",
+                name="validation_create_lead",
+                target_model="crm.lead",
+                operation="create_record",
+                required_fields={"name": "string"},
+                idempotency_field="name",
+                created_by="validation-script",
+            )
+            create_approval = Approval(
+                id=f"approval_{uuid4().hex}",
+                tenant_id="staging-validation",
+                scope=DeclaredCapabilityService.approval_scope(create_row),
+                actor_id="validation-script-approver",
+            )
+            db.add(create_approval)
+            db.commit()
+            create_row = service.approve(
+                tenant_id="staging-validation",
+                capability_id=create_row.id,
+                approval_id=create_approval.id,
+                approver_actor_id="validation-script-approver",
+            )
+            create_row = service.activate(tenant_id="staging-validation", capability_id=create_row.id)
+            create_capability_name = f"declared.{create_row.id}"
+            lead_name = f"erpguard-validation-lead-{uuid4().hex[:8]}"
+            create_plan = NativeExecutionPlan(
+                capability=create_capability_name,
+                arguments={"values": {"name": lead_name}, "idempotency_key": lead_name},
+                supports_execution=True,
+            )
+            create_permit = ExecutionPermit(permit_id="validation", capability=create_capability_name, approved=True)
+            create_result = await plugin.execute_capability(declared_context, create_plan, create_permit)
+            create_verification = await plugin.verify_execution(declared_context, create_capability_name, create_result)
+            record(
+                "create_record round trip (idempotent)",
+                create_result.status == "ok" and create_verification.verified,
+                f"exec_status={create_result.status} verified={create_verification.verified}",
+            )
+
             db.close()
         except Exception as exc:  # noqa: BLE001
             record("declared_write_capability round trip", False, str(exc))

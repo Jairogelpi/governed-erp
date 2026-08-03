@@ -2503,16 +2503,27 @@ export interface components {
             name: string;
             /** Target Model */
             target_model: string;
+            /**
+             * Operation
+             * @default update_field
+             */
+            operation: string;
             /** Target Field */
-            target_field: string;
+            target_field?: string | null;
             /** Field Type */
-            field_type: string;
+            field_type?: string | null;
             /** Minimum Value */
             minimum_value?: string | null;
             /** Maximum Value */
             maximum_value?: string | null;
             /** Allowed Values */
             allowed_values?: string[] | null;
+            /** Required Fields */
+            required_fields?: {
+                [key: string]: string;
+            } | null;
+            /** Idempotency Field */
+            idempotency_field?: string | null;
             /**
              * Max Records Per Run
              * @default 1
@@ -2532,18 +2543,26 @@ export interface components {
             tenant_id: string;
             /** Name */
             name: string;
+            /** Operation */
+            operation: string;
             /** Target Model */
             target_model: string;
             /** Target Field */
-            target_field: string;
+            target_field: string | null;
             /** Field Type */
-            field_type: string;
+            field_type: string | null;
             /** Minimum Value */
             minimum_value: string | null;
             /** Maximum Value */
             maximum_value: string | null;
             /** Allowed Values */
             allowed_values: string[];
+            /** Required Fields */
+            required_fields: {
+                [key: string]: string;
+            };
+            /** Idempotency Field */
+            idempotency_field: string | null;
             /** Max Records Per Run */
             max_records_per_run: number;
             /** Status */
