@@ -21,7 +21,7 @@ rather than getting their own bump, for example.
 
 ```text
 erpguard-evolution-phase0-baseline  (e483f5c5f272139c65a02ebc32ab11f5e323b6a4)
-v1.0.0-tfm                          (f9974ec5672096e814b47346f94b10c5483f8a45)
+v1.0.0-tfm                          (37383fdb4ae2b836816d9f1e8f66bae6ab6b219d)
 ```
 
 This project has, in practice, tracked progress through this session's
@@ -30,17 +30,15 @@ than a tag per intermediate version above -- the version numbers in the
 table are the master spec's naming scheme for what shipped in each
 window, not a claim that a corresponding Git tag exists for each one.
 
-**Known gap, being resolved:** `v1.0.0-tfm` was cut at `f9974ec` before
-the `docs/version-header-and-reality-table` fixes (stale `v0.14.0`
-header, this file's own self-contradiction) landed -- so the tagged
-commit disagreed with the corrected docs about what version it was. The
-tag had not been shared/cited anywhere at the time this was caught, so
-the fix is to move it: after that branch merges to `main`, delete
-`v1.0.0-tfm` and recreate it pointing at the merge commit, so the tag,
-the README header, and this file describe the same artifact. If the tag
-is ever cited or shared before that move happens, the correct fix
-becomes cutting `v1.0.0-tfm.1` instead of moving the original -- see
-Git history for whichever actually happened.
+**Resolved gap:** `v1.0.0-tfm` was originally cut at `f9974ec`, before a
+version/README/tag mismatch was caught (stale `v0.14.0` header, and this
+file's own self-contradiction about whether the tag existed yet). The
+tag had not been shared or cited anywhere at that point, so it was moved
+rather than superseded: deleted and recreated at `37383fd` (PR #57's
+merge commit into `main`), which carries the version/README/versions.md
+fix. Tag, README header, and this file now describe the same artifact.
+Had the original tag already been shared or cited, the correct fix would
+have been cutting `v1.0.0-tfm.1` instead of moving it -- not needed here.
 `v1.0.0-beta.1` remains a real, expected future tag not yet created.
 
 ## Cutting `v1.0.0-tfm`
