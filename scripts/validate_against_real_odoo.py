@@ -52,8 +52,6 @@ def _config() -> OdooConfig:
 
 
 async def main() -> int:
-    import asyncio
-
     config = _config()
     client = OdooClient(config)
     write_client = OdooQuoteDraftClient(config)

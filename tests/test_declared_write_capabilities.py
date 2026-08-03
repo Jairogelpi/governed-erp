@@ -53,6 +53,17 @@ def _plugin(transport: _FakeWriteTransport) -> OdooConnectorPlugin:
     return OdooConnectorPlugin(write_transport_factory=lambda context: transport)
 
 
+def _lookup(db_session):
+    def lookup(cap_id: str) -> DeclaredWriteCapability | None:
+        return (
+            db_session.query(DeclaredWriteCapability)
+            .filter_by(tenant_id="tenant-1", id=cap_id, status="active")
+            .one_or_none()
+        )
+
+    return lookup
+
+
 def _staging_context(services: dict | None = None) -> ConnectorContext:
     merged = {"connection_metadata": {"environment": "staging"}}
     merged.update(services or {})
@@ -113,9 +124,7 @@ def test_only_active_capability_usable_by_plan(db_session, monkeypatch):
     )
     transport = _FakeWriteTransport()
     plugin = _plugin(transport)
-    lookup = lambda cap_id: db_session.query(DeclaredWriteCapability).filter_by(
-        tenant_id="tenant-1", id=cap_id, status="active"
-    ).one_or_none()
+    lookup = _lookup(db_session)
     context = _staging_context({"declared_capability_lookup": lookup})
 
     plan = asyncio.run(plugin.plan_capability(context, f"declared.{draft_row.id}"))
@@ -128,9 +137,7 @@ def test_runtime_value_outside_declared_range_blocked(db_session, monkeypatch):
     transport = _FakeWriteTransport()
     transport.seed("res.partner", 7, "loyalty_discount_pct", 10.0)
     plugin = _plugin(transport)
-    lookup = lambda cap_id: db_session.query(DeclaredWriteCapability).filter_by(
-        tenant_id="tenant-1", id=cap_id, status="active"
-    ).one_or_none()
+    lookup = _lookup(db_session)
     context = _staging_context({"declared_capability_lookup": lookup})
 
     plan = NativeExecutionPlan(
@@ -149,9 +156,7 @@ def test_feature_flag_defaults_off_blocks_active_capability(db_session):
     transport = _FakeWriteTransport()
     transport.seed("res.partner", 7, "loyalty_discount_pct", 10.0)
     plugin = _plugin(transport)
-    lookup = lambda cap_id: db_session.query(DeclaredWriteCapability).filter_by(
-        tenant_id="tenant-1", id=cap_id, status="active"
-    ).one_or_none()
+    lookup = _lookup(db_session)
     context = _staging_context({"declared_capability_lookup": lookup})
 
     plan = NativeExecutionPlan(
@@ -170,9 +175,7 @@ def test_full_round_trip_declare_approve_activate_plan_execute_verify(db_session
     transport = _FakeWriteTransport()
     transport.seed("res.partner", 7, "loyalty_discount_pct", 10.0)
     plugin = _plugin(transport)
-    lookup = lambda cap_id: db_session.query(DeclaredWriteCapability).filter_by(
-        tenant_id="tenant-1", id=cap_id, status="active"
-    ).one_or_none()
+    lookup = _lookup(db_session)
     context = _staging_context({"declared_capability_lookup": lookup})
     capability_name = f"declared.{active_row.id}"
 
@@ -198,9 +201,7 @@ def test_postcondition_failure_marks_verification_failed(db_session, monkeypatch
     transport = _FakeWriteTransport()
     transport.seed("res.partner", 7, "loyalty_discount_pct", 10.0)
     plugin = _plugin(transport)
-    lookup = lambda cap_id: db_session.query(DeclaredWriteCapability).filter_by(
-        tenant_id="tenant-1", id=cap_id, status="active"
-    ).one_or_none()
+    lookup = _lookup(db_session)
     context = _staging_context({"declared_capability_lookup": lookup})
     capability_name = f"declared.{active_row.id}"
 
