@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
+from typing import Any, List
 from uuid import uuid4
 
 from sqlalchemy.orm import Session
@@ -74,7 +75,7 @@ class DeclaredCapabilityService:
     def get(self, *, tenant_id: str, capability_id: str) -> DeclaredWriteCapability:
         return self._get(tenant_id=tenant_id, capability_id=capability_id)
 
-    def list(self, *, tenant_id: str) -> list[DeclaredWriteCapability]:
+    def list(self, *, tenant_id: str) -> List[DeclaredWriteCapability]:
         return (
             self.session.query(DeclaredWriteCapability)
             .filter_by(tenant_id=tenant_id)
@@ -109,7 +110,7 @@ class DeclaredCapabilityService:
         created_by: str,
         minimum_value: str | None = None,
         maximum_value: str | None = None,
-        allowed_values: list[str] | None = None,
+        allowed_values: List[str] | None = None,
         max_records_per_run: int = 1,
     ) -> DeclaredWriteCapability:
         if field_type not in _SUPPORTED_FIELD_TYPES:
@@ -119,7 +120,7 @@ class DeclaredCapabilityService:
         if max_records_per_run < 1:
             raise DeclaredCapabilityValidationError("max_records_per_run_must_be_positive")
 
-        content = {
+        content: dict[str, Any] = {
             "target_model": target_model,
             "target_field": target_field,
             "field_type": field_type,
